@@ -64,10 +64,10 @@ Gapless, crossfade, эквалайзер, умные плейлисты, ста�
 
 ## 7. Открытые вопросы (решить в начале)
 
-1. Название приложения и package id (например, `org.example.player`).
-2. Минимальная версия Android (рекомендация: API 26+).
+1. Название приложения и package id: решено, Muzzzlo (`app_name`), `org.muzzzlo.player` (`docs/decisions/006-min-sdk-and-package.md`).
+2. Минимальная версия Android: решено, API 26 (`docs/decisions/006-min-sdk-and-package.md`).
 3. Библиотека для тегов: решено в задаче 0.3.0, TagLib через JNI (`docs/decisions/005-tag-library.md`).
-4. Подтвердить лицензию (GPLv3).
+4. Лицензия: решено, GPLv3 (`LICENSE`).
 5. Когда будет готов макет Figma и в каком виде он будет передан (ссылка через коннектор или экспорт).
 
 ## 8. С чего начать
