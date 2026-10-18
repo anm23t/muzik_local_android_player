@@ -50,6 +50,9 @@ object MuzzzloDimens {
     val AlbumCardCover = 112.dp
     val AlbumCardInset = 6.dp
     val InlineArtistPhoto = 20.dp
+    val ArtistCardPhoto = 100.dp
+    val PanelPadding = 16.dp
+    val ArtistCardTile = 100.dp
 
     // Round icon buttons and their icons.
     val ButtonSmall = 32.dp
@@ -71,6 +74,7 @@ object MuzzzloDimens {
     val PillShape = RoundedCornerShape(percent = 50)
     val CardShape = RoundedCornerShape(CardRadius)
     val TileShape = RoundedCornerShape(InnerCoverRadius)
+    val PanelShape = RoundedCornerShape(FrameRadius)
     val RowShape = RoundedCornerShape(RowRadius)
     val DialogShape = RoundedCornerShape(CardRadius)
     val FrameShape = RoundedCornerShape(FrameRadius)
