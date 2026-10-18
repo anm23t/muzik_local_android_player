@@ -60,6 +60,9 @@ android {
 
     testOptions {
         unitTests.all { it.useJUnitPlatform() }
+        // The instrumented test APK otherwise targets minSdk, and Android 13+ then refuses READ_MEDIA_AUDIO
+        // to TagReadBenchmark.
+        targetSdk = 35
     }
 }
 
