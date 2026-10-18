@@ -6,6 +6,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
+import android.util.Log
 import androidx.test.platform.app.InstrumentationRegistry
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -30,22 +31,35 @@ import java.io.File
  * The safe write against a real MediaStore file: the original is replaced through `openFileDescriptor(uri, "rwt")`
  * under scoped storage. The test creates the file itself, so it owns it and needs no permission dialog.
  * Android 10+ only (the file is created with `RELATIVE_PATH`). Run with `./gradlew :core:tags:connectedDebugAndroidTest`.
+ *
+ * Each run gets its own file name: a file left behind by an earlier run would make MediaStore rename the new one.
  */
 class SafeTagWriterDeviceTest {
     private val context: Context = InstrumentationRegistry.getInstrumentation().targetContext
     private val work = File(context.cacheDir, "safe-write-test")
+    private val fileName = "muzzzlo-write-test-${System.currentTimeMillis()}.flac"
     private var uri: Uri? = null
 
     @Before
     fun setUp() {
         assumeTrue("Needs Android 10+", Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
         work.deleteRecursively()
-        uri = insertFixture("muzzzlo-write-test.flac")
+        uri = insertFixture(fileName)
     }
 
+    /**
+     * Cleanup does not fail the test: losing access to the file after the write is checked by the test itself.
+     * A failed delete is logged with the owner and pending state, which tell who took the file.
+     */
     @After
     fun tearDown() {
-        uri?.let { context.contentResolver.delete(it, null, null) }
+        uri?.let { uri ->
+            try {
+                context.contentResolver.delete(uri, null, null)
+            } catch (e: SecurityException) {
+                Log.w(TAG, "Cannot delete $uri: owner=${ownerOf(uri)}, pending=${pendingOf(uri)}", e)
+            }
+        }
         work.deleteRecursively()
     }
 
@@ -54,7 +68,7 @@ class SafeTagWriterDeviceTest {
         runBlocking {
             val uri = requireNotNull(uri)
             val files = MediaStoreOriginalFiles(context)
-            val target = TagWriteTarget.ContentUri(uri.toString(), "muzzzlo-write-test.flac")
+            val target = TagWriteTarget.ContentUri(uri.toString(), fileName)
             val audioBefore = fingerprintOf(uri)
             val edit = TagEdit(title = "Записано 🎧", artists = listOf("Alpha", "Beta"))
 
@@ -65,6 +79,8 @@ class SafeTagWriterDeviceTest {
             assertEquals("Записано 🎧", tags.title)
             assertEquals(listOf("Alpha", "Beta"), tags.artists)
             assertArrayEquals(audioBefore, fingerprintOf(uri))
+            assertEquals("the app must stay the owner of the file", context.packageName, ownerOf(uri))
+            assertEquals("the file must not be pending", "0", pendingOf(uri))
             assertTrue("journal must be empty", File(work, "journal").listFiles().orEmpty().isEmpty())
         }
 
@@ -112,6 +128,18 @@ class SafeTagWriterDeviceTest {
         return requireNotNull(AudioFingerprint.of(copy, AudioFormat.FLAC))
     }
 
+    private fun ownerOf(uri: Uri): String? = columnOf(uri, OWNER_PACKAGE_NAME)
+
+    private fun pendingOf(uri: Uri): String? = columnOf(uri, MediaStore.MediaColumns.IS_PENDING)
+
+    private fun columnOf(
+        uri: Uri,
+        column: String,
+    ): String? =
+        context.contentResolver.query(uri, arrayOf(column), null, null, null)?.use { cursor ->
+            if (cursor.moveToFirst()) cursor.getString(0) else null
+        }
+
     /** Creates a MediaStore audio file owned by the test from the `flac.flac` fixture. */
     private fun insertFixture(name: String): Uri {
         val values =
@@ -127,6 +155,13 @@ class SafeTagWriterDeviceTest {
             requireNotNull(resolver.openOutputStream(uri, "w")).use { input.copyTo(it) }
         }
         return uri
+    }
+
+    private companion object {
+        const val TAG = "SafeTagWriterDeviceTest"
+
+        // MediaStore.MediaColumns.OWNER_PACKAGE_NAME appeared in Android 11; the column exists in Android 10.
+        const val OWNER_PACKAGE_NAME = "owner_package_name"
     }
 
     private object InPlace : DispatcherProvider {
