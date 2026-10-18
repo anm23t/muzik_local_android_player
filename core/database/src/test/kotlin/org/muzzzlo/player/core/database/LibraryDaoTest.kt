@@ -104,6 +104,98 @@ class LibraryDaoTest {
         }
 
     @Test
+    fun `artists are counted by present tracks and listed by name`() =
+        runBlocking {
+            val bob = dao.artistId("bob", "bob")
+            val anna = dao.artistId("Anna", "anna")
+            val ghost = dao.artistId("Ghost", "ghost")
+            val first = dao.insertTrack(track("u1", "First").copy(dateAdded = 300))
+            val second = dao.insertTrack(track("u2", "Second").copy(dateAdded = 100))
+            val gone = dao.insertTrack(track("u3", "Gone"))
+            dao.insertTrackArtists(
+                listOf(
+                    TrackArtistEntity(first, anna, 0),
+                    TrackArtistEntity(first, bob, 1),
+                    TrackArtistEntity(second, anna, 0),
+                    TrackArtistEntity(gone, ghost, 0),
+                ),
+            )
+            dao.setMissing(listOf(gone), true)
+
+            val artists = dao.observeArtists().first()
+
+            assertEquals(listOf("Anna", "bob"), artists.map { it.name })
+            assertEquals(listOf(2, 1), artists.map { it.trackCount })
+            assertEquals(100L, artists.first().dateAdded)
+        }
+
+    @Test
+    fun `artist tracks are the present tracks that credit them`() =
+        runBlocking {
+            val anna = dao.artistId("Anna", "anna")
+            val solo = dao.insertTrack(track("u1", "Solo"))
+            val feature = dao.insertTrack(track("u2", "Feature"))
+            val gone = dao.insertTrack(track("u3", "Gone"))
+            dao.insertTrack(track("u4", "Other"))
+            dao.insertTrackArtists(
+                listOf(
+                    TrackArtistEntity(solo, anna, 0),
+                    TrackArtistEntity(feature, anna, 1),
+                    TrackArtistEntity(gone, anna, 0),
+                ),
+            )
+            dao.setMissing(listOf(gone), true)
+
+            assertEquals(listOf("Feature", "Solo"), dao.observeArtistTracks(anna).first().map { it.title })
+        }
+
+    @Test
+    fun `artist albums are their own albums and albums they appear on`() =
+        runBlocking {
+            val anna = dao.artistId("Anna", "anna")
+            val other = dao.artistId("Other", "other")
+            val own = dao.insertAlbum(AlbumEntity(title = "Own", titleKey = "own"))
+            val guest = dao.insertAlbum(AlbumEntity(title = "Guest", titleKey = "guest"))
+            val unrelated = dao.insertAlbum(AlbumEntity(title = "Unrelated", titleKey = "unrelated"))
+            dao.insertAlbumArtists(
+                listOf(
+                    AlbumArtistEntity(own, anna, 0),
+                    AlbumArtistEntity(guest, other, 0),
+                    AlbumArtistEntity(unrelated, other, 0),
+                ),
+            )
+            val ownTrack = dao.insertTrack(track("u1", "Own song", own, 1))
+            val guestTrack = dao.insertTrack(track("u2", "Guest song", guest, 1))
+            val otherTrack = dao.insertTrack(track("u3", "Other song", unrelated, 1))
+            dao.insertTrackArtists(
+                listOf(
+                    TrackArtistEntity(ownTrack, anna, 0),
+                    TrackArtistEntity(guestTrack, other, 0),
+                    TrackArtistEntity(guestTrack, anna, 1),
+                    TrackArtistEntity(otherTrack, other, 0),
+                ),
+            )
+
+            val refs = dao.observeArtistAlbumRefs(anna).first().sortedBy { it.albumId }
+
+            assertEquals(listOf(own to true, guest to false), refs.map { it.albumId to it.isOwn })
+        }
+
+    @Test
+    fun `the artist photo path is kept and cleared`() =
+        runBlocking {
+            val anna = dao.artistId("Anna", "anna")
+            dao.setArtistPhotoPath(anna, "/files/artist_photos/1.jpg")
+            assertEquals("/files/artist_photos/1.jpg", dao.artistPhotoPath(anna))
+            // A rescan finds the artist by key and keeps the photo.
+            assertEquals(anna, dao.artistId("ANNA", "anna"))
+            assertEquals("/files/artist_photos/1.jpg", dao.artistPhotoPath(anna))
+
+            dao.setArtistPhotoPath(anna, null)
+            assertEquals(null, dao.artistPhotoPath(anna))
+        }
+
+    @Test
     fun `empty albums are deleted`() =
         runBlocking {
             dao.insertAlbum(AlbumEntity(title = "Lonely", titleKey = "lonely"))

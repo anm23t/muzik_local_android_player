@@ -28,6 +28,30 @@ data class AlbumRow(
     @ColumnInfo(name = "date_added") val dateAdded: Long?,
 )
 
+/**
+ * Artist with the number of present tracks.
+ *
+ * @property photoPath copy of the photo the user picked (column `photo_uri`).
+ * @property dateAdded when the first of their tracks appeared on the device (MediaStore `date_added`, seconds).
+ */
+data class ArtistRow(
+    val id: Long,
+    val name: String,
+    @ColumnInfo(name = "photo_uri") val photoPath: String?,
+    @ColumnInfo(name = "track_count") val trackCount: Int,
+    @ColumnInfo(name = "date_added") val dateAdded: Long?,
+)
+
+/**
+ * An album of an artist.
+ *
+ * @property isOwn the artist is one of the album artists; false when they only appear on some of its tracks.
+ */
+data class ArtistAlbumRef(
+    @ColumnInfo(name = "album_id") val albumId: Long,
+    @ColumnInfo(name = "is_own") val isOwn: Boolean,
+)
+
 /** Track to artist name pair, already ordered by `position` in the query. */
 data class TrackArtistName(
     @ColumnInfo(name = "track_id") val trackId: Long,
@@ -83,6 +107,40 @@ interface LibraryDao {
             "ORDER BY aa.album_id, aa.position",
     )
     fun observeAlbumArtists(): Flow<List<AlbumArtistName>>
+
+    @Query(
+        "SELECT ar.id, ar.name, ar.photo_uri, COUNT(t.id) AS track_count, MIN(t.date_added) AS date_added " +
+            "FROM artist ar JOIN track_artist ta ON ta.artist_id = ar.id " +
+            "JOIN track t ON t.id = ta.track_id AND t.is_missing = 0 " +
+            "GROUP BY ar.id ORDER BY ar.name_key",
+    )
+    fun observeArtists(): Flow<List<ArtistRow>>
+
+    @Query(
+        "SELECT t.* FROM track t JOIN track_artist ta ON ta.track_id = t.id " +
+            "WHERE ta.artist_id = :artistId AND t.is_missing = 0 ORDER BY t.title_key",
+    )
+    fun observeArtistTracks(artistId: Long): Flow<List<TrackEntity>>
+
+    /** Albums credited to the artist and albums with at least one present track of theirs. */
+    @Query(
+        "SELECT a.id AS album_id, " +
+            "EXISTS (SELECT 1 FROM album_artist aa WHERE aa.album_id = a.id AND aa.artist_id = :artistId) AS is_own " +
+            "FROM album a WHERE a.id IN (SELECT album_id FROM album_artist WHERE artist_id = :artistId) " +
+            "OR a.id IN (SELECT t.album_id FROM track t JOIN track_artist ta ON ta.track_id = t.id " +
+            "WHERE ta.artist_id = :artistId AND t.is_missing = 0)",
+    )
+    fun observeArtistAlbumRefs(artistId: Long): Flow<List<ArtistAlbumRef>>
+
+    @Query("SELECT photo_uri FROM artist WHERE id = :artistId")
+    suspend fun artistPhotoPath(artistId: Long): String?
+
+    /** Photos are user data: a rescan finds artists by name key and leaves this column alone. */
+    @Query("UPDATE artist SET photo_uri = :path WHERE id = :artistId")
+    suspend fun setArtistPhotoPath(
+        artistId: Long,
+        path: String?,
+    )
 
     @Query("SELECT * FROM track WHERE is_missing = 0 AND id IN (:ids)")
     suspend fun tracksByIds(ids: List<Long>): List<TrackEntity>
