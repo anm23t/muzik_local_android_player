@@ -73,6 +73,10 @@ class LibraryIndexer
                     findOrCreateAlbum(album, metadata.year, albumArtistIds)
                 }
 
+            // The cover may have changed with the file: the accent of the album is computed again on next play.
+            existingId?.let { dao.albumIdOfTrack(it) }?.let { dao.setAlbumAccent(it, null) }
+            albumId?.let { dao.setAlbumAccent(it, null) }
+
             val fields =
                 TrackScanFields(
                     id = existingId ?: 0,

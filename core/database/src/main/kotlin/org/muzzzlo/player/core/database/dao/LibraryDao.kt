@@ -169,6 +169,19 @@ interface LibraryDao {
     @Query("SELECT id FROM track WHERE uri = :uri")
     suspend fun trackIdByUri(uri: String): Long?
 
+    @Query("SELECT album_id FROM track WHERE id = :trackId")
+    suspend fun albumIdOfTrack(trackId: Long): Long?
+
+    /** Null when the accent was not computed yet or was reset, 0 when the cover gives none (DATABASE.md). */
+    @Query("SELECT accent_color FROM album WHERE id = :albumId")
+    suspend fun albumAccent(albumId: Long): Int?
+
+    @Query("UPDATE album SET accent_color = :color WHERE id = :albumId")
+    suspend fun setAlbumAccent(
+        albumId: Long,
+        color: Int?,
+    )
+
     @Query("SELECT id FROM artist WHERE name_key = :key")
     suspend fun artistIdByKey(key: String): Long?
 

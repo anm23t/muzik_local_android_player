@@ -14,6 +14,8 @@ datastore = "1.1.1"
 coroutines = "1.9.0"
 junit5 = "5.11.3"
 turbine = "1.2.0"
+# Accent picking from covers (docs/decisions/010-accent-extraction.md). 2.0.1+ needs Kotlin 2.1.
+materialKolor = "2.0.0"
 junit4 = "4.13.2"
 robolectric = "4.14.1"
 androidxTest = "1.6.1"
@@ -52,6 +54,7 @@ junit4 = { module = "junit:junit", version.ref = "junit4" }
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
 androidx-test-core = { module = "androidx.test:core", version.ref = "androidxTest" }
 androidx-test-runner = { module = "androidx.test:runner", version.ref = "androidxTestRunner" }
+materialkolor = { module = "com.materialkolor:material-color-utilities", version.ref = "materialKolor" }
 turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
 
 [plugins]

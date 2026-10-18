@@ -249,4 +249,27 @@ class LibraryDaoTest {
             assertEquals(2L, updated.dateModified)
             assertFalse(updated.isMissing)
         }
+
+    @Test
+    fun `album accent keeps not computed, none and a color apart`() =
+        runBlocking {
+            val album = dao.insertAlbum(AlbumEntity(title = "A", titleKey = "a", year = null))
+            assertEquals(null, dao.albumAccent(album))
+            dao.setAlbumAccent(album, 0)
+            assertEquals(0, dao.albumAccent(album))
+            dao.setAlbumAccent(album, 0xFF3366CC.toInt())
+            assertEquals(0xFF3366CC.toInt(), dao.albumAccent(album))
+            dao.setAlbumAccent(album, null)
+            assertEquals(null, dao.albumAccent(album))
+        }
+
+    @Test
+    fun `the album of a track is found, none for a track without album`() =
+        runBlocking {
+            val album = dao.insertAlbum(AlbumEntity(title = "A", titleKey = "a", year = null))
+            val inAlbum = dao.insertTrack(track("content://1", "one", albumId = album))
+            val alone = dao.insertTrack(track("content://2", "two"))
+            assertEquals(album, dao.albumIdOfTrack(inAlbum))
+            assertEquals(null, dao.albumIdOfTrack(alone))
+        }
 }

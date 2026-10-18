@@ -26,6 +26,7 @@ android {
 dependencies {
     implementation(project(":core:model"))
     implementation(project(":core:database"))
+    implementation(libs.materialkolor)
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
 
