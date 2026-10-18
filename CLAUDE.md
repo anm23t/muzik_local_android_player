@@ -16,7 +16,7 @@
 - Media3 (воспроизведение, `MediaSessionService`)
 - Room (SQLite), DataStore (настройки)
 - Hilt (внедрение зависимостей)
-- Теги: библиотека выбирается в задаче 0.3.0 (TagLib через JNI или JAudioTagger), решение фиксируется в `docs/decisions/`
+- Теги: TagLib через JNI (C++, собирается NDK и CMake), решение в `docs/decisions/005-tag-library.md`
 - Тесты: JUnit 5, Turbine для Flow, Robolectric только где без него нельзя
 - Без сервисов Google (Firebase, Play Services и т.п.), чтобы проект можно было собрать без них
 
