@@ -2,6 +2,7 @@
 <resources>
     <string name="designsystem_track_menu">Действия с треком</string>
     <string name="designsystem_close">Закрыть</string>
+    <string name="designsystem_remove_value">Убрать %1$s</string>
     <string name="designsystem_now_playing">Сейчас играет</string>
     <string name="designsystem_play">Воспроизвести</string>
     <string name="designsystem_pause">Пауза</string>

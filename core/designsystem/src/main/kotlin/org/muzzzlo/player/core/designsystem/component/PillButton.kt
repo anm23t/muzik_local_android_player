@@ -16,6 +16,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
@@ -24,10 +25,13 @@ import org.muzzzlo.player.core.designsystem.theme.MuzzzloColors
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloDimens
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloTheme
 
+private const val DISABLED_ALPHA = 0.38f
+
 /**
  * Accent "pill" button: "Play" and "Sort" (4:333, 15:14), or "Done" across the dialog (15:142).
  *
  * @param wide full width, 40 high, used at the bottom of dialogs.
+ * @param enabled a disabled button keeps its place and fades, like a disabled [RoundIconButton].
  */
 @Composable
 fun PillButton(
@@ -36,6 +40,7 @@ fun PillButton(
     modifier: Modifier = Modifier,
     @DrawableRes icon: Int? = null,
     wide: Boolean = false,
+    enabled: Boolean = true,
 ) {
     val accent = MuzzzloTheme.accent
     val sizeModifier =
@@ -47,10 +52,11 @@ fun PillButton(
     Row(
         modifier
             .then(sizeModifier)
+            .alpha(if (enabled) 1f else DISABLED_ALPHA)
             .clip(MuzzzloDimens.PillShape)
             .background(accent.container)
             .border(MuzzzloDimens.BorderWidth, accent.accent, MuzzzloDimens.PillShape)
-            .clickable(role = Role.Button, onClick = onClick)
+            .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
             .padding(horizontal = MuzzzloDimens.DialogRowHorizontalPadding),
         horizontalArrangement = Arrangement.spacedBy(MuzzzloDimens.SmallGap, Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically,

@@ -2,6 +2,7 @@
 <resources>
     <string name="designsystem_track_menu">Track actions</string>
     <string name="designsystem_close">Close</string>
+    <string name="designsystem_remove_value">Remove %1$s</string>
     <string name="designsystem_now_playing">Now playing</string>
     <string name="designsystem_play">Play</string>
     <string name="designsystem_pause">Pause</string>
