@@ -120,7 +120,7 @@ PK: (`track_id`, `artist_id`). Индекс по `artist_id` для страни
 Разделители не настраиваются: фиксированы `;` и `,`.
 
 ### Заготовки на следующие версии
-- `playlist(id, name, created_at)` и `playlist_track(playlist_id, track_id, position)` (версия 1.1).
+- `playlist(id, name, created_at)` и `playlist_track(id, playlist_id, track_id, position)` (версия 1.1). Один трек может входить в несколько плейлистов и повторяться в одном, поэтому у `playlist_track` собственный `id`, а не составной ключ. Добавление и удаление отдельного трека делается из меню действий трека.
 - `smart_playlist(id, name, rules_json)` (версия 1.4).
 - `playback_queue_item(position, track_id)` и таблица состояния позиции (версия 0.2, либо DataStore).
 
