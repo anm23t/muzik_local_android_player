@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="library_title">Библиотека</string>
-    <string name="library_rescan">Обновить библиотеку</string>
-    <string name="library_tab_tracks">Треки</string>
-    <string name="library_tab_albums">Альбомы</string>
     <string name="library_empty">Музыка не найдена</string>
+    <string name="library_scanning">Ищем музыку…</string>
     <string name="library_permission_rationale">Разрешите доступ к аудиофайлам, чтобы собрать библиотеку.</string>
     <string name="library_permission_grant">Разрешить доступ</string>
+    <string name="library_back">Назад</string>
+    <string name="library_home">Главная</string>
     <string name="unknown_artist">Неизвестный исполнитель</string>
     <plurals name="library_track_count">
         <item quantity="one">%d трек</item>
@@ -14,4 +13,26 @@
         <item quantity="many">%d треков</item>
         <item quantity="other">%d трека</item>
     </plurals>
+
+    <string name="home_welcome">Добро пожаловать!</string>
+    <string name="home_continue_listening">Продолжить прослушивание?</string>
+    <string name="home_all_songs">Все песни</string>
+    <string name="home_settings">Настройки</string>
+    <string name="nav_artists">Исполнители</string>
+    <string name="nav_albums">Альбомы</string>
+    <string name="nav_playlists">Плейлисты</string>
+    <string name="nav_statistics">Статистика</string>
+
+    <string name="albums_title">Альбомы</string>
+    <string name="albums_sort">Сортировка</string>
+    <string name="albums_sort_title">Сортировка</string>
+    <string name="albums_sort_title_field">По названию</string>
+    <string name="albums_sort_artist">По исполнителю</string>
+    <string name="albums_sort_year">По году выхода</string>
+    <string name="albums_sort_track_count">По количеству песен</string>
+    <string name="albums_sort_date_added">По дате добавления</string>
+    <string name="albums_sort_done">Готово</string>
+    <string name="album_play">Играть</string>
+
+    <string name="tracks_title">Все песни</string>
 </resources>

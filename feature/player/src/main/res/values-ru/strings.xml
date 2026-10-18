@@ -10,6 +10,9 @@
     <string name="player_repeat">Повтор</string>
     <string name="player_track_menu">Действия с треком</string>
     <string name="player_queue">Очередь</string>
+    <string name="player_artists">Исполнители</string>
+    <string name="player_albums">Альбомы</string>
+    <string name="player_home">Главная</string>
     <string name="queue_title">Очередь</string>
     <string name="queue_empty">Очередь пуста</string>
     <string name="queue_remove">Убрать из очереди</string>

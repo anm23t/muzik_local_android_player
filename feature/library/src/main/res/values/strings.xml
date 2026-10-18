@@ -1,15 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="library_title">Library</string>
-    <string name="library_rescan">Rescan library</string>
-    <string name="library_tab_tracks">Tracks</string>
-    <string name="library_tab_albums">Albums</string>
     <string name="library_empty">No music found</string>
+    <string name="library_scanning">Scanning your music…</string>
     <string name="library_permission_rationale">Allow access to audio files to build your music library.</string>
     <string name="library_permission_grant">Allow access</string>
+    <string name="library_back">Back</string>
+    <string name="library_home">Home</string>
     <string name="unknown_artist">Unknown artist</string>
     <plurals name="library_track_count">
         <item quantity="one">%d track</item>
         <item quantity="other">%d tracks</item>
     </plurals>
+
+    <string name="home_welcome">Welcome!</string>
+    <string name="home_continue_listening">Continue listening</string>
+    <string name="home_all_songs">All songs</string>
+    <string name="home_settings">Settings</string>
+    <string name="nav_artists">Artists</string>
+    <string name="nav_albums">Albums</string>
+    <string name="nav_playlists">Playlists</string>
+    <string name="nav_statistics">Statistics</string>
+
+    <string name="albums_title">Albums</string>
+    <string name="albums_sort">Sort</string>
+    <string name="albums_sort_title">Sort</string>
+    <string name="albums_sort_title_field">By title</string>
+    <string name="albums_sort_artist">By artist</string>
+    <string name="albums_sort_year">By release year</string>
+    <string name="albums_sort_track_count">By number of songs</string>
+    <string name="albums_sort_date_added">By date added</string>
+    <string name="albums_sort_done">Done</string>
+    <string name="album_play">Play</string>
+
+    <string name="tracks_title">All songs</string>
 </resources>

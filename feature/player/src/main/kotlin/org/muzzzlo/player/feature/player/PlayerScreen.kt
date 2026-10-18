@@ -1,30 +1,14 @@
 package org.muzzzlo.player.feature.player
 
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.QueueMusic
-import androidx.compose.material.icons.filled.MusicNote
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Repeat
-import androidx.compose.material.icons.filled.RepeatOne
-import androidx.compose.material.icons.filled.Shuffle
-import androidx.compose.material.icons.filled.SkipNext
-import androidx.compose.material.icons.filled.SkipPrevious
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.foundation.layout.height
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -36,30 +20,54 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import org.muzzzlo.player.core.designsystem.component.BottomNav
+import org.muzzzlo.player.core.designsystem.component.BottomNavItem
+import org.muzzzlo.player.core.designsystem.component.CoverCard
+import org.muzzzlo.player.core.designsystem.component.ProgressBar
 import org.muzzzlo.player.core.designsystem.component.RoundIconButton
+import org.muzzzlo.player.core.designsystem.component.RoundIconButtonSize
+import org.muzzzlo.player.core.designsystem.component.ScreenFrame
 import org.muzzzlo.player.core.designsystem.component.TrackAction
 import org.muzzzlo.player.core.designsystem.component.TrackActionsMenu
+import org.muzzzlo.player.core.designsystem.theme.MuzzzloColors
+import org.muzzzlo.player.core.designsystem.theme.MuzzzloDimens
+import org.muzzzlo.player.core.designsystem.theme.MuzzzloTheme
 import org.muzzzlo.player.core.model.PlayerState
 import org.muzzzlo.player.core.model.RepeatMode
 import java.util.Locale
 import org.muzzzlo.player.core.designsystem.R as DesignR
+import org.muzzzlo.player.core.designsystem.component.MiniPlayer as MiniPlayerView
 
-/** Full screen player. */
+/** The cover card of the player: 316 x 319, a 284 x 288 cover with a 16 inset (1:3). */
+private const val PLAYER_COVER_ASPECT = 316f / 319f
+
+/**
+ * Full screen player (1:3): cover, title, artists, progress, controls and the bottom menu
+ * (artists, albums, queue, home). The artists open their cards in 0.3.5b.
+ */
 @Composable
 fun PlayerScreen(
+    onBack: () -> Unit,
     onOpenQueue: () -> Unit,
+    onOpenAlbums: () -> Unit,
+    onHome: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: PlayerViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val track = state.currentTrack
     var menuOpen by remember { mutableStateOf(false) }
-    Column(modifier.fillMaxSize().padding(24.dp)) {
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-            // The mockup's more-button (3:11); the rest of the screen is moved in 0.3.5a.
+
+    ScreenFrame(modifier, spacing = MuzzzloDimens.SmallGap) {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            RoundIconButton(
+                icon = DesignR.drawable.ic_chevron_left,
+                contentDescription = stringResource(R.string.player_back),
+                onClick = onBack,
+            )
+            Spacer(Modifier.weight(1f))
             RoundIconButton(
                 icon = DesignR.drawable.ic_more_horizontal,
                 contentDescription = stringResource(R.string.player_track_menu),
@@ -67,7 +75,18 @@ fun PlayerScreen(
                 enabled = track != null,
             )
         }
-        PlayerContent(state, viewModel, onOpenQueue, Modifier.weight(1f))
+        // The cover takes the space left by the fixed parts and keeps its proportions.
+        Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+            CoverCard(Modifier.fillMaxWidth().aspectRatio(PLAYER_COVER_ASPECT, matchHeightConstraintsFirst = true))
+        }
+        Spacer(Modifier.height(MuzzzloDimens.RowGap))
+        TrackTitle(state)
+        Spacer(Modifier.height(MuzzzloDimens.ContentGap))
+        Progress(state, viewModel::onSeek)
+        Spacer(Modifier.height(MuzzzloDimens.SectionGap))
+        Controls(state, viewModel)
+        Spacer(Modifier.height(MuzzzloDimens.FrameInnerPadding))
+        BottomNav(playerNavItems(onOpenAlbums, onOpenQueue, onHome))
     }
     if (menuOpen && track != null) {
         TrackActionsMenu(
@@ -83,110 +102,120 @@ fun PlayerScreen(
 }
 
 @Composable
-private fun PlayerContent(
-    state: PlayerState,
-    viewModel: PlayerViewModel,
-    onOpenQueue: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
+private fun TrackTitle(state: PlayerState) {
     val track = state.currentTrack
-    Column(
-        modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
-    ) {
-        Icon(Icons.Filled.MusicNote, null, Modifier.size(160.dp), tint = MaterialTheme.colorScheme.primary)
+    Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
-            track?.title ?: stringResource(R.string.player_nothing_playing),
-            style = MaterialTheme.typography.headlineSmall,
+            text = track?.title ?: stringResource(R.string.player_nothing_playing),
+            style = MaterialTheme.typography.headlineMedium,
+            color = MuzzzloColors.TextPrimary,
             textAlign = TextAlign.Center,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
         )
+        Spacer(Modifier.height(MuzzzloDimens.SmallGap))
         Text(
-            track?.artistsText.orEmpty(),
-            style = MaterialTheme.typography.bodyLarge,
+            text = track?.artistsText.orEmpty(),
+            style = MaterialTheme.typography.titleSmall,
+            color = MuzzzloColors.TextSecondary,
             textAlign = TextAlign.Center,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
         )
-        SeekBar(state, viewModel::onSeek)
-        ModeButtons(state, viewModel, onOpenQueue)
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            IconButton(viewModel::onPrevious, enabled = state.hasPrevious) {
-                Icon(Icons.Filled.SkipPrevious, stringResource(R.string.player_previous), Modifier.size(40.dp))
-            }
-            IconButton(viewModel::onPlayPause, enabled = track != null, modifier = Modifier.size(72.dp)) {
-                Icon(
-                    if (state.isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                    stringResource(if (state.isPlaying) R.string.player_pause else R.string.player_play),
-                    Modifier.size(56.dp),
-                )
-            }
-            IconButton(viewModel::onNext, enabled = state.hasNext) {
-                Icon(Icons.Filled.SkipNext, stringResource(R.string.player_next), Modifier.size(40.dp))
-            }
-        }
     }
 }
 
 @Composable
-private fun ModeButtons(
-    state: PlayerState,
-    viewModel: PlayerViewModel,
-    onOpenQueue: () -> Unit,
-) {
-    val active = MaterialTheme.colorScheme.primary
-    val inactive = MaterialTheme.colorScheme.onSurfaceVariant
-    Row(horizontalArrangement = Arrangement.spacedBy(24.dp), verticalAlignment = Alignment.CenterVertically) {
-        IconButton(viewModel::onToggleShuffle) {
-            Icon(
-                Icons.Filled.Shuffle,
-                stringResource(R.string.player_shuffle),
-                tint = if (state.shuffleEnabled) active else inactive,
-            )
-        }
-        IconButton(viewModel::onCycleRepeat) {
-            Icon(
-                if (state.repeatMode == RepeatMode.ONE) Icons.Filled.RepeatOne else Icons.Filled.Repeat,
-                stringResource(R.string.player_repeat),
-                tint = if (state.repeatMode == RepeatMode.OFF) inactive else active,
-            )
-        }
-        IconButton(onOpenQueue) {
-            Icon(Icons.AutoMirrored.Filled.QueueMusic, stringResource(R.string.player_queue), tint = inactive)
-        }
-    }
-}
-
-@Composable
-private fun SeekBar(
+private fun Progress(
     state: PlayerState,
     onSeek: (Long) -> Unit,
 ) {
-    var dragging by remember { mutableStateOf<Float?>(null) }
-    val duration = state.durationMs.coerceAtLeast(1)
-    val value = dragging ?: (state.positionMs.toFloat() / duration)
+    val duration = state.durationMs
     Column(Modifier.fillMaxWidth()) {
-        Slider(
-            value = value.coerceIn(0f, 1f),
-            onValueChange = { dragging = it },
-            onValueChangeFinished = {
-                dragging?.let { onSeek((it * duration).toLong()) }
-                dragging = null
-            },
-            enabled = state.currentTrack != null,
+        ProgressBar(
+            progress = progressOf(state.positionMs, duration),
+            onSeek = { share: Float -> onSeek((share * duration).toLong()) }.takeIf { duration > 0 },
         )
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(formatTime((value * duration).toLong()), style = MaterialTheme.typography.labelMedium)
-            Text(formatTime(state.durationMs), style = MaterialTheme.typography.labelMedium)
+            TimeText(formatTime(state.positionMs))
+            TimeText(formatTime(duration))
         }
     }
 }
 
+@Composable
+private fun TimeText(text: String) {
+    Text(text = text, style = MaterialTheme.typography.bodySmall, color = MuzzzloColors.TextSecondary)
+}
+
+@Composable
+private fun Controls(
+    state: PlayerState,
+    viewModel: PlayerViewModel,
+) {
+    val accent = MuzzzloTheme.accent.accent
+    Row(
+        Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        RoundIconButton(
+            icon = DesignR.drawable.ic_shuffle,
+            contentDescription = stringResource(R.string.player_shuffle),
+            onClick = viewModel::onToggleShuffle,
+            size = RoundIconButtonSize.Large,
+            iconTint = if (state.shuffleEnabled) accent else MuzzzloColors.TextSecondary,
+        )
+        RoundIconButton(
+            icon = DesignR.drawable.ic_skip_back,
+            contentDescription = stringResource(R.string.player_previous),
+            onClick = viewModel::onPrevious,
+            size = RoundIconButtonSize.Control,
+            enabled = state.hasPrevious,
+        )
+        RoundIconButton(
+            icon = if (state.isPlaying) DesignR.drawable.ic_pause else DesignR.drawable.ic_play,
+            contentDescription = stringResource(if (state.isPlaying) R.string.player_pause else R.string.player_play),
+            onClick = viewModel::onPlayPause,
+            size = RoundIconButtonSize.Primary,
+            accented = true,
+            enabled = state.currentTrack != null,
+        )
+        RoundIconButton(
+            icon = DesignR.drawable.ic_skip_forward,
+            contentDescription = stringResource(R.string.player_next),
+            onClick = viewModel::onNext,
+            size = RoundIconButtonSize.Control,
+            enabled = state.hasNext,
+        )
+        RoundIconButton(
+            icon = if (state.repeatMode == RepeatMode.ONE) DesignR.drawable.ic_repeat_1 else DesignR.drawable.ic_repeat,
+            contentDescription = stringResource(R.string.player_repeat),
+            onClick = viewModel::onCycleRepeat,
+            size = RoundIconButtonSize.Large,
+            iconTint = if (state.repeatMode == RepeatMode.OFF) MuzzzloColors.TextSecondary else accent,
+        )
+    }
+}
+
+/** Artists (0.3.5b), albums, queue, home, as in 27:3. */
+@Composable
+private fun playerNavItems(
+    onOpenAlbums: () -> Unit,
+    onOpenQueue: () -> Unit,
+    onHome: () -> Unit,
+): List<BottomNavItem> =
+    listOf(
+        BottomNavItem(DesignR.drawable.ic_users, stringResource(R.string.player_artists), {}, enabled = false),
+        BottomNavItem(DesignR.drawable.ic_disc, stringResource(R.string.player_albums), onOpenAlbums),
+        BottomNavItem(DesignR.drawable.ic_list_music, stringResource(R.string.player_queue), onOpenQueue),
+        BottomNavItem(DesignR.drawable.ic_home, stringResource(R.string.player_home), onHome),
+    )
+
 /**
- * Small bar with the current track, shown under the lists. Hidden when nothing is loaded.
- * A long press opens the track menu.
+ * Mini player (15:45) under the lists, hidden when nothing is loaded. A tap opens the player,
+ * a long press opens the track menu.
  */
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MiniPlayer(
     onOpen: () -> Unit,
@@ -208,32 +237,23 @@ fun MiniPlayer(
             onDismiss = { menuOpen = false },
         )
     }
-    Surface(
-        modifier.fillMaxWidth().combinedClickable(onClick = onOpen, onLongClick = { menuOpen = true }),
-        tonalElevation = 3.dp,
-    ) {
-        Column {
-            HorizontalDivider()
-            Row(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f)) {
-                    Text(track.title, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    Text(
-                        track.artistsText,
-                        style = MaterialTheme.typography.bodySmall,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-                IconButton(viewModel::onPlayPause) {
-                    Icon(
-                        if (state.isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                        stringResource(if (state.isPlaying) R.string.player_pause else R.string.player_play),
-                    )
-                }
-            }
-        }
-    }
+    MiniPlayerView(
+        title = track.title,
+        artists = track.artistsText,
+        progress = progressOf(state.positionMs, state.durationMs),
+        isPlaying = state.isPlaying,
+        onClick = onOpen,
+        onPlayPause = viewModel::onPlayPause,
+        modifier = modifier,
+        onLongClick = { menuOpen = true },
+    )
 }
+
+/** Played share of the track in [0, 1]; 0 while the duration is unknown. */
+internal fun progressOf(
+    positionMs: Long,
+    durationMs: Long,
+): Float = if (durationMs <= 0) 0f else (positionMs.toFloat() / durationMs).coerceIn(0f, 1f)
 
 internal fun formatTime(ms: Long): String {
     val totalSeconds = (ms / MS_IN_SECOND).coerceAtLeast(0)
