@@ -156,7 +156,9 @@ core:playback  core:library core:stats core:tags
 ## 9. Интерфейс
 
 - Один `Activity`, навигация Compose Navigation, состояние экранов в ViewModel (`StateFlow`).
-- Дизайн-система в `core:designsystem` (цвета, типографика, базовые компоненты), значения берутся из макета Figma.
+- Дизайн-система в `core:designsystem` (цвета, типографика, базовые компоненты), значения берутся из макета Figma. Модуль зависит только от Compose и не зависит от `core:model`: компоненты принимают строки и простые значения, а не `Track`. Список компонентов и образцов в `DESIGN.md`, раздел 5; правила для экранов без макета там же, раздел 7.
+- Акцент читается только из `LocalAccent` (`MuzzzloTheme.accent`), константы цветов в экранах запрещены. Остальные токены: `MuzzzloTheme.colors`, `MuzzzloTheme.dimens`, `MaterialTheme.typography`.
+- Меню трека: компонент `TrackActionsMenu` отдаёт выбранный пункт как `TrackAction` (enum в `core:designsystem`). Каждая ViewModel, у которой есть строки треков, обрабатывает его в `onTrackAction(track, action)`. Переходы на другие экраны (например, Open queue) ViewModel не выполняет: экран получает колбэк навигации из `app`, потому что `feature:*` не знают друг о друге.
 - Тема только тёмная. Акцентный цвет динамический: вычисляется из обложки играющего трека (Palette или Material Color Utilities, подгонка тона под контраст), кэшируется в `album.accent_color`, передаётся в интерфейс через `CompositionLocal` и анимированно меняется при смене трека. В настройках его можно выключить, тогда акцент всегда красный. Подробности в `DESIGN.md`.
 
 ### Настройки (`feature:settings`)
