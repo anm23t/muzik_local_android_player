@@ -17,13 +17,22 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+
+    testOptions {
+        unitTests.all { it.useJUnitPlatform() }
+    }
 }
 
 dependencies {
     implementation(project(":core:model"))
     implementation(libs.androidx.media3.exoplayer)
     implementation(libs.androidx.media3.session)
+    implementation(libs.androidx.datastore.preferences)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
+
+    testImplementation(platform("org.junit:junit-bom:5.11.3"))
+    testImplementation(libs.junit5)
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }

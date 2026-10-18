@@ -13,9 +13,11 @@ import androidx.navigation.compose.rememberNavController
 import org.muzzzlo.player.feature.library.LibraryScreen
 import org.muzzzlo.player.feature.player.MiniPlayer
 import org.muzzzlo.player.feature.player.PlayerScreen
+import org.muzzzlo.player.feature.player.QueueScreen
 
 private const val ROUTE_LIBRARY = "library"
 private const val ROUTE_PLAYER = "player"
+private const val ROUTE_QUEUE = "queue"
 
 /** Wires the feature screens together; features do not know about each other. */
 @Composable
@@ -29,7 +31,8 @@ fun MuzzzloNavHost() {
                     MiniPlayer(onOpen = { navController.navigate(ROUTE_PLAYER) })
                 }
             }
-            composable(ROUTE_PLAYER) { PlayerScreen(Modifier) }
+            composable(ROUTE_PLAYER) { PlayerScreen(onOpenQueue = { navController.navigate(ROUTE_QUEUE) }) }
+            composable(ROUTE_QUEUE) { QueueScreen(onBack = { navController.popBackStack() }) }
         }
     }
 }

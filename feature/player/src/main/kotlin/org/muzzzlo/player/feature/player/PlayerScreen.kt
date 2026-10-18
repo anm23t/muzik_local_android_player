@@ -9,9 +9,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.QueueMusic
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Repeat
+import androidx.compose.material.icons.filled.RepeatOne
+import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material3.HorizontalDivider
@@ -35,11 +39,13 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.muzzzlo.player.core.model.PlayerState
+import org.muzzzlo.player.core.model.RepeatMode
 import java.util.Locale
 
 /** Full screen player. */
 @Composable
 fun PlayerScreen(
+    onOpenQueue: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: PlayerViewModel = hiltViewModel(),
 ) {
@@ -64,6 +70,7 @@ fun PlayerScreen(
             textAlign = TextAlign.Center,
         )
         SeekBar(state, viewModel::onSeek)
+        ModeButtons(state, viewModel, onOpenQueue)
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             IconButton(viewModel::onPrevious, enabled = state.hasPrevious) {
                 Icon(Icons.Filled.SkipPrevious, stringResource(R.string.player_previous), Modifier.size(40.dp))
@@ -78,6 +85,35 @@ fun PlayerScreen(
             IconButton(viewModel::onNext, enabled = state.hasNext) {
                 Icon(Icons.Filled.SkipNext, stringResource(R.string.player_next), Modifier.size(40.dp))
             }
+        }
+    }
+}
+
+@Composable
+private fun ModeButtons(
+    state: PlayerState,
+    viewModel: PlayerViewModel,
+    onOpenQueue: () -> Unit,
+) {
+    val active = MaterialTheme.colorScheme.primary
+    val inactive = MaterialTheme.colorScheme.onSurfaceVariant
+    Row(horizontalArrangement = Arrangement.spacedBy(24.dp), verticalAlignment = Alignment.CenterVertically) {
+        IconButton(viewModel::onToggleShuffle) {
+            Icon(
+                Icons.Filled.Shuffle,
+                stringResource(R.string.player_shuffle),
+                tint = if (state.shuffleEnabled) active else inactive,
+            )
+        }
+        IconButton(viewModel::onCycleRepeat) {
+            Icon(
+                if (state.repeatMode == RepeatMode.ONE) Icons.Filled.RepeatOne else Icons.Filled.Repeat,
+                stringResource(R.string.player_repeat),
+                tint = if (state.repeatMode == RepeatMode.OFF) inactive else active,
+            )
+        }
+        IconButton(onOpenQueue) {
+            Icon(Icons.AutoMirrored.Filled.QueueMusic, stringResource(R.string.player_queue), tint = inactive)
         }
     }
 }
@@ -141,6 +177,9 @@ fun MiniPlayer(
 }
 
 internal fun formatTime(ms: Long): String {
-    val totalSeconds = (ms / 1000).coerceAtLeast(0)
-    return String.format(Locale.ROOT, "%d:%02d", totalSeconds / 60, totalSeconds % 60)
+    val totalSeconds = (ms / MS_IN_SECOND).coerceAtLeast(0)
+    return String.format(Locale.ROOT, "%d:%02d", totalSeconds / SECONDS_IN_MINUTE, totalSeconds % SECONDS_IN_MINUTE)
 }
+
+private const val MS_IN_SECOND = 1000L
+private const val SECONDS_IN_MINUTE = 60L

@@ -18,9 +18,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Album
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -36,6 +39,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -90,7 +94,11 @@ fun LibraryScreen(
         if (state.isScanning) LinearProgressIndicator(Modifier.fillMaxWidth())
         when {
             !granted -> PermissionRequest { launcher.launch(audioPermission) }
-            state.openAlbum != null -> TrackList(state.albumTracks) { viewModel.onTrackClicked(state.albumTracks, it) }
+            state.openAlbum != null ->
+                TrackList(
+                    state.albumTracks,
+                    viewModel,
+                ) { viewModel.onTrackClicked(state.albumTracks, it) }
             else -> LibraryTabs(state, viewModel)
         }
     }
@@ -107,7 +115,7 @@ private fun LibraryTabs(
         Tab(tab == 1, { tab = 1 }, text = { Text(stringResource(R.string.library_tab_albums)) })
     }
     if (tab == 0) {
-        TrackList(state.tracks) { viewModel.onTrackClicked(state.tracks, it) }
+        TrackList(state.tracks, viewModel) { viewModel.onTrackClicked(state.tracks, it) }
     } else {
         AlbumList(state.albums, viewModel::onAlbumClicked)
     }
@@ -133,6 +141,7 @@ private fun EmptyState() {
 @Composable
 private fun TrackList(
     tracks: List<Track>,
+    viewModel: LibraryViewModel,
     onClick: (Int) -> Unit,
 ) {
     if (tracks.isEmpty()) return EmptyState()
@@ -148,6 +157,36 @@ private fun TrackList(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
+                },
+                trailingContent = { TrackMenu(track, viewModel) },
+            )
+        }
+    }
+}
+
+@Composable
+private fun TrackMenu(
+    track: Track,
+    viewModel: LibraryViewModel,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    Box {
+        IconButton(onClick = { expanded = true }) {
+            Icon(Icons.Filled.MoreVert, stringResource(R.string.library_track_menu))
+        }
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.library_play_next)) },
+                onClick = {
+                    expanded = false
+                    viewModel.onPlayNext(track)
+                },
+            )
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.library_add_to_queue)) },
+                onClick = {
+                    expanded = false
+                    viewModel.onAddToQueue(track)
                 },
             )
         }

@@ -64,6 +64,10 @@ class LibraryViewModel
             index: Int,
         ) = player.play(tracks, index)
 
+        fun onPlayNext(track: Track) = player.playNext(track)
+
+        fun onAddToQueue(track: Track) = player.addToQueue(track)
+
         fun onAlbumClicked(album: Album) {
             viewModelScope.launch {
                 library.observeAlbumTracks(album.id).collect { opened.value = album to it }

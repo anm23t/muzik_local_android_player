@@ -37,6 +37,19 @@ internal class DefaultLibraryRepository
                 albums.map { Album(it.id, it.title, byAlbum[it.id].orEmpty(), it.year, it.trackCount) }
             }.flowOn(dispatchers.default)
 
+        override suspend fun tracksByIds(ids: List<Long>): List<Track> =
+            withContext(dispatchers.io) {
+                val chunks = ids.distinct().chunked(SQL_VARIABLE_CHUNK)
+                val entities = chunks.flatMap { dao.tracksByIds(it) }.associateBy { it.id }
+                val artists = chunks.flatMap { dao.artistNamesFor(it) }.groupBy({ it.trackId }, { it.name })
+                val albumIds = entities.values.mapNotNull { it.albumId }.distinct()
+                val albums =
+                    albumIds.chunked(
+                        SQL_VARIABLE_CHUNK,
+                    ).flatMap { dao.albumTitles(it) }.associate { it.id to it.title }
+                toTracks(ids.mapNotNull(entities::get), artists, albums)
+            }
+
         override suspend fun scan() =
             withContext(dispatchers.io) {
                 indexer.index(source.query())
@@ -59,4 +72,9 @@ internal class DefaultLibraryRepository
                     trackNumber = it.trackNumber,
                 )
             }
+
+        private companion object {
+            /** SQLite allows 999 variables in a query. */
+            const val SQL_VARIABLE_CHUNK = 500
+        }
     }

@@ -34,6 +34,9 @@ data class AlbumArtistName(
     val name: String,
 )
 
+/** Album id and title pair. */
+data class AlbumTitle(val id: Long, val title: String)
+
 /** Fields of a track used to decide whether a file must be rescanned. */
 data class TrackStamp(
     val id: Long,
@@ -73,6 +76,18 @@ interface LibraryDao {
             "ORDER BY aa.album_id, aa.position",
     )
     fun observeAlbumArtists(): Flow<List<AlbumArtistName>>
+
+    @Query("SELECT * FROM track WHERE is_missing = 0 AND id IN (:ids)")
+    suspend fun tracksByIds(ids: List<Long>): List<TrackEntity>
+
+    @Query(
+        "SELECT ta.track_id, ar.name FROM track_artist ta JOIN artist ar ON ar.id = ta.artist_id " +
+            "WHERE ta.track_id IN (:trackIds) ORDER BY ta.track_id, ta.position",
+    )
+    suspend fun artistNamesFor(trackIds: List<Long>): List<TrackArtistName>
+
+    @Query("SELECT id, title FROM album WHERE id IN (:ids)")
+    suspend fun albumTitles(ids: List<Long>): List<AlbumTitle>
 
     // ---- writes for the scanner ----
 

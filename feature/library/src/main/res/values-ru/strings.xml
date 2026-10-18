@@ -7,6 +7,9 @@
     <string name="library_empty">Музыка не найдена</string>
     <string name="library_permission_rationale">Разрешите доступ к аудиофайлам, чтобы собрать библиотеку.</string>
     <string name="library_permission_grant">Разрешить доступ</string>
+    <string name="library_track_menu">Действия с треком</string>
+    <string name="library_play_next">Играть следующим</string>
+    <string name="library_add_to_queue">Добавить в очередь</string>
     <string name="unknown_artist">Неизвестный исполнитель</string>
     <plurals name="library_track_count">
         <item quantity="one">%d трек</item>

@@ -22,4 +22,17 @@ class PlayerViewModel
         fun onPrevious() = player.previous()
 
         fun onSeek(positionMs: Long) = player.seekTo(positionMs)
+
+        fun onToggleShuffle() = player.toggleShuffle()
+
+        fun onCycleRepeat() = player.cycleRepeatMode()
+
+        fun onQueueItemClicked(index: Int) = player.skipTo(index)
+
+        fun onQueueItemMoved(
+            from: Int,
+            to: Int,
+        ) = player.moveQueueItem(from, to)
+
+        fun onQueueItemRemoved(index: Int) = player.removeQueueItem(index)
     }
