@@ -1,0 +1,35 @@
+# Overrides on top of the detekt defaults.
+style:
+  MagicNumber:
+    excludes: ['**/Theme.kt', '**/test/**']
+    ignoreAnnotation: true
+    ignorePropertyDeclaration: true
+    ignoreCompanionObjectPropertyDeclaration: true
+    ignoreNamedArgument: true
+  MaxLineLength:
+    maxLineLength: 120
+  ReturnCount:
+    max: 3
+  UnusedPrivateMember:
+    ignoreAnnotated: ['Preview']
+
+complexity:
+  LongParameterList:
+    functionThreshold: 8
+    constructorThreshold: 10
+    ignoreDefaultParameters: true
+    ignoreAnnotated: ['Composable']
+  TooManyFunctions:
+    thresholdInInterfaces: 15
+    thresholdInClasses: 25
+    excludes: ['**/test/**', '**/dao/**']
+  LongMethod:
+    threshold: 80
+    ignoreAnnotated: ['Composable']
+
+naming:
+  FunctionNaming:
+    ignoreAnnotated: ['Composable']
+    excludes: ['**/test/**']
+  TopLevelPropertyNaming:
+    constantPattern: '[A-Z][A-Za-z0-9_]*'
