@@ -41,6 +41,17 @@ The column exists since schema version 1, no migration is needed. Values:
 - `0` (transparent ARGB): computed, no suitable color, the default red is used;
 - any other value: the adjusted accent (ARGB, opaque).
 
+## Numbers chosen in 0.3.8
+
+- The cover is decoded at about 128 px, quantized to 128 colors (`QuantizerCelebi`) and scored (`Score`, which drops
+  greys, black and white by itself); only the best color is used.
+- Chroma is capped at 75 (HCT). The default red is about 74, so it is not touched, while neon colors are calmed down.
+- Tone is clamped into the range where the contrast is at least 3.05:1 against `#121212` and for white on the accent
+  (about 41 to 61 in HCT tone); the hue stays.
+- The color change is animated over 400 ms, inside `MuzzzloTheme`. `LocalAccent` is a regular (not static)
+  composition local, so each frame redraws only the components that read the accent.
+- Tracks without an album keep their color in memory only, keyed by the cover file path.
+
 ## Settings flag
 
 The "dynamic accent" flag is postponed to task 0.5.1, together with the settings repository. Until then the accent is
