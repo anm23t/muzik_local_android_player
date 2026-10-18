@@ -86,7 +86,7 @@ and a crash in native code takes the process down instead of throwing an excepti
   the ID3v2 version the file had (`MPEG::File::save(AllTags, StripNone, v3|v4)`).
 - `FileStream(int fd)` closes the descriptor itself: hand it `ParcelFileDescriptor.detachFd()` or a `dup()`.
 - New dependencies for the app (CLAUDE.md, code rules): TagLib (source at a pinned version), the Android NDK and CMake.
-  Approved; they were wired up in task 0.3.1 (connecting TagLib, done), reading was added in 0.3.2 (done), safe writing follows in 0.3.3.
+  Approved; they were wired up in task 0.3.1 (connecting TagLib, done), reading was added in 0.3.2 (done), safe writing in 0.3.3.
 
 ## License
 
@@ -123,5 +123,5 @@ and a crash in native code takes the process down instead of throwing an excepti
      second ID3v2 tag; 32 files on that phone) when it reads a descriptor without a name. The bridge now passes the
      MediaStore display name so the format is picked by extension, as for a path.
 6. **M4A multiple artists**: TagLib writes several values inside one `©ART` atom; some players show only the first. Accepted, since it is the standard form.
-7. **`PropertyMap` semantics**: `setProperties` drops mapped fields missing from the map (custom `TXXX`, Vorbis fields). Always write the full map read from the file; covered by the "unknown fields kept" test, which must move to `core:tags`.
-8. **Replacing the original** through `openFileDescriptor(uri, "rwt")` and the permission dialogs were not exercised in the spike; this is task 0.3.3.
+7. **`PropertyMap` semantics**: `setProperties` drops mapped fields missing from the map (custom `TXXX`, Vorbis fields). Always write the full map read from the file. Covered in `core:tags` by `SafeTagWriterTest` on the `extra_*` fixtures (task 0.3.3). A related trap found there: TagLib keeps an empty ID3v1 tag in memory for every MPEG file, so `MPEG::File::save(AllTags, ...)` would add ID3v1 to files without one; the bridge saves ID3v1 only when the file had it.
+8. **Replacing the original** through `openFileDescriptor(uri, "rwt")`: implemented in task 0.3.3 (ARCHITECTURE.md, section 5) with a backup, a journal and recovery on the next start. The replacement is not atomic; a restore that needs a write permission the app has lost waits until the user grants it again. The permission dialogs are built by `TagWritePermission` and shown by the tag editor (0.3.6).
