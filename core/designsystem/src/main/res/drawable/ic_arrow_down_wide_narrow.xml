@@ -1,0 +1,13 @@
+<!-- Lucide icon exported from the Figma mockup (ISC, see icons/LICENSE-lucide.txt) -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="14dp"
+    android:height="14dp"
+    android:viewportWidth="14"
+    android:viewportHeight="14">
+    <path
+        android:pathData="M6.41667 9.3331L4.08333 11.6662L1.75 9.3331M4.08333 11.6662V2.3338M6.41667 2.3338H12.25M6.41667 4.6669H10.5M6.41667 7H8.75"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="1.6"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="miter" />
+</vector>

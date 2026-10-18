@@ -23,6 +23,7 @@ include(
     ":core:library",
     ":core:playback",
     ":core:tags",
+    ":core:designsystem",
     ":feature:library",
     ":feature:player",
 )

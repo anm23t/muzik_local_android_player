@@ -1,0 +1,13 @@
+<!-- Lucide icon exported from the Figma mockup (ISC, see icons/LICENSE-lucide.txt) -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:pathData="M3 19.9992V4.0008M17.971 4.28579C18.2745 4.10371 18.6209 4.00542 18.9748 4.00096C19.3287 3.99649 19.6774 4.08601 19.9854 4.26038C20.2934 4.43474 20.5496 4.6877 20.7278 4.99343C20.9061 5.29917 21 5.64672 21 6.00061V17.9994C21 18.3533 20.9061 18.7008 20.7278 19.0066C20.5496 19.3123 20.2934 19.5653 19.9854 19.7396C19.6774 19.914 19.3287 20.0035 18.9748 19.999C18.6209 19.9946 18.2745 19.8963 17.971 19.7142L7.97415 13.7168C7.67738 13.5395 7.43164 13.2883 7.2609 12.9878C7.09016 12.6872 7.00026 12.3475 6.99996 12.0019C6.99965 11.6562 7.08897 11.3163 7.25918 11.0155C7.42939 10.7146 7.67469 10.463 7.97115 10.2852L17.971 4.28579Z"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="miter" />
+</vector>

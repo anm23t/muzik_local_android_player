@@ -1,0 +1,13 @@
+<!-- "Open player" chevron exported from the Figma mockup (node 15:53), mirrored to point right. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="6.81066dp"
+    android:height="11.5dp"
+    android:viewportWidth="6.81066"
+    android:viewportHeight="11.5">
+    <path
+        android:pathData="M0.75 10.75L5.75 5.75L0.75 0.75"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="1.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="miter" />
+</vector>

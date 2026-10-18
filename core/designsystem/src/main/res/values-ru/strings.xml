@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="designsystem_track_menu">Действия с треком</string>
+    <string name="designsystem_close">Закрыть</string>
+    <string name="designsystem_now_playing">Сейчас играет</string>
+    <string name="designsystem_play">Воспроизвести</string>
+    <string name="designsystem_pause">Пауза</string>
+    <string name="designsystem_open_player">Открыть плеер</string>
+    <string name="track_action_play_next">Играть следующим</string>
+    <string name="track_action_add_to_queue">Добавить в очередь</string>
+    <string name="track_action_open_queue">Открыть очередь</string>
+    <string name="track_action_add_to_playlist">Добавить в плейлист</string>
+    <string name="track_action_add_to_favorites">Добавить в избранное</string>
+    <string name="track_action_rate">Оценить</string>
+    <string name="track_action_edit_tags">Редактировать теги</string>
+</resources>
