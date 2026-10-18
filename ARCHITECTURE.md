@@ -102,6 +102,16 @@ core:playback  core:library core:stats core:tags
 - Перед нативным чтением файл помечается меткой «в обработке», после успешного чтения метка снимается. Если процесс упал в нативном коде, при следующем запуске файл с меткой пропускается и помечается в БД как повреждённый, сканирование продолжается со следующего.
 - Строки между Kotlin и C++ передаются как байты UTF-8 в обе стороны (не через `NewStringUTF`, который ломает символы вне BMP). Тест на эмодзи в тегах обязателен.
 - Замер скорости чтения на реальном телефоне с большой библиотекой является условием закрытия задачи на чтение тегов.
+- Каждый нативный вызов с пользовательским файлом оборачивается в `NativeCallGuard.runGuarded` (`core:tags`): метка лежит файлом в личной папке, по одному на вызов. При запуске `recoverAfterCrash()` переносит оставшиеся метки в карантин, `isQuarantined()` пропускает такие файлы. При параллельном чтении в карантин попадают все файлы, читавшиеся в момент падения. Флаг «повреждён» в БД и связка со сканером появятся в задаче 0.3.2.
+- Чтение по дескриптору идёт через `dup()`: дескриптор вызывающего остаётся открытым, но смещение в файле у копии общее и сдвигается.
+
+### Сборка нативной части
+
+- Исходники TagLib подключены git submodule `core/tags/src/main/cpp/taglib`, закреплены на теге `v2.3.2` (вместе с вложенным utfcpp). После клонирования: `git submodule update --init --recursive`. Обновление версии: checkout нового тега в submodule, коммит gitlink, проверка тестов `core:tags`.
+- Версии NDK и CMake зафиксированы в `gradle/libs.versions.toml` (`ndk`, `cmake`) и продублированы в `.github/workflows/ci.yml`. Оба пакета ставятся через `sdkmanager`.
+- Android: `externalNativeBuild` собирает `libtaglib_jni.so` для arm64-v8a, armeabi-v7a, x86_64 (`c++_static`, в release `MinSizeRel`).
+- JVM-тесты: задача `buildHostTagLib` собирает тот же CMake-проект под хост CMake'ом из SDK и системным компилятором C++ (Xcode Command Line Tools или gcc/clang), `jni.h` берётся из JDK, на котором запущен Gradle. Если линкер Command Line Tools старее новейшего macOS SDK (ошибка `tapi error: unknown architecture`), в `local.properties` указывается подходящий SDK: `tags.host.osxSysroot=/Library/Developer/CommandLineTools/SDKs/MacOSX26.5.sdk`, либо обновляются Command Line Tools.
+- Лицензии: TagLib используется под LGPL-2.1, utfcpp под Boost 1.0 (`docs/decisions/005-tag-library.md`); тексты лицензий лежат в submodule и попадут в экран лицензий приложения.
 
 ## 6. Воспроизведение (`core:playback`)
 
