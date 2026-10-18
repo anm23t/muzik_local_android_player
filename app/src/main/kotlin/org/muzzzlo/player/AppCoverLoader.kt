@@ -46,8 +46,8 @@ class AppCoverLoader
             withContext(dispatchers.io) { BitmapFactory.decodeFile(path)?.asImageBitmap() }
 
         private companion object {
-            /** 8 MB: about 30 covers of 256 px. */
-            const val MEMORY_KB = 8 * 1024
+            /** 16 MB: about 16 covers of 512 px. */
+            const val MEMORY_KB = 16 * 1024
             const val BYTES_PER_PIXEL = 4
             const val BYTES_IN_KB = 1024
         }

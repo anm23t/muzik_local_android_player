@@ -63,7 +63,8 @@ internal class CoverDiskCache(
 
 /**
  * Cache key of a track's cover: it follows the file's address, size and change time, so a rewritten file
- * (tag editor, another app) gets a new key and the old cover is never shown for it. The hash keeps the name
+ * (tag editor, another app) gets a new key and the old cover is never shown for it. The thumbnail size is part
+ * of the key, so covers cut at an older size are not reused. The hash keeps the name
  * short and safe for a file system.
  */
 internal fun coverKey(
@@ -71,6 +72,7 @@ internal fun coverKey(
     dateModified: Long?,
     fileSize: Long?,
 ): String {
-    val digest = MessageDigest.getInstance("SHA-1").digest("$uri|$dateModified|$fileSize".toByteArray())
+    val source = "$uri|$dateModified|$fileSize|${CoverThumbnailer.MAX_SIDE}"
+    val digest = MessageDigest.getInstance("SHA-1").digest(source.toByteArray())
     return digest.joinToString("") { "%02x".format(it) }
 }

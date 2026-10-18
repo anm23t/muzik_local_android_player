@@ -60,7 +60,7 @@ internal class DefaultCoverRepository
         private companion object {
             const val FOLDER = "covers"
 
-            /** 64 MB: about 3000 covers of 256 px, which is more than most libraries have albums. */
+            /** 64 MB: about 1500 covers of 512 px. */
             const val CACHE_LIMIT_BYTES = 64L * 1024 * 1024
         }
     }

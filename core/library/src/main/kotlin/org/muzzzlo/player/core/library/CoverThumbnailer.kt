@@ -32,8 +32,8 @@ internal class CoverThumbnailer
         }
 
         companion object {
-            /** The biggest cover on screen is the player's, 284 dp; lists use 40 to 100 dp. */
-            const val MAX_SIDE = 256
+            /** The biggest cover on screen is the player's, 284 dp (about 800 px on dense screens); 512 stays sharp. */
+            const val MAX_SIDE = 512
             const val JPEG_QUALITY = 85
         }
     }
