@@ -86,7 +86,7 @@ and a crash in native code takes the process down instead of throwing an excepti
   the ID3v2 version the file had (`MPEG::File::save(AllTags, StripNone, v3|v4)`).
 - `FileStream(int fd)` closes the descriptor itself: hand it `ParcelFileDescriptor.detachFd()` or a `dup()`.
 - New dependencies for the app (CLAUDE.md, code rules): TagLib (source at a pinned version), the Android NDK and CMake.
-  Approved; they are wired up in task 0.3.1 (connecting TagLib), reading follows in 0.3.2, safe writing in 0.3.3.
+  Approved; they were wired up in task 0.3.1 (connecting TagLib, done), reading was added in 0.3.2 (done), safe writing follows in 0.3.3.
 
 ## License
 
@@ -103,7 +103,7 @@ and a crash in native code takes the process down instead of throwing an excepti
 ## Open risks
 
 1. **Native crashes.** A malformed file can crash the process. Mitigation: pin a recent TagLib (2.3.2 hardened parsers),
-   mark a file as "in progress" before native reading so a file that crashed the process is skipped and flagged after restart (0.3.1),
+   mark a file as "in progress" before native reading so a file that crashed the process is skipped and flagged after restart (done in 0.3.1, flag in the database in 0.3.2),
    fuzz the bridge with broken fixtures in 0.3.2 (done: `BrokenFilesTest`), and consider reading tags in a separate `:scanner` process if crashes show up.
 2. **Strings across JNI.** The spike uses `NewStringUTF`, which expects modified UTF-8: characters outside the BMP (emoji) would break.
    Production code passes strings as UTF-8 byte arrays in both directions, with a mandatory emoji test (ARCHITECTURE.md, section 5).
