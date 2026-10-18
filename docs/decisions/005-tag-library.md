@@ -93,7 +93,7 @@ and a crash in native code takes the process down instead of throwing an excepti
    fuzz the bridge with broken fixtures in 0.3.1, and consider reading tags in a separate `:scanner` process if crashes show up.
 2. **Strings across JNI.** The spike uses `NewStringUTF`, which expects modified UTF-8: characters outside the BMP (emoji) would break.
    Production code must pass UTF-16 (`NewString`/`GetStringChars`) or byte arrays.
-3. **Build complexity.** CI and contributors need the NDK and CMake; F-Droid builds need the same NDK version pinned. ABI splits are planned in 1.0.4.
+3. **Build complexity.** CI and contributors need the NDK and CMake; F-Droid builds need the same NDK version pinned. ABI splits are planned in 1.0.3.
 4. **APK size per ABI** as measured above; a universal APK carries all ABIs.
 5. **Speed on a phone** was not measured; host numbers are only a relative comparison. Measure on a device with a large library in 0.3.1.
 6. **M4A multiple artists**: TagLib writes several values inside one `©ART` atom; some players show only the first. Accepted, since it is the standard form.
