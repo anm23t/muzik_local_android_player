@@ -71,6 +71,7 @@ PK: (`album_id`, `artist_id`).
 | has_cover | INTEGER NOT NULL | 0/1 |
 | has_lyrics | INTEGER NOT NULL | 0/1 |
 | is_missing | INTEGER NOT NULL DEFAULT 0 | Файл пропал из MediaStore |
+| is_damaged | INTEGER NOT NULL DEFAULT 0 | Файл уронил нативное чтение тегов и в карантине (`NativeCallGuard`): теги взяты из MediaStore. Версия схемы 2 |
 | rating_tenths | INTEGER | Оценка 0-100 (шкала 0.0-10.0 с шагом 0.1, например 67 = 6.7), NULL = не оценён. Только в БД, в файлы не пишется |
 | is_favorite | INTEGER NOT NULL DEFAULT 0 | |
 

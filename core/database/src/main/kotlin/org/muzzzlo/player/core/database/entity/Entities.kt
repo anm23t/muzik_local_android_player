@@ -74,6 +74,8 @@ data class TrackEntity(
     @ColumnInfo(name = "has_cover") val hasCover: Boolean = false,
     @ColumnInfo(name = "has_lyrics") val hasLyrics: Boolean = false,
     @ColumnInfo(name = "is_missing", defaultValue = "0") val isMissing: Boolean = false,
+    /** The file crashed the native tag reader and is quarantined; the row holds MediaStore data only. */
+    @ColumnInfo(name = "is_damaged", defaultValue = "0") val isDamaged: Boolean = false,
     /** Rating 0-100 (tenths of a point, 67 = 6.7); null when not rated. Stored only in the database. */
     @ColumnInfo(name = "rating_tenths") val ratingTenths: Int? = null,
     @ColumnInfo(name = "is_favorite", defaultValue = "0") val isFavorite: Boolean = false,

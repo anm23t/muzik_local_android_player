@@ -1,0 +1,42 @@
+package org.muzzzlo.player.core.database
+
+import androidx.room.testing.MigrationTestHelper
+import androidx.test.platform.app.InstrumentationRegistry
+import org.junit.Assert.assertEquals
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+
+/** Every migration keeps the rows and ends in the schema Room exported for the new version. */
+@RunWith(RobolectricTestRunner::class)
+class MigrationTest {
+    @get:Rule
+    val helper = MigrationTestHelper(InstrumentationRegistry.getInstrumentation(), MuzzzloDatabase::class.java)
+
+    @Test
+    fun `1 to 2 adds is_damaged and keeps tracks`() {
+        helper.createDatabase(DB_NAME, 1).use { db ->
+            db.execSQL(
+                "INSERT INTO track (id, media_store_id, uri, title, title_key, artist_tag_values, duration_ms, " +
+                    "has_cover, has_lyrics, is_missing, is_favorite) " +
+                    "VALUES (1, 10, 'content://media/10', 'Song', 'song', '[\"A\"]', 1000, 1, 0, 0, 1)",
+            )
+        }
+
+        // Also validates the result against schemas/…/2.json.
+        helper.runMigrationsAndValidate(DB_NAME, 2, true, MIGRATION_1_2).use { db ->
+            db.query("SELECT title, has_cover, is_favorite, is_damaged FROM track WHERE id = 1").use { cursor ->
+                cursor.moveToFirst()
+                assertEquals("Song", cursor.getString(0))
+                assertEquals(1, cursor.getInt(1))
+                assertEquals(1, cursor.getInt(2))
+                assertEquals(0, cursor.getInt(3))
+            }
+        }
+    }
+
+    private companion object {
+        const val DB_NAME = "migration-test.db"
+    }
+}

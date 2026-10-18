@@ -43,6 +43,7 @@ data class TrackStamp(
     val uri: String,
     @ColumnInfo(name = "date_modified") val dateModified: Long?,
     @ColumnInfo(name = "is_missing") val isMissing: Boolean,
+    @ColumnInfo(name = "is_damaged") val isDamaged: Boolean,
 )
 
 @Dao
@@ -91,7 +92,7 @@ interface LibraryDao {
 
     // ---- writes for the scanner ----
 
-    @Query("SELECT id, uri, date_modified, is_missing FROM track")
+    @Query("SELECT id, uri, date_modified, is_missing, is_damaged FROM track")
     suspend fun trackStamps(): List<TrackStamp>
 
     @Query("SELECT id FROM artist WHERE name_key = :key")
