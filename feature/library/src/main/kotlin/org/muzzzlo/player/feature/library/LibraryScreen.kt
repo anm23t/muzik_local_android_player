@@ -18,12 +18,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Album
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -51,6 +48,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import org.muzzzlo.player.core.designsystem.component.TrackAction
+import org.muzzzlo.player.core.designsystem.component.TrackActionsMenu
+import org.muzzzlo.player.core.designsystem.component.TrackMenuButton
 import org.muzzzlo.player.core.model.Album
 import org.muzzzlo.player.core.model.Track
 
@@ -65,6 +65,7 @@ private val audioPermission: String
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LibraryScreen(
+    onOpenQueue: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: LibraryViewModel = hiltViewModel(),
 ) {
@@ -98,8 +99,9 @@ fun LibraryScreen(
                 TrackList(
                     state.albumTracks,
                     viewModel,
+                    onOpenQueue,
                 ) { viewModel.onTrackClicked(state.albumTracks, it) }
-            else -> LibraryTabs(state, viewModel)
+            else -> LibraryTabs(state, viewModel, onOpenQueue)
         }
     }
 }
@@ -108,6 +110,7 @@ fun LibraryScreen(
 private fun LibraryTabs(
     state: LibraryUiState,
     viewModel: LibraryViewModel,
+    onOpenQueue: () -> Unit,
 ) {
     var tab by rememberSaveable { mutableIntStateOf(0) }
     TabRow(selectedTabIndex = tab) {
@@ -115,7 +118,7 @@ private fun LibraryTabs(
         Tab(tab == 1, { tab = 1 }, text = { Text(stringResource(R.string.library_tab_albums)) })
     }
     if (tab == 0) {
-        TrackList(state.tracks, viewModel) { viewModel.onTrackClicked(state.tracks, it) }
+        TrackList(state.tracks, viewModel, onOpenQueue) { viewModel.onTrackClicked(state.tracks, it) }
     } else {
         AlbumList(state.albums, viewModel::onAlbumClicked)
     }
@@ -142,9 +145,11 @@ private fun EmptyState() {
 private fun TrackList(
     tracks: List<Track>,
     viewModel: LibraryViewModel,
+    onOpenQueue: () -> Unit,
     onClick: (Int) -> Unit,
 ) {
     if (tracks.isEmpty()) return EmptyState()
+    var menuTrack by remember { mutableStateOf<Track?>(null) }
     LazyColumn(contentPadding = PaddingValues(bottom = 8.dp)) {
         itemsIndexed(tracks, key = { _, t -> t.id }) { index, track ->
             ListItem(
@@ -158,38 +163,20 @@ private fun TrackList(
                         overflow = TextOverflow.Ellipsis,
                     )
                 },
-                trailingContent = { TrackMenu(track, viewModel) },
+                trailingContent = { TrackMenuButton(onClick = { menuTrack = track }) },
             )
         }
     }
-}
-
-@Composable
-private fun TrackMenu(
-    track: Track,
-    viewModel: LibraryViewModel,
-) {
-    var expanded by remember { mutableStateOf(false) }
-    Box {
-        IconButton(onClick = { expanded = true }) {
-            Icon(Icons.Filled.MoreVert, stringResource(R.string.library_track_menu))
-        }
-        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            DropdownMenuItem(
-                text = { Text(stringResource(R.string.library_play_next)) },
-                onClick = {
-                    expanded = false
-                    viewModel.onPlayNext(track)
-                },
-            )
-            DropdownMenuItem(
-                text = { Text(stringResource(R.string.library_add_to_queue)) },
-                onClick = {
-                    expanded = false
-                    viewModel.onAddToQueue(track)
-                },
-            )
-        }
+    menuTrack?.let { track ->
+        TrackActionsMenu(
+            title = track.title,
+            artists = track.artistsText,
+            onAction = { action ->
+                viewModel.onTrackAction(track, action)
+                if (action == TrackAction.OpenQueue) onOpenQueue()
+            },
+            onDismiss = { menuTrack = null },
+        )
     }
 }
 

@@ -25,6 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -38,6 +39,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import org.muzzzlo.player.core.designsystem.component.TrackAction
+import org.muzzzlo.player.core.designsystem.component.TrackActionsMenu
+import org.muzzzlo.player.core.designsystem.component.TrackMenuButton
 import org.muzzzlo.player.core.model.Track
 
 private val RowHeight = 64.dp
@@ -77,6 +81,17 @@ private fun QueueList(
     val rowHeightPx = with(LocalDensity.current) { RowHeight.toPx() }
     var draggingIndex by remember { mutableIntStateOf(-1) }
     var dragOffset by remember { mutableFloatStateOf(0f) }
+    var menuTrack by remember { mutableStateOf<Track?>(null) }
+    menuTrack?.let { track ->
+        TrackActionsMenu(
+            title = track.title,
+            artists = track.artistsText,
+            onAction = { action -> viewModel.onTrackAction(track, action) },
+            onDismiss = { menuTrack = null },
+            // The queue is already open.
+            actions = TrackAction.entries - TrackAction.OpenQueue,
+        )
+    }
 
     LazyColumn(Modifier.fillMaxSize()) {
         itemsIndexed(queue, key = { index, track -> "$index-${track.id}" }) { index, track ->
@@ -100,6 +115,7 @@ private fun QueueList(
                             overflow = TextOverflow.Ellipsis,
                         )
                     }
+                    TrackMenuButton(onClick = { menuTrack = track })
                     IconButton({ viewModel.onQueueItemRemoved(index) }) {
                         Icon(Icons.Filled.Close, stringResource(R.string.queue_remove))
                     }

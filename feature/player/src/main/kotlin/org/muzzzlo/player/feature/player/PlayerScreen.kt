@@ -1,6 +1,7 @@
 package org.muzzzlo.player.feature.player
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -38,9 +39,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import org.muzzzlo.player.core.designsystem.component.RoundIconButton
+import org.muzzzlo.player.core.designsystem.component.TrackAction
+import org.muzzzlo.player.core.designsystem.component.TrackActionsMenu
 import org.muzzzlo.player.core.model.PlayerState
 import org.muzzzlo.player.core.model.RepeatMode
 import java.util.Locale
+import org.muzzzlo.player.core.designsystem.R as DesignR
 
 /** Full screen player. */
 @Composable
@@ -51,8 +56,42 @@ fun PlayerScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val track = state.currentTrack
+    var menuOpen by remember { mutableStateOf(false) }
+    Column(modifier.fillMaxSize().padding(24.dp)) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+            // The mockup's more-button (3:11); the rest of the screen is moved in 0.3.5a.
+            RoundIconButton(
+                icon = DesignR.drawable.ic_more_horizontal,
+                contentDescription = stringResource(R.string.player_track_menu),
+                onClick = { menuOpen = true },
+                enabled = track != null,
+            )
+        }
+        PlayerContent(state, viewModel, onOpenQueue, Modifier.weight(1f))
+    }
+    if (menuOpen && track != null) {
+        TrackActionsMenu(
+            title = track.title,
+            artists = track.artistsText,
+            onAction = { action ->
+                viewModel.onTrackAction(track, action)
+                if (action == TrackAction.OpenQueue) onOpenQueue()
+            },
+            onDismiss = { menuOpen = false },
+        )
+    }
+}
+
+@Composable
+private fun PlayerContent(
+    state: PlayerState,
+    viewModel: PlayerViewModel,
+    onOpenQueue: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val track = state.currentTrack
     Column(
-        modifier.fillMaxSize().padding(24.dp),
+        modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
     ) {
@@ -143,16 +182,36 @@ private fun SeekBar(
     }
 }
 
-/** Small bar with the current track, shown under the lists. Hidden when nothing is loaded. */
+/**
+ * Small bar with the current track, shown under the lists. Hidden when nothing is loaded.
+ * A long press opens the track menu.
+ */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MiniPlayer(
     onOpen: () -> Unit,
+    onOpenQueue: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: PlayerViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val track = state.currentTrack ?: return
-    Surface(modifier.fillMaxWidth().clickable(onClick = onOpen), tonalElevation = 3.dp) {
+    var menuOpen by remember { mutableStateOf(false) }
+    if (menuOpen) {
+        TrackActionsMenu(
+            title = track.title,
+            artists = track.artistsText,
+            onAction = { action ->
+                viewModel.onTrackAction(track, action)
+                if (action == TrackAction.OpenQueue) onOpenQueue()
+            },
+            onDismiss = { menuOpen = false },
+        )
+    }
+    Surface(
+        modifier.fillMaxWidth().combinedClickable(onClick = onOpen, onLongClick = { menuOpen = true }),
+        tonalElevation = 3.dp,
+    ) {
         Column {
             HorizontalDivider()
             Row(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {

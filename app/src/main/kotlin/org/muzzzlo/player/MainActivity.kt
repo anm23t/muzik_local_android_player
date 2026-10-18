@@ -7,6 +7,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import dagger.hilt.android.AndroidEntryPoint
+import org.muzzzlo.player.core.designsystem.theme.MuzzzloTheme
 import org.muzzzlo.player.core.model.PlayerController
 import javax.inject.Inject
 

@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.muzzzlo.player.core.designsystem.component.TrackAction
 import org.muzzzlo.player.core.model.Album
 import org.muzzzlo.player.core.model.LibraryRepository
 import org.muzzzlo.player.core.model.PlayerController
@@ -64,9 +65,23 @@ class LibraryViewModel
             index: Int,
         ) = player.play(tracks, index)
 
-        fun onPlayNext(track: Track) = player.playNext(track)
-
-        fun onAddToQueue(track: Track) = player.addToQueue(track)
+        /** Item chosen in the track menu. Navigation items are handled by the screen. */
+        fun onTrackAction(
+            track: Track,
+            action: TrackAction,
+        ) {
+            when (action) {
+                TrackAction.PlayNext -> player.playNext(track)
+                TrackAction.AddToQueue -> player.addToQueue(track)
+                TrackAction.OpenQueue -> Unit
+                // Placeholders: playlists, favorites and rating come in 1.1, the tag editor in 0.3.6.
+                TrackAction.AddToPlaylist,
+                TrackAction.AddToFavorites,
+                TrackAction.Rate,
+                TrackAction.EditTags,
+                -> Unit
+            }
+        }
 
         fun onAlbumClicked(album: Album) {
             viewModelScope.launch {

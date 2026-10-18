@@ -19,6 +19,10 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
+    testOptions {
+        unitTests.all { it.useJUnitPlatform() }
+    }
+
     buildFeatures {
         compose = true
     }
@@ -26,6 +30,7 @@ android {
 
 dependencies {
     implementation(project(":core:model"))
+    implementation(project(":core:designsystem"))
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.material3)
@@ -37,4 +42,9 @@ dependencies {
     implementation(libs.hilt.android)
     implementation(libs.hilt.navigation.compose)
     ksp(libs.hilt.compiler)
+
+    testImplementation(platform("org.junit:junit-bom:5.11.3"))
+    testImplementation(libs.junit5)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }

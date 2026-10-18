@@ -7,9 +7,6 @@
     <string name="library_empty">No music found</string>
     <string name="library_permission_rationale">Allow access to audio files to build your music library.</string>
     <string name="library_permission_grant">Allow access</string>
-    <string name="library_track_menu">Track actions</string>
-    <string name="library_play_next">Play next</string>
-    <string name="library_add_to_queue">Add to queue</string>
     <string name="unknown_artist">Unknown artist</string>
     <plurals name="library_track_count">
         <item quantity="one">%d track</item>

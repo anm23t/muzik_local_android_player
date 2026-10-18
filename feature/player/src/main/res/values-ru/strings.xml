@@ -8,6 +8,7 @@
     <string name="player_back">Назад</string>
     <string name="player_shuffle">Перемешать</string>
     <string name="player_repeat">Повтор</string>
+    <string name="player_track_menu">Действия с треком</string>
     <string name="player_queue">Очередь</string>
     <string name="queue_title">Очередь</string>
     <string name="queue_empty">Очередь пуста</string>

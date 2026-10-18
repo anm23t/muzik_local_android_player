@@ -27,8 +27,14 @@ fun MuzzzloNavHost() {
         NavHost(navController, startDestination = ROUTE_LIBRARY) {
             composable(ROUTE_LIBRARY) {
                 Column {
-                    LibraryScreen(Modifier.weight(1f))
-                    MiniPlayer(onOpen = { navController.navigate(ROUTE_PLAYER) })
+                    LibraryScreen(
+                        onOpenQueue = { navController.navigate(ROUTE_QUEUE) },
+                        modifier = Modifier.weight(1f),
+                    )
+                    MiniPlayer(
+                        onOpen = { navController.navigate(ROUTE_PLAYER) },
+                        onOpenQueue = { navController.navigate(ROUTE_QUEUE) },
+                    )
                 }
             }
             composable(ROUTE_PLAYER) { PlayerScreen(onOpenQueue = { navController.navigate(ROUTE_QUEUE) }) }
