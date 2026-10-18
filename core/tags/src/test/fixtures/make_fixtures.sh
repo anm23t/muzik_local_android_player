@@ -29,4 +29,5 @@ ff -f lavfi -i "color=c=red:s=8x8" -frames:v 1 -fflags +bitexact cover_front.png
 ff -f lavfi -i "color=c=blue:s=8x8" -frames:v 1 -fflags +bitexact cover_other.png
 
 "$PY" -I "$HERE/tag_fixtures.py" "$OUT"
+"$PY" -I "$HERE/extra_fixtures.py" "$OUT"
 ls -l "$OUT"
