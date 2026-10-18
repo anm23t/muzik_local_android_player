@@ -104,12 +104,24 @@ and a crash in native code takes the process down instead of throwing an excepti
 
 1. **Native crashes.** A malformed file can crash the process. Mitigation: pin a recent TagLib (2.3.2 hardened parsers),
    mark a file as "in progress" before native reading so a file that crashed the process is skipped and flagged after restart (0.3.1),
-   fuzz the bridge with broken fixtures in 0.3.2, and consider reading tags in a separate `:scanner` process if crashes show up.
+   fuzz the bridge with broken fixtures in 0.3.2 (done: `BrokenFilesTest`), and consider reading tags in a separate `:scanner` process if crashes show up.
 2. **Strings across JNI.** The spike uses `NewStringUTF`, which expects modified UTF-8: characters outside the BMP (emoji) would break.
    Production code passes strings as UTF-8 byte arrays in both directions, with a mandatory emoji test (ARCHITECTURE.md, section 5).
 3. **Build complexity.** CI and contributors need the NDK and CMake; F-Droid builds need the same NDK version pinned. ABI splits are planned in 1.0.3.
 4. **APK size per ABI** as measured above; a universal APK carries all ABIs.
-5. **Speed on a phone** was not measured; host numbers are only a relative comparison. Measuring on a real phone with a large library is a condition for closing task 0.3.2.
+5. **Speed on a phone** — measured in task 0.3.2 with `TagReadBenchmark` (`core:tags` instrumented tests) on a phone reporting
+   Android 16 (API 36), 1586 music files (1117 MP3, 427 FLAC, 23 M4A, 9 Ogg, 10 WAV), reading as the scanner does:
+   open the `content://` URI, read tags and audio properties by descriptor behind `NativeCallGuard`, one file at a time.
+   - First run (page cache cold for most files): 27.8 s in total, 17.5 ms per file on average.
+   - Warm runs: 10.2–10.8 s, mean 6.4–6.8 ms, median 4.5–4.7 ms, p95 15.5–15.8 ms, max ≈ 0.1 s per file.
+   - Split of a warm read: opening the URI 1.7 ms, the guard's marker 0.2 ms, TagLib 4.0 ms (audio properties add
+     under 0.1 ms). Host numbers (65 µs) are two orders lower: on the phone the time goes to I/O through the FUSE layer
+     of shared storage, not to parsing.
+   - Only changed files are read on later scans, so this cost is paid in full once. Reading several files in parallel
+     is the obvious next step if the first scan feels slow; it widens what a native crash quarantines (section on guard).
+   - The run also found that TagLib's content sniffing rejects some valid MP3 files (a LAME "Info" frame followed by a
+     second ID3v2 tag; 32 files on that phone) when it reads a descriptor without a name. The bridge now passes the
+     MediaStore display name so the format is picked by extension, as for a path.
 6. **M4A multiple artists**: TagLib writes several values inside one `©ART` atom; some players show only the first. Accepted, since it is the standard form.
 7. **`PropertyMap` semantics**: `setProperties` drops mapped fields missing from the map (custom `TXXX`, Vorbis fields). Always write the full map read from the file; covered by the "unknown fields kept" test, which must move to `core:tags`.
 8. **Replacing the original** through `openFileDescriptor(uri, "rwt")` and the permission dialogs were not exercised in the spike; this is task 0.3.3.
