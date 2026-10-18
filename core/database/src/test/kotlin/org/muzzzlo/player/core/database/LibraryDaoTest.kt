@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -16,6 +17,7 @@ import org.muzzzlo.player.core.database.entity.AlbumArtistEntity
 import org.muzzzlo.player.core.database.entity.AlbumEntity
 import org.muzzzlo.player.core.database.entity.TrackArtistEntity
 import org.muzzzlo.player.core.database.entity.TrackEntity
+import org.muzzzlo.player.core.database.entity.TrackScanFields
 import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
@@ -98,5 +100,44 @@ class LibraryDaoTest {
             dao.insertAlbum(AlbumEntity(title = "Lonely", titleKey = "lonely"))
             dao.deleteEmptyAlbums()
             assertTrue(dao.observeAlbums().first().isEmpty())
+        }
+
+    @Test
+    fun `scan update keeps rating and favorite`() =
+        runBlocking {
+            val id = dao.insertTrack(track("u1", "Old").copy(ratingTenths = 67, isFavorite = true, dateModified = 1))
+            dao.setMissing(listOf(id), true)
+
+            dao.updateScannedTrack(
+                TrackScanFields(
+                    id = id,
+                    mediaStoreId = 5,
+                    uri = "u1",
+                    relativePath = "Music/",
+                    title = "New",
+                    titleKey = "new",
+                    artistTagValues = "[\"A\"]",
+                    albumId = null,
+                    trackNumber = 3,
+                    discNumber = null,
+                    year = 2001,
+                    durationMs = 2000,
+                    format = "FLAC",
+                    bitrate = 900,
+                    fileSize = 10,
+                    dateAdded = 1,
+                    dateModified = 2,
+                    hasCover = true,
+                    hasLyrics = false,
+                    isDamaged = false,
+                ),
+            )
+
+            val updated = dao.tracksByIds(listOf(id)).single()
+            assertEquals(67, updated.ratingTenths)
+            assertTrue(updated.isFavorite)
+            assertEquals("New", updated.title)
+            assertEquals(2L, updated.dateModified)
+            assertFalse(updated.isMissing)
         }
 }

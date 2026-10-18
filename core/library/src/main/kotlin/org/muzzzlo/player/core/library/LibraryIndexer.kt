@@ -7,7 +7,7 @@ import org.muzzzlo.player.core.database.dao.TrackStamp
 import org.muzzzlo.player.core.database.entity.AlbumArtistEntity
 import org.muzzzlo.player.core.database.entity.AlbumEntity
 import org.muzzzlo.player.core.database.entity.TrackArtistEntity
-import org.muzzzlo.player.core.database.entity.TrackEntity
+import org.muzzzlo.player.core.database.entity.TrackScanFields
 import org.muzzzlo.player.core.model.NameNormalizer
 import javax.inject.Inject
 
@@ -57,8 +57,8 @@ class LibraryIndexer
             val artistIds = artists.map { dao.artistId(it, NameNormalizer.key(it)) }
             val albumId = metadata.album?.let { findOrCreateAlbum(it, metadata.year, artistIds) }
 
-            val entity =
-                TrackEntity(
+            val fields =
+                TrackScanFields(
                     id = existingId ?: 0,
                     mediaStoreId = file.mediaStoreId,
                     uri = file.uri,
@@ -82,9 +82,9 @@ class LibraryIndexer
                 )
             val trackId =
                 if (existingId == null) {
-                    dao.insertTrack(entity)
+                    dao.insertTrack(fields.toNewEntity())
                 } else {
-                    dao.updateTrack(entity)
+                    dao.updateScannedTrack(fields)
                     dao.clearTrackArtists(existingId)
                     existingId
                 }

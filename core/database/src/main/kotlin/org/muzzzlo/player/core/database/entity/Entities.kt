@@ -81,6 +81,60 @@ data class TrackEntity(
     @ColumnInfo(name = "is_favorite", defaultValue = "0") val isFavorite: Boolean = false,
 )
 
+/**
+ * The columns of [TrackEntity] that the scanner derives from the file and MediaStore. A rescan updates only
+ * these, so data that lives only in the database (rating, favorite) survives a file change.
+ */
+data class TrackScanFields(
+    val id: Long = 0,
+    @ColumnInfo(name = "media_store_id") val mediaStoreId: Long?,
+    val uri: String,
+    @ColumnInfo(name = "relative_path") val relativePath: String?,
+    val title: String,
+    @ColumnInfo(name = "title_key") val titleKey: String,
+    @ColumnInfo(name = "artist_tag_values") val artistTagValues: String,
+    @ColumnInfo(name = "album_id") val albumId: Long?,
+    @ColumnInfo(name = "track_number") val trackNumber: Int?,
+    @ColumnInfo(name = "disc_number") val discNumber: Int?,
+    val year: Int?,
+    @ColumnInfo(name = "duration_ms") val durationMs: Long,
+    val format: String?,
+    val bitrate: Int?,
+    @ColumnInfo(name = "file_size") val fileSize: Long?,
+    @ColumnInfo(name = "date_added") val dateAdded: Long?,
+    @ColumnInfo(name = "date_modified") val dateModified: Long?,
+    @ColumnInfo(name = "has_cover") val hasCover: Boolean,
+    @ColumnInfo(name = "has_lyrics") val hasLyrics: Boolean,
+    /** A scanned file is present, so an update also brings a reappeared track back. */
+    @ColumnInfo(name = "is_missing") val isMissing: Boolean = false,
+    @ColumnInfo(name = "is_damaged") val isDamaged: Boolean,
+) {
+    /** A new track row with these fields and default user data. */
+    fun toNewEntity() =
+        TrackEntity(
+            mediaStoreId = mediaStoreId,
+            uri = uri,
+            relativePath = relativePath,
+            title = title,
+            titleKey = titleKey,
+            artistTagValues = artistTagValues,
+            albumId = albumId,
+            trackNumber = trackNumber,
+            discNumber = discNumber,
+            year = year,
+            durationMs = durationMs,
+            format = format,
+            bitrate = bitrate,
+            fileSize = fileSize,
+            dateAdded = dateAdded,
+            dateModified = dateModified,
+            hasCover = hasCover,
+            hasLyrics = hasLyrics,
+            isMissing = isMissing,
+            isDamaged = isDamaged,
+        )
+}
+
 @Entity(
     tableName = "track_artist",
     primaryKeys = ["track_id", "artist_id"],

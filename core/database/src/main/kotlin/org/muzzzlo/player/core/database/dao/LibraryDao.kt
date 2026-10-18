@@ -13,6 +13,7 @@ import org.muzzzlo.player.core.database.entity.AlbumEntity
 import org.muzzzlo.player.core.database.entity.ArtistEntity
 import org.muzzzlo.player.core.database.entity.TrackArtistEntity
 import org.muzzzlo.player.core.database.entity.TrackEntity
+import org.muzzzlo.player.core.database.entity.TrackScanFields
 
 /** Album row with the number of present tracks. */
 data class AlbumRow(
@@ -119,8 +120,9 @@ interface LibraryDao {
     @Insert
     suspend fun insertTrack(track: TrackEntity): Long
 
-    @Update
-    suspend fun updateTrack(track: TrackEntity)
+    /** Updates only the scan-derived columns; rating and favorite are left as they are. */
+    @Update(entity = TrackEntity::class)
+    suspend fun updateScannedTrack(fields: TrackScanFields)
 
     @Query("DELETE FROM track_artist WHERE track_id = :trackId")
     suspend fun clearTrackArtists(trackId: Long)
