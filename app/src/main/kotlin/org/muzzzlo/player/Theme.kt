@@ -10,7 +10,7 @@ private val AccentContainer = Color(0xFF241015)
 
 /**
  * Dark-only theme with the default red accent (DESIGN.md, section 2).
- * Replaced by `core:designsystem` with the dynamic cover accent in task 0.3.3 / 0.3.7.
+ * Replaced by `core:designsystem` with the dynamic cover accent in task 0.3.4 / 0.3.8.
  */
 @Composable
 fun MuzzzloTheme(content: @Composable () -> Unit) {
