@@ -85,17 +85,31 @@ and a crash in native code takes the process down instead of throwing an excepti
 - Write = read the full `PropertyMap`, change only our keys, `setProperties`, then save. For MPEG files pass
   the ID3v2 version the file had (`MPEG::File::save(AllTags, StripNone, v3|v4)`).
 - `FileStream(int fd)` closes the descriptor itself: hand it `ParcelFileDescriptor.detachFd()` or a `dup()`.
-- New dependency for the app (CLAUDE.md, code rules): the TagLib source and the NDK; needs your approval in 0.3.1.
+- New dependencies for the app (CLAUDE.md, code rules): TagLib (source at a pinned version), the Android NDK and CMake.
+  Approved; they are wired up in task 0.3.1 (connecting TagLib), reading follows in 0.3.2, safe writing in 0.3.3.
+
+## License
+
+- TagLib is dual-licensed: **LGPL-2.1** (version 2.1 only, not "or later") or **MPL-1.1**, per file headers and
+  `COPYING.LGPL` / `COPYING.MPL`. MUZZZLO uses it under **LGPL-2.1**; MPL-1.1 alone is not compatible with the GPL.
+- **Compatible with GPLv3:** LGPL-2.1, section 3, allows any copy of the library to be used under the GNU GPL
+  version 2 or any later version, so linking TagLib (statically, into `libtaglib_jni.so`) into a GPLv3 app is allowed.
+  The FSF lists LGPL-2.1 as GPLv3-compatible.
+- utfcpp, bundled with TagLib, is under the Boost Software License 1.0, which is GPL-compatible.
+- Obligations: ship the license texts and copyright notices of TagLib and utfcpp with the app (licenses screen and
+  repository), state the TagLib version used, and keep the corresponding source available. The app being GPLv3 with
+  public source covers the LGPL requirement to allow relinking.
 
 ## Open risks
 
 1. **Native crashes.** A malformed file can crash the process. Mitigation: pin a recent TagLib (2.3.2 hardened parsers),
-   fuzz the bridge with broken fixtures in 0.3.1, and consider reading tags in a separate `:scanner` process if crashes show up.
+   mark a file as "in progress" before native reading so a file that crashed the process is skipped and flagged after restart (0.3.1),
+   fuzz the bridge with broken fixtures in 0.3.2, and consider reading tags in a separate `:scanner` process if crashes show up.
 2. **Strings across JNI.** The spike uses `NewStringUTF`, which expects modified UTF-8: characters outside the BMP (emoji) would break.
-   Production code must pass UTF-16 (`NewString`/`GetStringChars`) or byte arrays.
+   Production code passes strings as UTF-8 byte arrays in both directions, with a mandatory emoji test (ARCHITECTURE.md, section 5).
 3. **Build complexity.** CI and contributors need the NDK and CMake; F-Droid builds need the same NDK version pinned. ABI splits are planned in 1.0.3.
 4. **APK size per ABI** as measured above; a universal APK carries all ABIs.
-5. **Speed on a phone** was not measured; host numbers are only a relative comparison. Measure on a device with a large library in 0.3.1.
+5. **Speed on a phone** was not measured; host numbers are only a relative comparison. Measuring on a real phone with a large library is a condition for closing task 0.3.2.
 6. **M4A multiple artists**: TagLib writes several values inside one `©ART` atom; some players show only the first. Accepted, since it is the standard form.
 7. **`PropertyMap` semantics**: `setProperties` drops mapped fields missing from the map (custom `TXXX`, Vorbis fields). Always write the full map read from the file; covered by the "unknown fields kept" test, which must move to `core:tags`.
-8. **Replacing the original** through `openFileDescriptor(uri, "rwt")` and the permission dialogs were not exercised in the spike; this is task 0.3.2.
+8. **Replacing the original** through `openFileDescriptor(uri, "rwt")` and the permission dialogs were not exercised in the spike; this is task 0.3.3.
