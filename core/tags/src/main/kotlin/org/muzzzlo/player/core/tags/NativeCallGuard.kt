@@ -22,7 +22,7 @@ import java.util.concurrent.atomic.AtomicLong
  *
  * @param directory folder for markers and the quarantine list; created on demand.
  */
-class NativeCallGuard(private val directory: File) {
+class NativeCallGuard(internal val directory: File) {
     private val markersDirectory = File(directory, MARKERS_DIRECTORY)
     private val quarantineFile = File(directory, QUARANTINE_FILE)
     private val markerCounter = AtomicLong()

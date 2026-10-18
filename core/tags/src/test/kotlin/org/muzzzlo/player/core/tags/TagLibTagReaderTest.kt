@@ -28,7 +28,7 @@ class TagLibTagReaderTest {
     lateinit var tempDir: File
 
     private val reader by lazy {
-        TagLibTagReader(TagLibBridge(), NativeCallGuard(File(tempDir, "guard")), TestDispatchers)
+        testTagReader(NativeCallGuard(File(tempDir, "guard")))
     }
 
     /** One tagged fixture per way the formats store the same logical tags. */
@@ -166,7 +166,7 @@ class TagLibTagReaderTest {
             val guardDir = File(tempDir, "crashed")
             val key = fixture("flac.flac").path
             simulateCrashDuringRead(guardDir, key)
-            val reader = TagLibTagReader(TagLibBridge(), NativeCallGuard(guardDir), TestDispatchers)
+            val reader = testTagReader(NativeCallGuard(guardDir))
 
             assertEquals(TagReadResult.Quarantined, reader.readTags(TagSource.FilePath(key)))
             assertNull(reader.readCover(TagSource.FilePath(key)))
@@ -177,7 +177,7 @@ class TagLibTagReaderTest {
     fun `a normal read leaves no marker behind`() =
         runTest {
             val guardDir = File(tempDir, "clean")
-            val reader = TagLibTagReader(TagLibBridge(), NativeCallGuard(guardDir), TestDispatchers)
+            val reader = testTagReader(NativeCallGuard(guardDir))
             reader.readTags(TagSource.FilePath(fixture("m4a.m4a").path))
 
             assertTrue(NativeCallGuard(guardDir).recoverAfterCrash().isEmpty())

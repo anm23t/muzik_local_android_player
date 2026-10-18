@@ -21,3 +21,9 @@ internal fun resourceFile(name: String): File {
 /** The raw descriptor behind a JVM FileDescriptor; on Android this comes from ParcelFileDescriptor.getFd(). */
 internal fun java.io.FileDescriptor.toIntFd(): Int =
     java.io.FileDescriptor::class.java.getDeclaredField("fd").apply { isAccessible = true }.getInt(this)
+
+/** A [TagLibTagReader] like the app's, with its write journal next to the guard's folder. */
+internal fun testTagReader(guard: NativeCallGuard): TagLibTagReader {
+    val journal = WriteJournal(File(guard.directory.parentFile, "${guard.directory.name}-journal"))
+    return TagLibTagReader(TagLibBridge(), guard, TagFileRecovery(guard, journal, PathOriginalFiles()), TestDispatchers)
+}

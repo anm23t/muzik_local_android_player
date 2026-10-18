@@ -23,7 +23,7 @@ class BrokenFilesTest {
     lateinit var tempDir: File
 
     private val reader by lazy {
-        TagLibTagReader(TagLibBridge(), NativeCallGuard(File(tempDir, "guard")), TestDispatchers)
+        testTagReader(NativeCallGuard(File(tempDir, "guard")))
     }
 
     @ParameterizedTest

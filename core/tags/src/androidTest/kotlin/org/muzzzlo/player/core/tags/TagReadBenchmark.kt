@@ -43,7 +43,16 @@ class TagReadBenchmark {
         assumeTrue("No music on the device", files.isNotEmpty())
 
         val guardDir = File(context.cacheDir, "benchmark-guard").apply { deleteRecursively() }
-        val reader = TagLibTagReader(TagLibBridge(), NativeCallGuard(guardDir), InPlaceDispatchers)
+        val reader =
+            NativeCallGuard(guardDir).let { guard ->
+                val journal = WriteJournal(File(guardDir.parentFile, "${guardDir.name}-journal"))
+                TagLibTagReader(
+                    TagLibBridge(),
+                    guard,
+                    TagFileRecovery(guard, journal, PathOriginalFiles()),
+                    InPlaceDispatchers,
+                )
+            }
         val report =
             buildString {
                 val device = "${Build.MODEL}, API ${Build.VERSION.SDK_INT}"

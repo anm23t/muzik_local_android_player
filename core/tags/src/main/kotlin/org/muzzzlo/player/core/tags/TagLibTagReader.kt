@@ -13,17 +13,17 @@ import javax.inject.Inject
  * [TagReader] on top of TagLib.
  *
  * Every native call runs behind [NativeCallGuard], so a file that crashes TagLib is quarantined after the restart
- * instead of crashing every scan. Crash recovery runs once, before the first read of the process.
+ * instead of crashing every scan. [TagFileRecovery] runs once, before the first read of the process: it quarantines
+ * such files and restores originals left half-replaced by an interrupted tag write.
  */
 internal class TagLibTagReader
     @Inject
     constructor(
         private val bridge: TagLibBridge,
         private val guard: NativeCallGuard,
+        private val recovery: TagFileRecovery,
         private val dispatchers: DispatcherProvider,
     ) : TagReader {
-        private val crashRecovery = lazy(LazyThreadSafetyMode.SYNCHRONIZED) { guard.recoverAfterCrash() }
-
         override suspend fun readTags(
             source: TagSource,
             withAudioInfo: Boolean,
@@ -49,7 +49,7 @@ internal class TagLibTagReader
             }
 
         private fun isQuarantined(source: TagSource): Boolean {
-            crashRecovery.value
+            recovery.ensureRecovered()
             return guard.isQuarantined(source.key)
         }
     }
