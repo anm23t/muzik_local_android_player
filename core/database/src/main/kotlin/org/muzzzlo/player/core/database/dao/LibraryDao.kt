@@ -145,6 +145,13 @@ interface LibraryDao {
     @Query("SELECT * FROM track WHERE is_missing = 0 AND id IN (:ids)")
     suspend fun tracksByIds(ids: List<Long>): List<TrackEntity>
 
+    /** The track whose cover stands for the album: the first one in play order that has a picture. */
+    @Query(
+        "SELECT * FROM track WHERE is_missing = 0 AND album_id = :albumId AND has_cover = 1 " +
+            "ORDER BY disc_number, track_number, title_key LIMIT 1",
+    )
+    suspend fun firstCoverTrackOfAlbum(albumId: Long): TrackEntity?
+
     @Query(
         "SELECT ta.track_id, ar.name FROM track_artist ta JOIN artist ar ON ar.id = ta.artist_id " +
             "WHERE ta.track_id IN (:trackIds) ORDER BY ta.track_id, ta.position",
