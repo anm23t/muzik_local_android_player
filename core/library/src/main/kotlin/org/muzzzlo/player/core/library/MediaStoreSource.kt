@@ -66,7 +66,8 @@ class MediaStoreSource
                         -1
                     }
                 while (cursor.moveToNext()) {
-                    if (isAudiobookFile(cursor.getString(nameCol))) continue
+                    val displayName = cursor.getString(nameCol)
+                    if (isAudiobookFile(displayName)) continue
                     val id = cursor.getLong(idCol)
                     val rawTrack = cursor.getInt(trackCol)
                     result +=
@@ -74,6 +75,7 @@ class MediaStoreSource
                             mediaStoreId = id,
                             uri = ContentUris.withAppendedId(collection, id).toString(),
                             relativePath = if (pathCol >= 0) cursor.getString(pathCol) else null,
+                            displayName = displayName,
                             title = cursor.getString(titleCol).orEmpty(),
                             artist = cursor.getString(artistCol),
                             album = cursor.getString(albumCol),
