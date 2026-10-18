@@ -1,12 +1,15 @@
 package org.muzzzlo.player.core.designsystem.theme
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ReadOnlyComposable
+import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 
 /** Default accent: the red of the mockup (DESIGN.md, section 2). */
@@ -31,20 +34,28 @@ object MuzzzloColors {
     val DialogShadow = Color.Black.copy(alpha = 0.6f)
 }
 
-/** Accent of the current composition. Provided by [MuzzzloTheme], dynamic from task 0.3.8. */
-val LocalAccent = staticCompositionLocalOf { AccentColors.from(DefaultAccent) }
+/**
+ * Accent of the current composition. Provided by [MuzzzloTheme]. It changes on every frame of the color
+ * animation, so it is not a static local: only the components that read it are redrawn.
+ */
+val LocalAccent = compositionLocalOf { AccentColors.from(DefaultAccent) }
+
+/** Duration of the accent change when the playing track changes (DESIGN.md, section 4: 300 to 500 ms). */
+const val ACCENT_ANIMATION_MS = 400
 
 /**
  * App theme. Dark only, there is no light variant on purpose (CLAUDE.md, decision 8).
  *
- * @param accent accent color; everything "red" in the interface follows it.
+ * @param accent accent color; everything "red" in the interface follows it. A new value fades in over
+ *   [ACCENT_ANIMATION_MS] (DESIGN.md, section 4).
  */
 @Composable
 fun MuzzzloTheme(
     accent: Color = DefaultAccent,
     content: @Composable () -> Unit,
 ) {
-    val accentColors = remember(accent) { AccentColors.from(accent) }
+    val animated by animateColorAsState(accent, tween(ACCENT_ANIMATION_MS), label = "accent")
+    val accentColors = remember(animated) { AccentColors.from(animated) }
     CompositionLocalProvider(LocalAccent provides accentColors) {
         MaterialTheme(
             colorScheme = colorSchemeFor(accentColors),

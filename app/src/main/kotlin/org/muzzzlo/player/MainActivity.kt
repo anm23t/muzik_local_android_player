@@ -6,7 +6,10 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import org.muzzzlo.player.core.designsystem.component.LocalCoverLoader
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloTheme
@@ -19,6 +22,8 @@ class MainActivity : ComponentActivity() {
 
     @Inject lateinit var coverLoader: AppCoverLoader
 
+    private val accentViewModel: AccentViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -28,8 +33,9 @@ class MainActivity : ComponentActivity() {
             requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 0)
         }
         setContent {
+            val accent by accentViewModel.accent.collectAsStateWithLifecycle()
             CompositionLocalProvider(LocalCoverLoader provides coverLoader) {
-                MuzzzloTheme { MuzzzloNavHost() }
+                MuzzzloTheme(accent) { MuzzzloNavHost() }
             }
         }
     }
