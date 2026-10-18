@@ -17,8 +17,12 @@ turbine = "1.2.0"
 junit4 = "4.13.2"
 robolectric = "4.14.1"
 androidxTest = "1.6.1"
+androidxTestRunner = "1.6.2"
 ktlint = "12.1.2"
 detekt = "1.23.7"
+# Native toolchain for core:tags (TagLib through JNI, docs/decisions/005-tag-library.md).
+ndk = "30.0.16248370"
+cmake = "3.31.6"
 
 [libraries]
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
@@ -47,6 +51,7 @@ junit5 = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit5" }
 junit4 = { module = "junit:junit", version.ref = "junit4" }
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
 androidx-test-core = { module = "androidx.test:core", version.ref = "androidxTest" }
+androidx-test-runner = { module = "androidx.test:runner", version.ref = "androidxTestRunner" }
 turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
 
 [plugins]

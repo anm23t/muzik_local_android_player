@@ -22,6 +22,7 @@ include(
     ":core:database",
     ":core:library",
     ":core:playback",
+    ":core:tags",
     ":feature:library",
     ":feature:player",
 )
