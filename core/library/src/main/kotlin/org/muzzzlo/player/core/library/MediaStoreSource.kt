@@ -32,7 +32,7 @@ class MediaStoreSource
                     add(MediaStore.Audio.Media.DATE_MODIFIED)
                     if (hasRelativePath) add(MediaStore.Audio.Media.RELATIVE_PATH)
                 }.toTypedArray()
-            // Podcasts and audiobooks are not part of the app at all (CLAUDE.md, decision 7).
+            // Podcasts and audiobooks never enter the library (ARCHITECTURE.md, section 3).
             val selection =
                 buildList {
                     add("${MediaStore.Audio.Media.IS_MUSIC} != 0")
