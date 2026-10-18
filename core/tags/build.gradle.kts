@@ -3,6 +3,8 @@ import java.util.Properties
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.hilt)
 }
 
 /** ABIs shipped in the APK (docs/decisions/005-tag-library.md); x86_64 covers emulators. */
@@ -120,6 +122,11 @@ tasks.withType<Test>().configureEach {
 }
 
 dependencies {
+    implementation(project(":core:model"))
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
+
+    testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(platform("org.junit:junit-bom:5.11.3"))
     testImplementation(libs.junit5)
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")

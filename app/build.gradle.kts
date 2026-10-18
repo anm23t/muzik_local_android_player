@@ -41,6 +41,7 @@ dependencies {
     implementation(project(":core:database"))
     implementation(project(":core:library"))
     implementation(project(":core:playback"))
+    implementation(project(":core:tags"))
     implementation(project(":feature:library"))
     implementation(project(":feature:player"))
 

@@ -4,6 +4,7 @@ import android.os.ParcelFileDescriptor
 import androidx.test.platform.app.InstrumentationRegistry
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import org.muzzzlo.player.core.model.TagSource
 import java.io.File
 
 /**
@@ -22,10 +23,12 @@ class TagLibBridgeDeviceTest {
     fun readsByPathAndByDescriptor() {
         val file = copyFixture()
 
-        assertEquals(SMOKE_TITLE, bridge.readTitle(file))
-        assertEquals(1000, bridge.readAudioProperties(file)?.durationMs)
+        val byPath = bridge.readTags(TagSource.FilePath(file.path), withAudioInfo = true)
+        assertEquals(listOf(SMOKE_TITLE), byPath?.properties?.get("TITLE"))
+        assertEquals(1000L, byPath?.audio?.durationMs)
         ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY).use { pfd ->
-            assertEquals(SMOKE_TITLE, bridge.readTitle(pfd.fd))
+            val byFd = bridge.readTags(TagSource.Descriptor(pfd.fd, file.path), withAudioInfo = false)
+            assertEquals(listOf(SMOKE_TITLE), byFd?.properties?.get("TITLE"))
         }
     }
 
