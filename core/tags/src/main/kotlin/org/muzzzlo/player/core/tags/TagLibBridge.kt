@@ -2,6 +2,7 @@ package org.muzzzlo.player.core.tags
 
 import org.muzzzlo.player.core.model.AudioFormat
 import org.muzzzlo.player.core.model.AudioInfo
+import org.muzzzlo.player.core.model.CoverEdit
 import org.muzzzlo.player.core.model.EmbeddedPicture
 import org.muzzzlo.player.core.model.TagSource
 
@@ -30,8 +31,10 @@ internal data class NativeTags(
  *
  * A [TagSource.Descriptor] stays open and owned by the caller, but its file offset moves: the native side reads
  * through a `dup()` of it, which shares the offset.
+ *
+ * Open only so tests can make a write fail or damage the working copy.
  */
-internal class TagLibBridge {
+internal open class TagLibBridge {
     /** Version of the bundled TagLib, for example `2.3.2`. */
     fun version(): String = TagLibNative.nativeVersion().joinToString(".")
 
@@ -53,6 +56,38 @@ internal class TagLibBridge {
             data = raw[0] as ByteArray,
             mimeType = (raw[1] as ByteArray).decodeToString(),
             pictureType = (raw[2] as IntArray)[0],
+        )
+    }
+
+    /**
+     * Replaces all properties of the file at [path] with [properties], changes the cover as [cover] says and saves
+     * the file; an MP3 is saved with ID3v2 [id3v2Version]. False when TagLib could not open or save it.
+     * Only for the app's own working copy: the user's original is never changed in place.
+     */
+    open fun writeTags(
+        path: String,
+        properties: Map<String, List<String>>,
+        cover: CoverEdit,
+        id3v2Version: Int,
+    ): Boolean {
+        val flat =
+            properties.flatMap { (key, values) -> values.flatMap { listOf(key, it) } }
+                .map { it.encodeToByteArray() }
+                .toTypedArray()
+        val picture = (cover as? CoverEdit.Replace)?.picture
+        val coverMode =
+            when (cover) {
+                CoverEdit.Keep -> TagLibNative.COVER_KEEP
+                CoverEdit.Remove -> TagLibNative.COVER_REMOVE
+                is CoverEdit.Replace -> TagLibNative.COVER_REPLACE
+            }
+        return TagLibNative.nativeWriteTags(
+            pathUtf8 = path.encodeToByteArray(),
+            properties = flat,
+            coverMode = coverMode,
+            coverData = picture?.data,
+            coverMimeUtf8 = picture?.mimeType?.encodeToByteArray(),
+            id3v2Version = id3v2Version,
         )
     }
 

@@ -29,6 +29,11 @@ internal object TagLibNative {
     const val INFO_SAMPLE_RATE_HZ = 6
     const val INFO_CHANNELS = 7
 
+    // Cover change modes of nativeWriteTags, same values as kCover* in taglib_jni.cpp.
+    const val COVER_KEEP = 0
+    const val COVER_REMOVE = 1
+    const val COVER_REPLACE = 2
+
     init {
         // On Android the library comes from the APK; in JVM unit tests from java.library.path (host build).
         System.loadLibrary(LIBRARY_NAME)
@@ -58,4 +63,19 @@ internal object TagLibNative {
         fd: Int,
         nameUtf8: ByteArray?,
     ): Array<Any>?
+
+    /**
+     * Replaces all properties of the file at [pathUtf8] with [properties] (`[key, value, key, value, ...]` in UTF-8),
+     * changes the cover as [coverMode] (`COVER_*`) says and saves the file; an MP3 is saved with [id3v2Version].
+     * [coverData] and [coverMimeUtf8] are needed for [COVER_REPLACE] only. False when the file was not saved.
+     * Only for the app's own working copy, never for the user's original (ARCHITECTURE.md, section 5).
+     */
+    external fun nativeWriteTags(
+        pathUtf8: ByteArray,
+        properties: Array<ByteArray>,
+        coverMode: Int,
+        coverData: ByteArray?,
+        coverMimeUtf8: ByteArray?,
+        id3v2Version: Int,
+    ): Boolean
 }

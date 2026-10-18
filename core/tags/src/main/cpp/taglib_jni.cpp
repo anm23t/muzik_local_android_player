@@ -5,7 +5,8 @@
 //   use modified UTF-8 and break characters outside the BMP (emoji);
 // - a file is opened either by path (UTF-8 bytes) or, when fd >= 0, by a file descriptor the caller keeps owning;
 //   with a descriptor the caller may pass the file name, so TagLib picks the format by extension as it does for paths;
-// - no C++ exception crosses into the JVM: failures come back as null.
+// - no C++ exception crosses into the JVM: failures come back as null (or false for a write);
+// - writes go only to the app's own working copy, opened by path (ARCHITECTURE.md, section 5).
 #include <jni.h>
 #include <unistd.h>
 
@@ -177,6 +178,69 @@ jint pictureTypeOf(const TagLib::VariantMap &picture) {
   return static_cast<jint>(TagLib::FLAC::Picture::typeFromString(picture.value("pictureType").toString()));
 }
 
+// Cover change modes shared with TagLibNative.kt (COVER_*).
+constexpr jint kCoverKeep = 0;
+constexpr jint kCoverRemove = 1;
+constexpr jint kCoverReplace = 2;
+
+TagLib::String toTagString(JNIEnv *env, jbyteArray bytes) {
+  return TagLib::String(toStdString(env, bytes), TagLib::String::UTF8);
+}
+
+TagLib::ByteVector toByteVector(JNIEnv *env, jbyteArray bytes) {
+  const std::string data = toStdString(env, bytes);
+  return TagLib::ByteVector(data.data(), static_cast<unsigned int>(data.size()));
+}
+
+// Builds a property map from [key, value, key, value, ...] (the layout of propertiesToJava).
+TagLib::PropertyMap propertiesFromJava(JNIEnv *env, jobjectArray flat) {
+  TagLib::PropertyMap properties;
+  const jsize count = env->GetArrayLength(flat);
+  for (jsize i = 0; i + 1 < count; i += 2) {
+    auto keyBytes = static_cast<jbyteArray>(env->GetObjectArrayElement(flat, i));
+    auto valueBytes = static_cast<jbyteArray>(env->GetObjectArrayElement(flat, i + 1));
+    properties[toTagString(env, keyBytes)].append(toTagString(env, valueBytes));
+    env->DeleteLocalRef(keyBytes);
+    env->DeleteLocalRef(valueBytes);
+  }
+  return properties;
+}
+
+// Replaces the front cover (or the first picture) with a new front cover; other pictures stay.
+TagLib::List<TagLib::VariantMap> withReplacedCover(
+    TagLib::List<TagLib::VariantMap> pictures, const TagLib::ByteVector &data, const TagLib::String &mimeType) {
+  TagLib::VariantMap cover;
+  cover["data"] = data;
+  cover["mimeType"] = mimeType;
+  cover["pictureType"] = TagLib::String("Front Cover");
+  cover["description"] = TagLib::String();
+  for (auto &picture : pictures) {
+    if (pictureTypeOf(picture) == TagLib::FLAC::Picture::FrontCover) {
+      picture = cover;
+      return pictures;
+    }
+  }
+  if (pictures.isEmpty()) {
+    pictures.append(cover);
+  } else {
+    pictures.front() = cover;
+  }
+  return pictures;
+}
+
+// Saves the file. An MPEG file is saved with the given ID3v2 version (FileRef::save() would silently upgrade
+// v2.3 to v2.4). Its other tags are neither stripped nor created: TagLib keeps an empty ID3v1 tag in memory for
+// every MPEG file and would write it out, so ID3v1 is saved only when the file had one. APE support is not built
+// (CMakeLists.txt), so an APE tag stays as opaque bytes.
+bool saveFile(TagLib::FileRef &ref, jint id3v2Version) {
+  if (auto *mpeg = dynamic_cast<TagLib::MPEG::File *>(ref.file()); mpeg != nullptr) {
+    const auto version = id3v2Version == 3 ? TagLib::ID3v2::v3 : TagLib::ID3v2::v4;
+    const int tags = TagLib::MPEG::File::ID3v2 | (mpeg->hasID3v1Tag() ? TagLib::MPEG::File::ID3v1 : 0);
+    return mpeg->save(tags, TagLib::File::StripNone, version, TagLib::File::DoNotDuplicate);
+  }
+  return ref.save();
+}
+
 }  // namespace
 
 extern "C" {
@@ -258,6 +322,35 @@ Java_org_muzzzlo_player_core_tags_TagLibNative_nativeReadCover(
     return out;
   } catch (...) {
     return nullptr;
+  }
+}
+
+// Replaces all properties of the file at pathUtf8 with the given [key, value, ...] map, changes the cover as
+// coverMode says (COVER_*) and saves the file. Properties the map cannot hold (unsupported frames) and pictures
+// stay as they are. Returns true when the file was saved.
+JNIEXPORT jboolean JNICALL
+Java_org_muzzzlo_player_core_tags_TagLibNative_nativeWriteTags(
+    JNIEnv *env, jobject, jbyteArray pathUtf8, jobjectArray properties, jint coverMode, jbyteArray coverData,
+    jbyteArray coverMimeUtf8, jint id3v2Version) {
+  try {
+    const std::string path = toStdString(env, pathUtf8);
+    TagLib::FileRef ref(path.c_str(), false);
+    if (ref.isNull() || isMpegWithoutFrames(ref.file())) return JNI_FALSE;
+
+    ref.setProperties(propertiesFromJava(env, properties));
+    if (coverMode == kCoverRemove) {
+      ref.setComplexProperties("PICTURE", {});
+    } else if (coverMode == kCoverReplace) {
+      if (coverData == nullptr || coverMimeUtf8 == nullptr) return JNI_FALSE;
+      ref.setComplexProperties("PICTURE", withReplacedCover(ref.complexProperties("PICTURE"),
+                                                            toByteVector(env, coverData),
+                                                            toTagString(env, coverMimeUtf8)));
+    } else if (coverMode != kCoverKeep) {
+      return JNI_FALSE;
+    }
+    return saveFile(ref, id3v2Version) ? JNI_TRUE : JNI_FALSE;
+  } catch (...) {
+    return JNI_FALSE;
   }
 }
 
