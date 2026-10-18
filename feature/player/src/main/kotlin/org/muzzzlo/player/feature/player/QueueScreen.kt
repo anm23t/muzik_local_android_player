@@ -51,6 +51,7 @@ private val RowHeight = 64.dp
 @Composable
 fun QueueScreen(
     onBack: () -> Unit,
+    onEditTags: (Long) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: PlayerViewModel = hiltViewModel(),
 ) {
@@ -67,7 +68,7 @@ fun QueueScreen(
         if (state.queue.isEmpty()) {
             Text(stringResource(R.string.queue_empty), Modifier.padding(24.dp))
         } else {
-            QueueList(state.queue, state.currentIndex, viewModel)
+            QueueList(state.queue, state.currentIndex, viewModel, onEditTags)
         }
     }
 }
@@ -77,6 +78,7 @@ private fun QueueList(
     queue: List<Track>,
     currentIndex: Int,
     viewModel: PlayerViewModel,
+    onEditTags: (Long) -> Unit,
 ) {
     val rowHeightPx = with(LocalDensity.current) { RowHeight.toPx() }
     var draggingIndex by remember { mutableIntStateOf(-1) }
@@ -86,7 +88,10 @@ private fun QueueList(
         TrackActionsMenu(
             title = track.title,
             artists = track.artistsText,
-            onAction = { action -> viewModel.onTrackAction(track, action) },
+            onAction = { action ->
+                viewModel.onTrackAction(track, action)
+                if (action == TrackAction.EditTags) onEditTags(track.id)
+            },
             onDismiss = { menuTrack = null },
             // The queue is already open.
             actions = TrackAction.entries - TrackAction.OpenQueue,

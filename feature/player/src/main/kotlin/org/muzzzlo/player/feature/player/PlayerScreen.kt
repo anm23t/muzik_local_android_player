@@ -56,6 +56,7 @@ fun PlayerScreen(
     onOpenAlbums: () -> Unit,
     onOpenArtist: (String) -> Unit,
     onHome: () -> Unit,
+    onEditTags: (Long) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: PlayerViewModel = hiltViewModel(),
 ) {
@@ -97,7 +98,11 @@ fun PlayerScreen(
             artists = track.artistsText,
             onAction = { action ->
                 viewModel.onTrackAction(track, action)
-                if (action == TrackAction.OpenQueue) onOpenQueue()
+                when (action) {
+                    TrackAction.OpenQueue -> onOpenQueue()
+                    TrackAction.EditTags -> onEditTags(track.id)
+                    else -> Unit
+                }
             },
             onDismiss = { menuOpen = false },
         )
@@ -228,6 +233,7 @@ private fun playerNavItems(
 fun MiniPlayer(
     onOpen: () -> Unit,
     onOpenQueue: () -> Unit,
+    onEditTags: (Long) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: PlayerViewModel = hiltViewModel(),
 ) {
@@ -240,7 +246,11 @@ fun MiniPlayer(
             artists = track.artistsText,
             onAction = { action ->
                 viewModel.onTrackAction(track, action)
-                if (action == TrackAction.OpenQueue) onOpenQueue()
+                when (action) {
+                    TrackAction.OpenQueue -> onOpenQueue()
+                    TrackAction.EditTags -> onEditTags(track.id)
+                    else -> Unit
+                }
             },
             onDismiss = { menuOpen = false },
         )

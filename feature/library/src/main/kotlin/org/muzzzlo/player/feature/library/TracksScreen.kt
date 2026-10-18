@@ -25,12 +25,13 @@ import org.muzzzlo.player.core.designsystem.theme.MuzzzloDimens
 fun TracksScreen(
     onBack: () -> Unit,
     onOpenQueue: () -> Unit,
+    onEditTags: (Long) -> Unit,
     miniPlayer: @Composable () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: TracksViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val openMenu = rememberTrackMenu(viewModel::onTrackAction, onOpenQueue)
+    val openMenu = rememberTrackMenu(viewModel::onTrackAction, onOpenQueue, onEditTags)
     val unknownArtist = stringResource(R.string.unknown_artist)
 
     ScreenFrame(modifier) {

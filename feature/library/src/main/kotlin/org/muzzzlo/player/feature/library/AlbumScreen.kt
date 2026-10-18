@@ -46,12 +46,13 @@ fun AlbumScreen(
     onHome: () -> Unit,
     onOpenArtist: (String) -> Unit,
     onOpenQueue: () -> Unit,
+    onEditTags: (Long) -> Unit,
     miniPlayer: @Composable () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: AlbumViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val openMenu = rememberTrackMenu(viewModel::onTrackAction, onOpenQueue)
+    val openMenu = rememberTrackMenu(viewModel::onTrackAction, onOpenQueue, onEditTags)
 
     ScreenFrame(modifier) {
         ScreenHeader(onBack = onBack) { HomeButton(onHome) }

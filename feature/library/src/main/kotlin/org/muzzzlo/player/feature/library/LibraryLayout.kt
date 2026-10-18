@@ -85,11 +85,14 @@ internal fun Notice(
 /**
  * Remembers which track has its menu open and shows [TrackActionsMenu] for it.
  * Returns the function that opens the menu.
+ *
+ * @param onEditTags opens the tag editor of the track with this id.
  */
 @Composable
 internal fun rememberTrackMenu(
     onAction: (Track, TrackAction) -> Unit,
     onOpenQueue: () -> Unit,
+    onEditTags: (Long) -> Unit,
 ): (Track) -> Unit {
     var menuTrack by remember { mutableStateOf<Track?>(null) }
     menuTrack?.let { track ->
@@ -98,7 +101,11 @@ internal fun rememberTrackMenu(
             artists = track.artistsText,
             onAction = { action ->
                 onAction(track, action)
-                if (action == TrackAction.OpenQueue) onOpenQueue()
+                when (action) {
+                    TrackAction.OpenQueue -> onOpenQueue()
+                    TrackAction.EditTags -> onEditTags(track.id)
+                    else -> Unit
+                }
             },
             onDismiss = { menuTrack = null },
         )

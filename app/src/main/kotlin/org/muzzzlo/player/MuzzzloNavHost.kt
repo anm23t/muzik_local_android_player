@@ -26,6 +26,8 @@ import org.muzzzlo.player.feature.library.TracksScreen
 import org.muzzzlo.player.feature.player.MiniPlayer
 import org.muzzzlo.player.feature.player.PlayerScreen
 import org.muzzzlo.player.feature.player.QueueScreen
+import org.muzzzlo.player.feature.tageditor.TRACK_ID_ARG
+import org.muzzzlo.player.feature.tageditor.TagEditorScreen
 
 private const val ROUTE_HOME = "home"
 private const val ROUTE_ALBUMS = "albums"
@@ -35,8 +37,11 @@ private const val ROUTE_ARTISTS = "artists"
 private const val ROUTE_ARTIST = "artist?$ARTIST_ID_ARG={$ARTIST_ID_ARG}&$ARTIST_NAME_ARG={$ARTIST_NAME_ARG}"
 private const val ROUTE_PLAYER = "player"
 private const val ROUTE_QUEUE = "queue"
+private const val ROUTE_TAG_EDITOR = "tagEditor/{$TRACK_ID_ARG}"
 
 private fun albumRoute(albumId: Long) = "album/$albumId"
+
+private fun tagEditorRoute(trackId: Long) = "tagEditor/$trackId"
 
 private fun tracksRoute(artistId: Long = NO_ARTIST) = "tracks?$ARTIST_ID_ARG=$artistId"
 
@@ -67,10 +72,12 @@ private fun NavHostController.goHome() {
 @Composable
 fun MuzzzloNavHost() {
     val navController = rememberNavController()
+    val openTagEditor: (Long) -> Unit = { navController.navigate(tagEditorRoute(it)) }
     val miniPlayer: @Composable () -> Unit = {
         MiniPlayer(
             onOpen = { navController.navigate(ROUTE_PLAYER) },
             onOpenQueue = { navController.navigate(ROUTE_QUEUE) },
+            onEditTags = openTagEditor,
         )
     }
     Surface(Modifier.fillMaxSize().safeDrawingPadding(), color = MaterialTheme.colorScheme.background) {
@@ -113,6 +120,7 @@ fun MuzzzloNavHost() {
                     onHome = { navController.goHome() },
                     onOpenArtist = { navController.navigate(artistRoute(it)) },
                     onOpenQueue = { navController.navigate(ROUTE_QUEUE) },
+                    onEditTags = openTagEditor,
                     miniPlayer = miniPlayer,
                 )
             }
@@ -120,6 +128,7 @@ fun MuzzzloNavHost() {
                 TracksScreen(
                     onBack = { navController.popBackStack() },
                     onOpenQueue = { navController.navigate(ROUTE_QUEUE) },
+                    onEditTags = openTagEditor,
                     miniPlayer = miniPlayer,
                 )
             }
@@ -131,9 +140,15 @@ fun MuzzzloNavHost() {
                     onOpenAlbums = { navController.navigate(ROUTE_ALBUMS) },
                     onOpenArtist = { navController.navigate(artistRoute(it)) },
                     onHome = { navController.goHome() },
+                    onEditTags = openTagEditor,
                 )
             }
-            composable(ROUTE_QUEUE) { QueueScreen(onBack = { navController.popBackStack() }) }
+            composable(ROUTE_QUEUE) {
+                QueueScreen(onBack = { navController.popBackStack() }, onEditTags = openTagEditor)
+            }
+            composable(ROUTE_TAG_EDITOR, arguments = listOf(navArgument(TRACK_ID_ARG) { type = NavType.LongType })) {
+                TagEditorScreen(onClose = { navController.popBackStack() })
+            }
         }
     }
 }
