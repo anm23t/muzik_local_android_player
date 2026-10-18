@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tag_editor_title">Редактирование тегов</string>
+    <string name="tag_editor_back">Назад</string>
+    <string name="tag_editor_loading">Чтение файла…</string>
+    <string name="tag_editor_load_unreadable">Файл не читается: его нет или формат не поддерживается.</string>
+    <string name="tag_editor_load_quarantined">Этот файл уже ронял библиотеку тегов, поэтому приложение его не трогает.</string>
+
+    <string name="tag_editor_cover">Обложка</string>
+    <string name="tag_editor_cover_change">Сменить обложку</string>
+    <string name="tag_editor_cover_choose">Выбрать обложку</string>
+    <string name="tag_editor_cover_remove">Убрать обложку</string>
+
+    <string name="tag_editor_field_title">Название</string>
+    <string name="tag_editor_field_artists">Исполнители</string>
+    <string name="tag_editor_add_artist">Добавить исполнителя</string>
+    <string name="tag_editor_field_album">Альбом</string>
+    <string name="tag_editor_field_album_artists">Исполнители альбома</string>
+    <string name="tag_editor_add_album_artist">Добавить исполнителя альбома</string>
+    <string name="tag_editor_field_track">Трек</string>
+    <string name="tag_editor_field_track_number">Трек</string>
+    <string name="tag_editor_field_track_total">Треков на диске</string>
+    <string name="tag_editor_field_disc">Диск</string>
+    <string name="tag_editor_field_disc_number">Диск</string>
+    <string name="tag_editor_field_disc_total">Дисков</string>
+    <string name="tag_editor_field_year">Год</string>
+    <string name="tag_editor_field_genres">Жанры</string>
+    <string name="tag_editor_add_genre">Добавить жанр</string>
+    <string name="tag_editor_field_lyrics">Текст песни</string>
+
+    <string name="tag_editor_error_number">Введите целое число от 1 до %1$d</string>
+    <string name="tag_editor_error_total">Укажите и номер</string>
+
+    <string name="tag_editor_save">Сохранить</string>
+    <string name="tag_editor_saving">Сохранение…</string>
+
+    <string name="tag_editor_confirm_title">Записать в файл?</string>
+    <string name="tag_editor_confirm_text">Изменения запишутся в аудиофайл. После записи он проверяется, а если что-то пойдёт не так, восстанавливается из резервной копии.</string>
+    <string name="tag_editor_confirm_write">Записать</string>
+    <string name="tag_editor_change_empty">пусто</string>
+    <string name="tag_editor_change_value">%1$s → %2$s</string>
+    <string name="tag_editor_change_lyrics">Изменён</string>
+    <string name="tag_editor_change_cover_new">Новая обложка</string>
+    <string name="tag_editor_change_cover_removed">Убрана</string>
+
+    <string name="tag_editor_discard_title">Отменить изменения?</string>
+    <string name="tag_editor_discard_text">Файл останется как был.</string>
+    <string name="tag_editor_discard">Отменить</string>
+
+    <string name="tag_editor_problem_title">Теги не сохранены</string>
+    <string name="tag_editor_ok">OK</string>
+    <string name="tag_editor_problem_permission">Без вашего разрешения приложение не может изменить этот файл.</string>
+    <string name="tag_editor_problem_cover">Эту картинку не удалось прочитать. Выберите другую.</string>
+    <string name="tag_editor_problem_space">Не хватает места: для рабочей и резервной копии нужно %1$s.</string>
+    <string name="tag_editor_problem_unreadable">Файла нет или он не читается. Ничего не записано.</string>
+    <string name="tag_editor_problem_quarantined">Этот файл уже ронял библиотеку тегов и не тронут.</string>
+    <string name="tag_editor_problem_write">Библиотека тегов не смогла сохранить теги. Файл не изменён.</string>
+    <string name="tag_editor_problem_verification">Проверка после записи не прошла (%1$s). Файл не изменён.</string>
+    <string name="tag_editor_problem_file_changed">Файл изменился во время сохранения. Ничего не записано, попробуйте ещё раз.</string>
+    <string name="tag_editor_problem_restored">Не удалось заменить файл. Оригинал восстановлен.</string>
+    <string name="tag_editor_problem_not_restored">Не удалось заменить файл. Резервная копия сохранена, файл восстановится при следующем запуске приложения.</string>
+</resources>

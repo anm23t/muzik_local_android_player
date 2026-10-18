@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tag_editor_title">Edit tags</string>
+    <string name="tag_editor_back">Back</string>
+    <string name="tag_editor_loading">Reading the file…</string>
+    <string name="tag_editor_load_unreadable">This file cannot be read: it is missing or its format is not supported.</string>
+    <string name="tag_editor_load_quarantined">This file crashed the tag library before, so the app leaves it alone.</string>
+
+    <string name="tag_editor_cover">Cover</string>
+    <string name="tag_editor_cover_change">Change cover</string>
+    <string name="tag_editor_cover_choose">Choose cover</string>
+    <string name="tag_editor_cover_remove">Remove cover</string>
+
+    <string name="tag_editor_field_title">Title</string>
+    <string name="tag_editor_field_artists">Artists</string>
+    <string name="tag_editor_add_artist">Add artist</string>
+    <string name="tag_editor_field_album">Album</string>
+    <string name="tag_editor_field_album_artists">Album artists</string>
+    <string name="tag_editor_add_album_artist">Add album artist</string>
+    <string name="tag_editor_field_track">Track</string>
+    <string name="tag_editor_field_track_number">Track</string>
+    <string name="tag_editor_field_track_total">Tracks on disc</string>
+    <string name="tag_editor_field_disc">Disc</string>
+    <string name="tag_editor_field_disc_number">Disc</string>
+    <string name="tag_editor_field_disc_total">Discs</string>
+    <string name="tag_editor_field_year">Year</string>
+    <string name="tag_editor_field_genres">Genres</string>
+    <string name="tag_editor_add_genre">Add genre</string>
+    <string name="tag_editor_field_lyrics">Lyrics</string>
+
+    <string name="tag_editor_error_number">Enter a whole number from 1 to %1$d</string>
+    <string name="tag_editor_error_total">Enter the number as well</string>
+
+    <string name="tag_editor_save">Save</string>
+    <string name="tag_editor_saving">Saving…</string>
+
+    <string name="tag_editor_confirm_title">Write to the file?</string>
+    <string name="tag_editor_confirm_text">The changes go into the audio file. It is checked after writing and restored from a backup if anything goes wrong.</string>
+    <string name="tag_editor_confirm_write">Write</string>
+    <string name="tag_editor_change_empty">empty</string>
+    <string name="tag_editor_change_value">%1$s → %2$s</string>
+    <string name="tag_editor_change_lyrics">Changed</string>
+    <string name="tag_editor_change_cover_new">New cover</string>
+    <string name="tag_editor_change_cover_removed">Removed</string>
+
+    <string name="tag_editor_discard_title">Discard changes?</string>
+    <string name="tag_editor_discard_text">The file stays as it is.</string>
+    <string name="tag_editor_discard">Discard</string>
+
+    <string name="tag_editor_problem_title">Tags not saved</string>
+    <string name="tag_editor_ok">OK</string>
+    <string name="tag_editor_problem_permission">Without your permission the app cannot change this file.</string>
+    <string name="tag_editor_problem_cover">This image cannot be read. Choose another one.</string>
+    <string name="tag_editor_problem_space">Not enough free space: the app needs %1$s for a working copy and a backup.</string>
+    <string name="tag_editor_problem_unreadable">The file is missing or cannot be read. Nothing was written.</string>
+    <string name="tag_editor_problem_quarantined">This file crashed the tag library before and is left untouched.</string>
+    <string name="tag_editor_problem_write">The tag library could not save the tags. The file is unchanged.</string>
+    <string name="tag_editor_problem_verification">The check after writing failed (%1$s). The file is unchanged.</string>
+    <string name="tag_editor_problem_file_changed">The file changed while the tags were being saved. Nothing was written; try again.</string>
+    <string name="tag_editor_problem_restored">Replacing the file failed. The original was restored.</string>
+    <string name="tag_editor_problem_not_restored">Replacing the file failed. A backup is kept, and the file will be restored the next time the app starts.</string>
+</resources>

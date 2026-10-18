@@ -26,4 +26,5 @@ include(
     ":core:designsystem",
     ":feature:library",
     ":feature:player",
+    ":feature:tag-editor",
 )
