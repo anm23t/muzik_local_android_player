@@ -3,6 +3,7 @@ package org.muzzzlo.player.core.library
 import android.content.Context
 import android.net.Uri
 import dagger.hilt.android.qualifiers.ApplicationContext
+import org.muzzzlo.player.core.model.EmbeddedPicture
 import org.muzzzlo.player.core.model.TagReadResult
 import org.muzzzlo.player.core.model.TagReader
 import org.muzzzlo.player.core.model.TagSource
@@ -23,11 +24,24 @@ class FileTagLoader
          * Tags of the file at [uri]; [TagReadResult.Unreadable] when it cannot be opened. [fileName] (MediaStore
          * `DISPLAY_NAME`) lets the reader pick the format by extension. Call off the main thread.
          */
-        @Suppress("SwallowedException")
         suspend fun load(
             uri: String,
             fileName: String?,
-        ): TagReadResult {
+        ): TagReadResult = withDescriptor(uri, fileName) { tagReader.readTags(it) } ?: TagReadResult.Unreadable
+
+        /** The cover of the file at [uri], null when it has none or cannot be opened. Call off the main thread. */
+        suspend fun loadCover(
+            uri: String,
+            fileName: String?,
+        ): EmbeddedPicture? = withDescriptor(uri, fileName) { tagReader.readCover(it) }
+
+        /** Opens [uri] read-only for [block]; null when it cannot be opened. */
+        @Suppress("SwallowedException")
+        private suspend fun <T> withDescriptor(
+            uri: String,
+            fileName: String?,
+            block: suspend (TagSource) -> T,
+        ): T? {
             // A file deleted since the MediaStore query, or one the app may no longer read, is indexed from MediaStore.
             val descriptor =
                 try {
@@ -36,7 +50,7 @@ class FileTagLoader
                     null
                 } catch (e: SecurityException) {
                     null
-                } ?: return TagReadResult.Unreadable
-            return descriptor.use { tagReader.readTags(TagSource.Descriptor(it.fd, key = uri, fileName = fileName)) }
+                } ?: return null
+            return descriptor.use { block(TagSource.Descriptor(it.fd, key = uri, fileName = fileName)) }
         }
     }

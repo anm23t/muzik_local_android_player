@@ -159,6 +159,9 @@ interface LibraryDao {
     @Query("SELECT id, uri, date_modified, is_missing, is_damaged FROM track")
     suspend fun trackStamps(): List<TrackStamp>
 
+    @Query("SELECT id FROM track WHERE uri = :uri")
+    suspend fun trackIdByUri(uri: String): Long?
+
     @Query("SELECT id FROM artist WHERE name_key = :key")
     suspend fun artistIdByKey(key: String): Long?
 

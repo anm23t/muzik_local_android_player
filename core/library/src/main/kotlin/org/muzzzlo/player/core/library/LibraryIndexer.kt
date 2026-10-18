@@ -40,6 +40,18 @@ class LibraryIndexer
         }
 
         /**
+         * Reads [file] again whatever its stamps say, for example right after the app wrote new tags into it.
+         * Other tracks are not touched; an album left without tracks is deleted.
+         */
+        suspend fun reindex(file: ScannedFile) {
+            val metadata = trackMetadata(file, tagLoader.load(file.uri, file.displayName))
+            database.withTransaction {
+                write(file, metadata, dao.trackIdByUri(file.uri))
+                dao.deleteEmptyAlbums()
+            }
+        }
+
+        /**
          * New, changed and reappeared files are read. Damaged files are retried on every scan: while quarantined
          * they cost one lookup, and once the user releases them they are read again.
          */

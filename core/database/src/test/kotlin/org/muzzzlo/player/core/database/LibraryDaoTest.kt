@@ -196,6 +196,14 @@ class LibraryDaoTest {
         }
 
     @Test
+    fun `a track is found by its uri`() =
+        runBlocking {
+            val id = dao.insertTrack(track("content://media/1", "One"))
+            assertEquals(id, dao.trackIdByUri("content://media/1"))
+            assertEquals(null, dao.trackIdByUri("content://media/2"))
+        }
+
+    @Test
     fun `empty albums are deleted`() =
         runBlocking {
             dao.insertAlbum(AlbumEntity(title = "Lonely", titleKey = "lonely"))

@@ -2,6 +2,7 @@ package org.muzzzlo.player.core.library
 
 import android.content.ContentUris
 import android.content.Context
+import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -13,7 +14,22 @@ class MediaStoreSource
     constructor(
         @ApplicationContext private val context: Context,
     ) {
-        fun query(): List<ScannedFile> {
+        /** Every music file of the device. */
+        fun query(): List<ScannedFile> = query(extraSelection = null, args = null)
+
+        /**
+         * The music file at [uri] (a `content://` URI of this collection), null when MediaStore no longer has it.
+         * Call off the main thread.
+         */
+        fun file(uri: String): ScannedFile? {
+            val id = runCatching { ContentUris.parseId(Uri.parse(uri)) }.getOrNull()?.takeIf { it >= 0 } ?: return null
+            return query("${MediaStore.Audio.Media._ID} = ?", arrayOf(id.toString())).firstOrNull()
+        }
+
+        private fun query(
+            extraSelection: String?,
+            args: Array<String>?,
+        ): List<ScannedFile> {
             val collection = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
             val hasRelativePath = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
             val projection =
@@ -43,10 +59,11 @@ class MediaStoreSource
                             "${MediaStore.Audio.Media.IS_AUDIOBOOK} = 0",
                         )
                     }
+                    if (extraSelection != null) add(extraSelection)
                 }.joinToString(" AND ")
 
             val result = ArrayList<ScannedFile>()
-            context.contentResolver.query(collection, projection, selection, null, null)?.use { cursor ->
+            context.contentResolver.query(collection, projection, selection, args, null)?.use { cursor ->
                 val idCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
                 val titleCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)
                 val nameCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME)
