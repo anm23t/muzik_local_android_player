@@ -3,7 +3,10 @@ name: CI
 on:
   push:
     branches: [main]
+    # Documentation-only changes do not need a build.
+    paths-ignore: ['**.md', 'docs/**']
   pull_request:
+    paths-ignore: ['**.md', 'docs/**']
 
 env:
   # Keep in sync with ndk and cmake in gradle/libs.versions.toml.
