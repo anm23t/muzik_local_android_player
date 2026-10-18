@@ -34,7 +34,7 @@ internal class DefaultLibraryRepository
         override fun observeAlbums(): Flow<List<Album>> =
             combine(dao.observeAlbums(), dao.observeAlbumArtists()) { albums, artists ->
                 val byAlbum = artists.groupBy({ it.albumId }, { it.name })
-                albums.map { Album(it.id, it.title, byAlbum[it.id].orEmpty(), it.year, it.trackCount) }
+                albums.map { Album(it.id, it.title, byAlbum[it.id].orEmpty(), it.year, it.trackCount, it.dateAdded) }
             }.flowOn(dispatchers.default)
 
         override suspend fun tracksByIds(ids: List<Long>): List<Track> =

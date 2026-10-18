@@ -55,7 +55,11 @@ class LibraryIndexer
         ) {
             val artists = metadata.artistTagValues
             val artistIds = artists.map { dao.artistId(it, NameNormalizer.key(it)) }
-            val albumId = metadata.album?.let { findOrCreateAlbum(it, metadata.year, artistIds) }
+            val albumId =
+                metadata.album?.let { album ->
+                    val albumArtistIds = metadata.albumArtistValues.map { dao.artistId(it, NameNormalizer.key(it)) }
+                    findOrCreateAlbum(album, metadata.year, albumArtistIds)
+                }
 
             val fields =
                 TrackScanFields(

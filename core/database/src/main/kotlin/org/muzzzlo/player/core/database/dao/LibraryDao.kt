@@ -15,12 +15,17 @@ import org.muzzzlo.player.core.database.entity.TrackArtistEntity
 import org.muzzzlo.player.core.database.entity.TrackEntity
 import org.muzzzlo.player.core.database.entity.TrackScanFields
 
-/** Album row with the number of present tracks. */
+/**
+ * Album row with the number of present tracks.
+ *
+ * @property dateAdded when the first of its tracks appeared on the device (MediaStore `date_added`, seconds).
+ */
 data class AlbumRow(
     val id: Long,
     val title: String,
     val year: Int?,
     @ColumnInfo(name = "track_count") val trackCount: Int,
+    @ColumnInfo(name = "date_added") val dateAdded: Long?,
 )
 
 /** Track to artist name pair, already ordered by `position` in the query. */
@@ -61,7 +66,7 @@ interface LibraryDao {
     fun observeAlbumTracks(albumId: Long): Flow<List<TrackEntity>>
 
     @Query(
-        "SELECT a.id, a.title, a.year, COUNT(t.id) AS track_count FROM album a " +
+        "SELECT a.id, a.title, a.year, COUNT(t.id) AS track_count, MIN(t.date_added) AS date_added FROM album a " +
             "JOIN track t ON t.album_id = a.id AND t.is_missing = 0 " +
             "GROUP BY a.id ORDER BY a.title_key",
     )

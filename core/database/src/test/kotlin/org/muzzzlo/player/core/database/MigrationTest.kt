@@ -3,6 +3,7 @@ package org.muzzzlo.player.core.database
 import androidx.room.testing.MigrationTestHelper
 import androidx.test.platform.app.InstrumentationRegistry
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -32,6 +33,27 @@ class MigrationTest {
                 assertEquals(1, cursor.getInt(1))
                 assertEquals(1, cursor.getInt(2))
                 assertEquals(0, cursor.getInt(3))
+            }
+        }
+    }
+
+    @Test
+    fun `2 to 3 clears date_modified so every file is read again`() {
+        helper.createDatabase(DB_NAME, 2).use { db ->
+            db.execSQL(
+                "INSERT INTO track (id, media_store_id, uri, title, title_key, artist_tag_values, duration_ms, " +
+                    "date_modified, has_cover, has_lyrics, is_missing, is_damaged, rating_tenths, is_favorite) " +
+                    "VALUES (1, 10, 'content://media/10', 'Song', 'song', '[\"A\"]', 1000, 55, 1, 0, 0, 0, 67, 1)",
+            )
+        }
+
+        helper.runMigrationsAndValidate(DB_NAME, 3, true, MIGRATION_2_3).use { db ->
+            db.query("SELECT title, date_modified, rating_tenths, is_favorite FROM track WHERE id = 1").use { cursor ->
+                cursor.moveToFirst()
+                assertEquals("Song", cursor.getString(0))
+                assertTrue(cursor.isNull(1))
+                assertEquals(67, cursor.getInt(2))
+                assertEquals(1, cursor.getInt(3))
             }
         }
     }

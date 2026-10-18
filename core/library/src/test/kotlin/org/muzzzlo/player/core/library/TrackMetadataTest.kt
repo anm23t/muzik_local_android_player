@@ -51,6 +51,7 @@ class TrackMetadataTest {
             TrackMetadata(
                 title = "Song",
                 artistTagValues = listOf("Alpha", "Beta"),
+                albumArtistValues = listOf("Alpha", "Beta"),
                 album = "Album",
                 year = 2024,
                 trackNumber = 3,
@@ -64,6 +65,29 @@ class TrackMetadataTest {
             ),
             metadata,
         )
+    }
+
+    @Test
+    fun `the album artist tag wins over the track artists`() {
+        val tags = TrackTags(artists = listOf("Kanye West", "Pusha T"), albumArtists = listOf("Kanye West"))
+
+        assertEquals(listOf("Kanye West"), trackMetadata(mediaStore, success(tags, null)).albumArtistValues)
+    }
+
+    @Test
+    fun `album artists fall back to the track artists`() {
+        val cases =
+            listOf(
+                // album artist tag, track artists, expected album artists
+                Triple(emptyList(), listOf("A", "B"), listOf("A", "B")),
+                Triple(listOf(" ", ""), listOf("A"), listOf("A")),
+                Triple(listOf(" Various Artists "), listOf("A"), listOf("Various Artists")),
+                Triple(listOf("X", " ", "Y"), listOf("A"), listOf("X", "Y")),
+                Triple(emptyList(), emptyList(), emptyList<String>()),
+            )
+        for ((tag, track, expected) in cases) {
+            assertEquals(expected, albumArtists(tag, track), "tag=$tag track=$track")
+        }
     }
 
     @Test
@@ -128,6 +152,7 @@ class TrackMetadataTest {
         TrackMetadata(
             title = "file-name",
             artistTagValues = listOf("Alpha; Beta"),
+            albumArtistValues = listOf("Alpha; Beta"),
             album = "MediaStore Album",
             year = 1999,
             trackNumber = 5,

@@ -95,6 +95,15 @@ class LibraryDaoTest {
         }
 
     @Test
+    fun `album date added is the earliest of its tracks`() =
+        runBlocking {
+            val album = dao.insertAlbum(AlbumEntity(title = "Album", titleKey = "album"))
+            dao.insertTrack(track("u1", "First", album, 1).copy(dateAdded = 300))
+            dao.insertTrack(track("u2", "Second", album, 2).copy(dateAdded = 100))
+            assertEquals(100L, dao.observeAlbums().first().single().dateAdded)
+        }
+
+    @Test
     fun `empty albums are deleted`() =
         runBlocking {
             dao.insertAlbum(AlbumEntity(title = "Lonely", titleKey = "lonely"))

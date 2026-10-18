@@ -8,11 +8,14 @@ import org.muzzzlo.player.core.model.TagReadResult
  * MediaStore values otherwise.
  *
  * @property artistTagValues raw values of the artist tag; each one becomes an artist until splitting arrives (0.4.1).
+ * @property albumArtistValues artists the album is credited to: the album artist tag, or the track artists when the
+ * file has none (DESIGN.md, section 3: the album artist comes from its own tag).
  * @property isDamaged the file crashed the native tag reader and is quarantined.
  */
 internal data class TrackMetadata(
     val title: String,
     val artistTagValues: List<String>,
+    val albumArtistValues: List<String>,
     val album: String?,
     val year: Int?,
     val trackNumber: Int?,
@@ -43,6 +46,7 @@ internal fun trackMetadata(
             TrackMetadata(
                 title = tags.title ?: file.title,
                 artistTagValues = tags.artists,
+                albumArtistValues = albumArtists(tags.albumArtists, tags.artists),
                 album = tags.album,
                 year = tags.year,
                 trackNumber = tags.trackNumber,
@@ -65,6 +69,7 @@ private fun mediaStoreMetadata(
 ) = TrackMetadata(
     title = file.title,
     artistTagValues = artistNames(file.artist),
+    albumArtistValues = artistNames(file.artist),
     album = cleanAlbum(file.album),
     year = file.year,
     trackNumber = file.trackNumber,
@@ -76,6 +81,12 @@ private fun mediaStoreMetadata(
     hasLyrics = false,
     isDamaged = isDamaged,
 )
+
+/** The album artist tag without blank values; the track artists stand in when nothing is left. */
+internal fun albumArtists(
+    albumArtistTag: List<String>,
+    trackArtists: List<String>,
+): List<String> = albumArtistTag.map(String::trim).filter(String::isNotEmpty).ifEmpty { trackArtists }
 
 /** Value of `track.format` (DATABASE.md). */
 private fun AudioFormat.columnValue(): String =
