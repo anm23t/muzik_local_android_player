@@ -20,7 +20,7 @@ class AlbumSortTest {
 
     @Test
     fun `the default sort is by title from A to Z`() {
-        assertEquals(AlbumSort(AlbumSortField.Title, ascending = true), AlbumSort())
+        assertEquals(AlbumSort(AlbumSortField.Title, ascending = true), DefaultAlbumSort)
     }
 
     @Test

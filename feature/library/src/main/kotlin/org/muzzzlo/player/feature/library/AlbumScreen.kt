@@ -20,6 +20,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import org.muzzzlo.player.core.designsystem.component.ArtistLinks
 import org.muzzzlo.player.core.designsystem.component.ArtistPhotoPlaceholder
 import org.muzzzlo.player.core.designsystem.component.CoverCard
 import org.muzzzlo.player.core.designsystem.component.PillButton
@@ -36,12 +37,14 @@ import org.muzzzlo.player.core.designsystem.R as DesignR
  * Album card (4:311): cover, title, album artist, year, number of tracks, "Play" and the tracks.
  * A track row shows its own artists only when they differ from the album artists.
  *
+ * @param onOpenArtist opens the card of the album artist with this name.
  * @param miniPlayer the mini player of `feature:player`, passed in by the app.
  */
 @Composable
 fun AlbumScreen(
     onBack: () -> Unit,
     onHome: () -> Unit,
+    onOpenArtist: (String) -> Unit,
     onOpenQueue: () -> Unit,
     miniPlayer: @Composable () -> Unit,
     modifier: Modifier = Modifier,
@@ -53,7 +56,7 @@ fun AlbumScreen(
     ScreenFrame(modifier) {
         ScreenHeader(onBack = onBack) { HomeButton(onHome) }
         val album = state.album ?: return@ScreenFrame
-        AlbumHeader(album)
+        AlbumHeader(album, onOpenArtist)
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Icon(
                 painter = painterResource(DesignR.drawable.ic_folder_check),
@@ -95,7 +98,10 @@ fun AlbumScreen(
 }
 
 @Composable
-private fun AlbumHeader(album: Album) {
+private fun AlbumHeader(
+    album: Album,
+    onOpenArtist: (String) -> Unit,
+) {
     Row(
         horizontalArrangement = Arrangement.spacedBy(MuzzzloDimens.SectionGap),
         verticalAlignment = Alignment.CenterVertically,
@@ -114,19 +120,28 @@ private fun AlbumHeader(album: Album) {
                 maxLines = 3,
                 overflow = TextOverflow.Ellipsis,
             )
-            // The artist card opens from here in 0.3.5b.
             Row(
                 horizontalArrangement = Arrangement.spacedBy(MuzzzloDimens.ItemGap),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 ArtistPhotoPlaceholder(MuzzzloDimens.InlineArtistPhoto)
-                Text(
-                    text = albumSubtitle(album),
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MuzzzloColors.TextSecondary,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
+                if (album.artists.isEmpty()) {
+                    Text(
+                        text = albumSubtitle(album),
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MuzzzloColors.TextSecondary,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                } else {
+                    ArtistLinks(
+                        names = album.artists,
+                        onClick = { onOpenArtist(album.artists[it]) },
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MuzzzloColors.TextSecondary,
+                        maxLines = 2,
+                    )
+                }
             }
             album.year?.let { year ->
                 Text(

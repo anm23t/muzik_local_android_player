@@ -15,8 +15,9 @@ import org.muzzzlo.player.core.designsystem.component.TrackRow
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloDimens
 
 /**
- * All tracks of the library. Not in the mockup (DESIGN.md, section 7): the frame and title of the album list
- * (15:3) with the track rows of the album card (4:337, 4:361), artists under the title.
+ * All tracks of the library, or of one artist when opened from the artist card. Not in the mockup
+ * (DESIGN.md, section 7): the frame and title of the album list (15:3) with the track rows of the album card
+ * (4:337, 4:361), artists under the title.
  *
  * @param miniPlayer the mini player of `feature:player`, passed in by the app.
  */
@@ -34,7 +35,7 @@ fun TracksScreen(
 
     ScreenFrame(modifier) {
         ScreenHeader(onBack = onBack)
-        SectionTitle(stringResource(R.string.tracks_title))
+        SectionTitle(state.artistName ?: stringResource(R.string.tracks_title))
         ContentWithMiniPlayer(miniPlayer) {
             if (state.isLoaded && state.tracks.isEmpty()) {
                 Notice(stringResource(R.string.library_empty))

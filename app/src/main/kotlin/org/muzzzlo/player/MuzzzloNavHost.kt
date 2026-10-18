@@ -1,5 +1,6 @@
 package org.muzzzlo.player
 
+import android.net.Uri
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.MaterialTheme
@@ -13,9 +14,14 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import org.muzzzlo.player.feature.library.ALBUM_ID_ARG
+import org.muzzzlo.player.feature.library.ARTIST_ID_ARG
+import org.muzzzlo.player.feature.library.ARTIST_NAME_ARG
 import org.muzzzlo.player.feature.library.AlbumListScreen
 import org.muzzzlo.player.feature.library.AlbumScreen
+import org.muzzzlo.player.feature.library.ArtistListScreen
+import org.muzzzlo.player.feature.library.ArtistScreen
 import org.muzzzlo.player.feature.library.HomeScreen
+import org.muzzzlo.player.feature.library.NO_ARTIST
 import org.muzzzlo.player.feature.library.TracksScreen
 import org.muzzzlo.player.feature.player.MiniPlayer
 import org.muzzzlo.player.feature.player.PlayerScreen
@@ -24,11 +30,33 @@ import org.muzzzlo.player.feature.player.QueueScreen
 private const val ROUTE_HOME = "home"
 private const val ROUTE_ALBUMS = "albums"
 private const val ROUTE_ALBUM = "album/{$ALBUM_ID_ARG}"
-private const val ROUTE_TRACKS = "tracks"
+private const val ROUTE_TRACKS = "tracks?$ARTIST_ID_ARG={$ARTIST_ID_ARG}"
+private const val ROUTE_ARTISTS = "artists"
+private const val ROUTE_ARTIST = "artist?$ARTIST_ID_ARG={$ARTIST_ID_ARG}&$ARTIST_NAME_ARG={$ARTIST_NAME_ARG}"
 private const val ROUTE_PLAYER = "player"
 private const val ROUTE_QUEUE = "queue"
 
 private fun albumRoute(albumId: Long) = "album/$albumId"
+
+private fun tracksRoute(artistId: Long = NO_ARTIST) = "tracks?$ARTIST_ID_ARG=$artistId"
+
+private fun artistRoute(artistId: Long) = "artist?$ARTIST_ID_ARG=$artistId"
+
+/** The player and the album card know artists by name only; the card finds the artist by it. */
+private fun artistRoute(name: String) = "artist?$ARTIST_NAME_ARG=${Uri.encode(name)}"
+
+private val artistArguments =
+    listOf(
+        navArgument(ARTIST_ID_ARG) {
+            type = NavType.LongType
+            defaultValue = NO_ARTIST
+        },
+        navArgument(ARTIST_NAME_ARG) {
+            type = NavType.StringType
+            nullable = true
+            defaultValue = null
+        },
+    )
 
 /** Every home button goes back to the home screen instead of stacking a new one (DESIGN.md, section 3). */
 private fun NavHostController.goHome() {
@@ -49,9 +77,10 @@ fun MuzzzloNavHost() {
         NavHost(navController, startDestination = ROUTE_HOME) {
             composable(ROUTE_HOME) {
                 HomeScreen(
+                    onOpenArtists = { navController.navigate(ROUTE_ARTISTS) },
                     onOpenAlbums = { navController.navigate(ROUTE_ALBUMS) },
                     onOpenAlbum = { navController.navigate(albumRoute(it)) },
-                    onOpenTracks = { navController.navigate(ROUTE_TRACKS) },
+                    onOpenTracks = { navController.navigate(tracksRoute()) },
                     miniPlayer = miniPlayer,
                 )
             }
@@ -62,15 +91,32 @@ fun MuzzzloNavHost() {
                     miniPlayer = miniPlayer,
                 )
             }
+            composable(ROUTE_ARTISTS) {
+                ArtistListScreen(
+                    onBack = { navController.popBackStack() },
+                    onOpenArtist = { navController.navigate(artistRoute(it)) },
+                    miniPlayer = miniPlayer,
+                )
+            }
+            composable(ROUTE_ARTIST, arguments = artistArguments) {
+                ArtistScreen(
+                    onBack = { navController.popBackStack() },
+                    onHome = { navController.goHome() },
+                    onOpenAlbum = { navController.navigate(albumRoute(it)) },
+                    onOpenSongs = { navController.navigate(tracksRoute(it)) },
+                    miniPlayer = miniPlayer,
+                )
+            }
             composable(ROUTE_ALBUM, arguments = listOf(navArgument(ALBUM_ID_ARG) { type = NavType.LongType })) {
                 AlbumScreen(
                     onBack = { navController.popBackStack() },
                     onHome = { navController.goHome() },
+                    onOpenArtist = { navController.navigate(artistRoute(it)) },
                     onOpenQueue = { navController.navigate(ROUTE_QUEUE) },
                     miniPlayer = miniPlayer,
                 )
             }
-            composable(ROUTE_TRACKS) {
+            composable(ROUTE_TRACKS, arguments = artistArguments.take(1)) {
                 TracksScreen(
                     onBack = { navController.popBackStack() },
                     onOpenQueue = { navController.navigate(ROUTE_QUEUE) },
@@ -81,7 +127,9 @@ fun MuzzzloNavHost() {
                 PlayerScreen(
                     onBack = { navController.popBackStack() },
                     onOpenQueue = { navController.navigate(ROUTE_QUEUE) },
+                    onOpenArtists = { navController.navigate(ROUTE_ARTISTS) },
                     onOpenAlbums = { navController.navigate(ROUTE_ALBUMS) },
+                    onOpenArtist = { navController.navigate(artistRoute(it)) },
                     onHome = { navController.goHome() },
                 )
             }

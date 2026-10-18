@@ -22,15 +22,34 @@
     <string name="nav_statistics">Statistics</string>
 
     <string name="albums_title">Albums</string>
-    <string name="albums_sort">Sort</string>
-    <string name="albums_sort_title">Sort</string>
     <string name="albums_sort_title_field">By title</string>
     <string name="albums_sort_artist">By artist</string>
     <string name="albums_sort_year">By release year</string>
     <string name="albums_sort_track_count">By number of songs</string>
     <string name="albums_sort_date_added">By date added</string>
-    <string name="albums_sort_done">Done</string>
     <string name="album_play">Play</string>
+
+    <string name="list_sort">Sort</string>
+    <string name="list_sort_title">Sort</string>
+    <string name="list_sort_done">Done</string>
+
+    <string name="artists_title">Artists</string>
+    <string name="artists_sort_name">By name</string>
+    <string name="artists_sort_track_count">By number of songs</string>
+    <string name="artists_sort_date_added">By date added</string>
+    <string name="artist_not_found">This artist is not in the library</string>
+    <plurals name="artist_song_count">
+        <item quantity="one">%d song</item>
+        <item quantity="other">%d songs</item>
+    </plurals>
+    <string name="artist_top_songs">Top songs</string>
+    <string name="artist_streams">Streams</string>
+    <string name="artist_top_songs_empty">Top songs and play counts will appear here once listening statistics are collected.</string>
+    <string name="artist_albums">Albums</string>
+    <string name="artist_all_songs">All songs</string>
+    <string name="artist_photo_change">Change photo</string>
+    <string name="artist_photo_choose">Choose photo</string>
+    <string name="artist_photo_remove">Remove photo</string>
 
     <string name="tracks_title">All songs</string>
 </resources>

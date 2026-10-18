@@ -3,15 +3,10 @@ package org.muzzzlo.player.feature.library
 import org.muzzzlo.player.core.model.Album
 import org.muzzzlo.player.core.model.NameNormalizer
 
-/**
- * What the album list can be sorted by (DESIGN.md, section 3, "Опции сортировки").
- *
- * @property ascendingByDefault direction used when the field is chosen: names and years go up,
- * counts and dates go down so the biggest and newest come first.
- */
+/** What the album list can be sorted by (DESIGN.md, section 3, "Опции сортировки"). */
 enum class AlbumSortField(
-    val ascendingByDefault: Boolean,
-) {
+    override val ascendingByDefault: Boolean,
+) : SortField {
     Title(true),
     Artist(true),
     Year(true),
@@ -19,26 +14,19 @@ enum class AlbumSortField(
     DateAdded(false),
 }
 
-/** Sort order of the album list: a field and a direction. */
-data class AlbumSort(
-    val field: AlbumSortField = AlbumSortField.Title,
-    val ascending: Boolean = field.ascendingByDefault,
-) {
-    /** Choosing the selected field again flips the direction, another field starts in its default direction. */
-    fun choose(next: AlbumSortField): AlbumSort = if (next == field) copy(ascending = !ascending) else AlbumSort(next)
-}
+typealias AlbumSort = ListSort<AlbumSortField>
+
+/** The album list starts sorted by title from A to Z. */
+val DefaultAlbumSort = AlbumSort(AlbumSortField.Title)
 
 /**
  * Albums in the given order. Albums without the sorted value (no year, no artist, no date) stay at the end in both
- * directions. Equal values are ordered by title and then by id, so the list does not jump between updates.
+ * directions. Equal values are ordered by title and then by id.
  */
-fun List<Album>.sortedBy(sort: AlbumSort): List<Album> {
-    val (known, unknown) = partition { it.hasValueFor(sort.field) }
-    val byField = fieldComparator(sort.field).let { if (sort.ascending) it else it.reversed() }
-    return known.sortedWith(byField.then(tieBreaker)) + unknown.sortedWith(tieBreaker)
-}
+fun List<Album>.sortedBy(sort: AlbumSort): List<Album> =
+    sortedBy(sort, Album::hasValueFor, ::albumComparator, albumTieBreaker)
 
-private val tieBreaker: Comparator<Album> = compareBy<Album> { NameNormalizer.key(it.title) }.thenBy { it.id }
+private val albumTieBreaker: Comparator<Album> = compareBy<Album> { NameNormalizer.key(it.title) }.thenBy { it.id }
 
 private fun Album.hasValueFor(field: AlbumSortField): Boolean =
     when (field) {
@@ -48,7 +36,7 @@ private fun Album.hasValueFor(field: AlbumSortField): Boolean =
         AlbumSortField.DateAdded -> dateAdded != null
     }
 
-private fun fieldComparator(field: AlbumSortField): Comparator<Album> =
+private fun albumComparator(field: AlbumSortField): Comparator<Album> =
     when (field) {
         AlbumSortField.Title -> compareBy { NameNormalizer.key(it.title) }
         AlbumSortField.Artist -> compareBy { NameNormalizer.key(it.artistsText) }

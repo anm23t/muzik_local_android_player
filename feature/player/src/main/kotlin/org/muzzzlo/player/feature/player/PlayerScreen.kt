@@ -22,6 +22,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import org.muzzzlo.player.core.designsystem.component.ArtistLinks
 import org.muzzzlo.player.core.designsystem.component.BottomNav
 import org.muzzzlo.player.core.designsystem.component.BottomNavItem
 import org.muzzzlo.player.core.designsystem.component.CoverCard
@@ -45,13 +46,15 @@ private const val PLAYER_COVER_ASPECT = 316f / 319f
 
 /**
  * Full screen player (1:3): cover, title, artists, progress, controls and the bottom menu
- * (artists, albums, queue, home). The artists open their cards in 0.3.5b.
+ * (artists, albums, queue, home). Each artist of the track opens their card.
  */
 @Composable
 fun PlayerScreen(
     onBack: () -> Unit,
     onOpenQueue: () -> Unit,
+    onOpenArtists: () -> Unit,
     onOpenAlbums: () -> Unit,
+    onOpenArtist: (String) -> Unit,
     onHome: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: PlayerViewModel = hiltViewModel(),
@@ -80,13 +83,13 @@ fun PlayerScreen(
             CoverCard(Modifier.fillMaxWidth().aspectRatio(PLAYER_COVER_ASPECT, matchHeightConstraintsFirst = true))
         }
         Spacer(Modifier.height(MuzzzloDimens.RowGap))
-        TrackTitle(state)
+        TrackTitle(state, onOpenArtist)
         Spacer(Modifier.height(MuzzzloDimens.ContentGap))
         Progress(state, viewModel::onSeek)
         Spacer(Modifier.height(MuzzzloDimens.SectionGap))
         Controls(state, viewModel)
         Spacer(Modifier.height(MuzzzloDimens.FrameInnerPadding))
-        BottomNav(playerNavItems(onOpenAlbums, onOpenQueue, onHome))
+        BottomNav(playerNavItems(onOpenArtists, onOpenAlbums, onOpenQueue, onHome))
     }
     if (menuOpen && track != null) {
         TrackActionsMenu(
@@ -102,7 +105,10 @@ fun PlayerScreen(
 }
 
 @Composable
-private fun TrackTitle(state: PlayerState) {
+private fun TrackTitle(
+    state: PlayerState,
+    onOpenArtist: (String) -> Unit,
+) {
     val track = state.currentTrack
     Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
@@ -114,13 +120,14 @@ private fun TrackTitle(state: PlayerState) {
             overflow = TextOverflow.Ellipsis,
         )
         Spacer(Modifier.height(MuzzzloDimens.SmallGap))
-        Text(
-            text = track?.artistsText.orEmpty(),
+        // Every artist is its own tappable name that opens their card (DESIGN.md, section 3).
+        ArtistLinks(
+            names = track?.artists.orEmpty(),
+            onClick = { index -> track?.artists?.getOrNull(index)?.let(onOpenArtist) },
             style = MaterialTheme.typography.titleSmall,
             color = MuzzzloColors.TextSecondary,
             textAlign = TextAlign.Center,
             maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
         )
     }
 }
@@ -198,15 +205,16 @@ private fun Controls(
     }
 }
 
-/** Artists (0.3.5b), albums, queue, home, as in 27:3. */
+/** Artists, albums, queue, home, as in 27:3. */
 @Composable
 private fun playerNavItems(
+    onOpenArtists: () -> Unit,
     onOpenAlbums: () -> Unit,
     onOpenQueue: () -> Unit,
     onHome: () -> Unit,
 ): List<BottomNavItem> =
     listOf(
-        BottomNavItem(DesignR.drawable.ic_users, stringResource(R.string.player_artists), {}, enabled = false),
+        BottomNavItem(DesignR.drawable.ic_users, stringResource(R.string.player_artists), onOpenArtists),
         BottomNavItem(DesignR.drawable.ic_disc, stringResource(R.string.player_albums), onOpenAlbums),
         BottomNavItem(DesignR.drawable.ic_list_music, stringResource(R.string.player_queue), onOpenQueue),
         BottomNavItem(DesignR.drawable.ic_home, stringResource(R.string.player_home), onHome),
