@@ -23,6 +23,7 @@ fun BottomNav(
                     icon = item.icon,
                     contentDescription = item.label,
                     onClick = item.onClick,
+                    enabled = item.enabled,
                     size = RoundIconButtonSize.Large,
                 )
             }

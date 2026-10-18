@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -102,13 +103,20 @@ fun ArtistRow(
     }
 }
 
-/** Shown where a cover is missing: the elevated surface with the disc icon. */
+/**
+ * Shown where a cover is missing: the elevated surface with the disc icon.
+ *
+ * @param shape corners of the border, the same as the clip of the cover it replaces.
+ */
 @Composable
-fun CoverPlaceholder(modifier: Modifier = Modifier) {
+fun CoverPlaceholder(
+    modifier: Modifier = Modifier,
+    shape: Shape = MuzzzloDimens.RowShape,
+) {
     Box(
         modifier
             .background(MuzzzloColors.SurfaceElevated)
-            .border(MuzzzloDimens.BorderWidth, MuzzzloColors.Outline, MuzzzloDimens.RowShape),
+            .border(MuzzzloDimens.BorderWidth, MuzzzloColors.Outline, shape),
         contentAlignment = Alignment.Center,
     ) {
         Icon(painterResource(R.drawable.ic_disc), null, tint = MuzzzloColors.TextSecondary)
