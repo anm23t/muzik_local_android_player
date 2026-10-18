@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="library_title">Библиотека</string>
+    <string name="library_rescan">Обновить библиотеку</string>
+    <string name="library_tab_tracks">Треки</string>
+    <string name="library_tab_albums">Альбомы</string>
+    <string name="library_empty">Музыка не найдена</string>
+    <string name="library_permission_rationale">Разрешите доступ к аудиофайлам, чтобы собрать библиотеку.</string>
+    <string name="library_permission_grant">Разрешить доступ</string>
+    <string name="unknown_artist">Неизвестный исполнитель</string>
+    <plurals name="library_track_count">
+        <item quantity="one">%d трек</item>
+        <item quantity="few">%d трека</item>
+        <item quantity="many">%d треков</item>
+        <item quantity="other">%d трека</item>
+    </plurals>
+</resources>

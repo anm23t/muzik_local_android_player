@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="library_title">Library</string>
+    <string name="library_rescan">Rescan library</string>
+    <string name="library_tab_tracks">Tracks</string>
+    <string name="library_tab_albums">Albums</string>
+    <string name="library_empty">No music found</string>
+    <string name="library_permission_rationale">Allow access to audio files to build your music library.</string>
+    <string name="library_permission_grant">Allow access</string>
+    <string name="unknown_artist">Unknown artist</string>
+    <plurals name="library_track_count">
+        <item quantity="one">%d track</item>
+        <item quantity="other">%d tracks</item>
+    </plurals>
+</resources>

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="player_nothing_playing">Ничего не играет</string>
+    <string name="player_play">Воспроизвести</string>
+    <string name="player_pause">Пауза</string>
+    <string name="player_next">Следующий трек</string>
+    <string name="player_previous">Предыдущий трек</string>
+</resources>

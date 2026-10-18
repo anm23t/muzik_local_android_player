@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "artists": [
+    { "id": "tyler-the-creator", "name": "Tyler, The Creator" },
+    { "id": "earth-wind-and-fire", "name": "Earth, Wind & Fire" },
+    { "id": "crosby-stills-nash-and-young", "name": "Crosby, Stills, Nash & Young" },
+    { "id": "crosby-stills-and-nash", "name": "Crosby, Stills & Nash" },
+    { "id": "emerson-lake-and-palmer", "name": "Emerson, Lake & Palmer" },
+    { "id": "blood-sweat-and-tears", "name": "Blood, Sweat & Tears" },
+    { "id": "peter-paul-and-mary", "name": "Peter, Paul and Mary" }
+  ]
+}
