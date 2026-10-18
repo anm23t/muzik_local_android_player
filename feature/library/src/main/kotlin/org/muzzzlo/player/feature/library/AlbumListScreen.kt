@@ -9,6 +9,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.muzzzlo.player.core.designsystem.component.AlbumRow
+import org.muzzzlo.player.core.designsystem.component.CoverImage
+import org.muzzzlo.player.core.designsystem.component.CoverSource
 import org.muzzzlo.player.core.model.Album
 
 /**
@@ -37,7 +39,12 @@ fun AlbumListScreen(
         modifier = modifier,
     ) {
         items(state.albums, key = { it.id }) { album ->
-            AlbumRow(title = album.title, subtitle = albumSubtitle(album), onClick = { onOpenAlbum(album.id) })
+            AlbumRow(
+                title = album.title,
+                subtitle = albumSubtitle(album),
+                onClick = { onOpenAlbum(album.id) },
+                cover = { CoverImage(CoverSource.Album(album.id), it) },
+            )
         }
     }
 }

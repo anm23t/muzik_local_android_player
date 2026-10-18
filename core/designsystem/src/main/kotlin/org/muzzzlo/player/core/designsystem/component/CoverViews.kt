@@ -27,7 +27,7 @@ import org.muzzzlo.player.core.designsystem.theme.MuzzzloDimens
  * (33:714). The tile takes the width it is given, three of them fill a row.
  *
  * @param subtitle second line under the title (artists on the artist card); null hides it.
- * @param cover cover image; null shows [CoverPlaceholder] until the cover cache of task 0.3.7.
+ * @param cover cover image; null shows [CoverPlaceholder].
  */
 @Composable
 fun CoverTile(

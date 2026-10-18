@@ -23,6 +23,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.muzzzlo.player.core.designsystem.component.ArtistLinks
 import org.muzzzlo.player.core.designsystem.component.ArtistPhotoPlaceholder
 import org.muzzzlo.player.core.designsystem.component.CoverCard
+import org.muzzzlo.player.core.designsystem.component.CoverImage
+import org.muzzzlo.player.core.designsystem.component.CoverSource
 import org.muzzzlo.player.core.designsystem.component.PillButton
 import org.muzzzlo.player.core.designsystem.component.ScreenFrame
 import org.muzzzlo.player.core.designsystem.component.TrackRow
@@ -112,6 +114,7 @@ private fun AlbumHeader(
             shape = MuzzzloDimens.MiniPlayerShape,
             coverShape = MuzzzloDimens.TileShape,
             inset = MuzzzloDimens.AlbumCardInset,
+            cover = { CoverImage(CoverSource.Album(album.id), it, MuzzzloDimens.TileShape) },
         )
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(MuzzzloDimens.SmallGap)) {
             Text(

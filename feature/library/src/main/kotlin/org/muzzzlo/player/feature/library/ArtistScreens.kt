@@ -33,6 +33,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.muzzzlo.player.core.designsystem.component.ActionRow
 import org.muzzzlo.player.core.designsystem.component.ArtistRow
+import org.muzzzlo.player.core.designsystem.component.CoverImage
+import org.muzzzlo.player.core.designsystem.component.CoverSource
 import org.muzzzlo.player.core.designsystem.component.CoverTile
 import org.muzzzlo.player.core.designsystem.component.MuzzzloDialog
 import org.muzzzlo.player.core.designsystem.component.OutlinedPanel
@@ -240,6 +242,7 @@ private fun ArtistAlbums(
                     subtitle = albumSubtitle(album),
                     onClick = { onOpenAlbum(album.id) },
                     modifier = Modifier.width(MuzzzloDimens.ArtistCardTile),
+                    cover = { CoverImage(CoverSource.Album(album.id), it, MuzzzloDimens.TileShape) },
                 )
             }
         }

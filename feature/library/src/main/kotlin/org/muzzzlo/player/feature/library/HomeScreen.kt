@@ -28,6 +28,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.muzzzlo.player.core.designsystem.component.BottomNav
 import org.muzzzlo.player.core.designsystem.component.BottomNavItem
+import org.muzzzlo.player.core.designsystem.component.CoverImage
+import org.muzzzlo.player.core.designsystem.component.CoverSource
 import org.muzzzlo.player.core.designsystem.component.CoverTile
 import org.muzzzlo.player.core.designsystem.component.PillButton
 import org.muzzzlo.player.core.designsystem.component.RoundIconButton
@@ -130,7 +132,12 @@ private fun ContinueListening(
     Column(verticalArrangement = Arrangement.spacedBy(MuzzzloDimens.ContentGap)) {
         SectionTitle(stringResource(R.string.home_continue_listening), maxLines = 2)
         Row(horizontalArrangement = Arrangement.spacedBy(MuzzzloDimens.SectionGap)) {
-            CoverTile(title = album.title, onClick = { onOpenAlbum(album.id) }, modifier = Modifier.weight(1f))
+            CoverTile(
+                title = album.title,
+                onClick = { onOpenAlbum(album.id) },
+                modifier = Modifier.weight(1f),
+                cover = { CoverImage(CoverSource.Album(album.id), it, MuzzzloDimens.TileShape) },
+            )
             repeat(TILES_PER_ROW - 1) { Spacer(Modifier.weight(1f)) }
         }
     }

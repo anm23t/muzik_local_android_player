@@ -26,6 +26,8 @@ import org.muzzzlo.player.core.designsystem.component.ArtistLinks
 import org.muzzzlo.player.core.designsystem.component.BottomNav
 import org.muzzzlo.player.core.designsystem.component.BottomNavItem
 import org.muzzzlo.player.core.designsystem.component.CoverCard
+import org.muzzzlo.player.core.designsystem.component.CoverImage
+import org.muzzzlo.player.core.designsystem.component.CoverSource
 import org.muzzzlo.player.core.designsystem.component.ProgressBar
 import org.muzzzlo.player.core.designsystem.component.RoundIconButton
 import org.muzzzlo.player.core.designsystem.component.RoundIconButtonSize
@@ -81,7 +83,10 @@ fun PlayerScreen(
         }
         // The cover takes the space left by the fixed parts and keeps its proportions.
         Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
-            CoverCard(Modifier.fillMaxWidth().aspectRatio(PLAYER_COVER_ASPECT, matchHeightConstraintsFirst = true))
+            CoverCard(
+                Modifier.fillMaxWidth().aspectRatio(PLAYER_COVER_ASPECT, matchHeightConstraintsFirst = true),
+                cover = { CoverImage(track?.let { CoverSource.Track(it.id) }, it, MuzzzloDimens.MiniPlayerShape) },
+            )
         }
         Spacer(Modifier.height(MuzzzloDimens.RowGap))
         TrackTitle(state, onOpenArtist)
@@ -264,6 +269,7 @@ fun MiniPlayer(
         onPlayPause = viewModel::onPlayPause,
         modifier = modifier,
         onLongClick = { menuOpen = true },
+        cover = { CoverImage(CoverSource.Track(track.id), it) },
     )
 }
 

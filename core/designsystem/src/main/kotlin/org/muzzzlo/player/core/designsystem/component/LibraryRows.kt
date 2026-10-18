@@ -29,7 +29,7 @@ import org.muzzzlo.player.core.designsystem.theme.MuzzzloDimens
 /**
  * Album row of the album list (15:18).
  *
- * @param cover cover image; null shows [CoverPlaceholder] until the cover cache of task 0.3.7.
+ * @param cover cover image; null shows [CoverPlaceholder].
  */
 @Composable
 fun AlbumRow(
