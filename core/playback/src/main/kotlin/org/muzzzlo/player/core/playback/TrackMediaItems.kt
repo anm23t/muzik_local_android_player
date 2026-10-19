@@ -3,6 +3,7 @@ package org.muzzzlo.player.core.playback
 import android.os.Bundle
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import org.muzzzlo.player.core.model.CrossfadeTrack
 import org.muzzzlo.player.core.model.ReplayGainInfo
 import org.muzzzlo.player.core.model.Track
 
@@ -11,6 +12,7 @@ private const val KEY_DURATION = "duration_ms"
 private const val KEY_ARTISTS = "artists"
 private const val KEY_ALBUM_ID = "album_id"
 private const val KEY_TRACK_NUMBER = "track_number"
+private const val KEY_DISC_NUMBER = "disc_number"
 private const val KEY_TRACK_GAIN = "rg_track_gain"
 private const val KEY_TRACK_PEAK = "rg_track_peak"
 private const val KEY_ALBUM_GAIN = "rg_album_gain"
@@ -26,6 +28,7 @@ internal fun Track.toMediaItem(): MediaItem {
             putStringArray(KEY_ARTISTS, artists.toTypedArray())
             putLong(KEY_ALBUM_ID, albumId ?: ABSENT)
             putInt(KEY_TRACK_NUMBER, trackNumber ?: ABSENT.toInt())
+            putInt(KEY_DISC_NUMBER, discNumber ?: ABSENT.toInt())
             putOptionalFloat(KEY_TRACK_GAIN, replayGain.trackGainDb)
             putOptionalFloat(KEY_TRACK_PEAK, replayGain.trackPeak)
             putOptionalFloat(KEY_ALBUM_GAIN, replayGain.albumGainDb)
@@ -58,6 +61,7 @@ internal fun MediaItem.toTrack(): Track? {
         albumTitle = mediaMetadata.albumTitle?.toString(),
         durationMs = extras.getLong(KEY_DURATION),
         trackNumber = extras.getInt(KEY_TRACK_NUMBER, ABSENT.toInt()).takeIf { it >= 0 },
+        discNumber = extras.getInt(KEY_DISC_NUMBER, ABSENT.toInt()).takeIf { it >= 0 },
         replayGain = replayGainInfo(),
     )
 }
@@ -70,6 +74,19 @@ internal fun MediaItem.replayGainInfo(): ReplayGainInfo {
         trackPeak = extras.optionalFloat(KEY_TRACK_PEAK),
         albumGainDb = extras.optionalFloat(KEY_ALBUM_GAIN),
         albumPeak = extras.optionalFloat(KEY_ALBUM_PEAK),
+    )
+}
+
+/** What the crossfade rules need to know about this item; the length comes from the library. */
+internal fun MediaItem.crossfadeTrack(): CrossfadeTrack {
+    val extras = mediaMetadata.extras
+
+    fun optionalInt(key: String) = extras?.getInt(key, ABSENT.toInt())?.takeIf { it >= 0 }
+    return CrossfadeTrack(
+        albumId = albumId(),
+        discNumber = optionalInt(KEY_DISC_NUMBER),
+        trackNumber = optionalInt(KEY_TRACK_NUMBER),
+        durationMs = extras?.getLong(KEY_DURATION) ?: 0,
     )
 }
 
