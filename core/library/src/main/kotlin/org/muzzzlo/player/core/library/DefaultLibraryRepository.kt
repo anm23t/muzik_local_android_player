@@ -124,6 +124,7 @@ internal class DefaultLibraryRepository
                     albumTitle = it.albumId?.let(albumTitles::get),
                     durationMs = it.durationMs,
                     trackNumber = it.trackNumber,
+                    discNumber = it.discNumber,
                     replayGain = ReplayGainInfo(it.rgTrackGain, it.rgTrackPeak, it.rgAlbumGain, it.rgAlbumPeak),
                 )
             }
