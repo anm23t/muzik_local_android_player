@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -25,6 +26,7 @@ import androidx.compose.ui.unit.Dp
 import org.muzzzlo.player.core.designsystem.R
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloColors
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloDimens
+import org.muzzzlo.player.core.designsystem.theme.MuzzzloTheme
 
 /**
  * Album row of the album list (15:18).
@@ -73,6 +75,8 @@ fun AlbumRow(
  * Artist row of the artist list (23:415).
  *
  * @param photo photo added by the user; null shows the empty circle of the mockup.
+ * @param selected the row is ticked in the selection mode: the accent container behind it, as in a chosen option
+ * of the sort dialog (15:117; not in the mockup, DESIGN.md, section 7).
  */
 @Composable
 fun ArtistRow(
@@ -80,11 +84,13 @@ fun ArtistRow(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     photo: (@Composable (Modifier) -> Unit)? = null,
+    selected: Boolean = false,
 ) {
     Row(
         modifier
             .fillMaxWidth()
             .clip(MuzzzloDimens.RowShape)
+            .background(if (selected) MuzzzloTheme.accent.container else Color.Transparent)
             .clickable(onClick = onClick)
             .padding(MuzzzloDimens.RowPadding),
         horizontalArrangement = Arrangement.spacedBy(MuzzzloDimens.RowGap),
