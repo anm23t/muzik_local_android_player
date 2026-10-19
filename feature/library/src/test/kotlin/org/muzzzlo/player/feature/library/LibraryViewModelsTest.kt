@@ -351,8 +351,12 @@ class LibraryViewModelsTest {
             assertEquals(true, viewModel.state.value.selecting)
         }
 
-    private class FakeCompounds(private val result: Int = 0) : CompoundRepository {
+    private class FakeCompounds(
+        private val result: Int = 0,
+        private val affected: Int = 0,
+    ) : CompoundRepository {
         val remembered = mutableListOf<String>()
+        val removed = mutableListOf<Long>()
 
         override fun observeRules(): Flow<List<CompoundRule>> = MutableStateFlow(emptyList())
 
@@ -365,7 +369,12 @@ class LibraryViewModelsTest {
             return result
         }
 
-        override suspend fun remove(id: Long) = 0
+        override suspend fun remove(id: Long): Int {
+            removed += id
+            return 0
+        }
+
+        override suspend fun countAffectedBy(id: Long) = affected
 
         override suspend fun enable(id: Long) = 0
     }

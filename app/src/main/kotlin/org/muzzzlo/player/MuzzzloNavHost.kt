@@ -21,6 +21,7 @@ import org.muzzzlo.player.feature.library.AlbumScreen
 import org.muzzzlo.player.feature.library.ArtistCheckScreen
 import org.muzzzlo.player.feature.library.ArtistListScreen
 import org.muzzzlo.player.feature.library.ArtistScreen
+import org.muzzzlo.player.feature.library.CompoundNamesScreen
 import org.muzzzlo.player.feature.library.HomeScreen
 import org.muzzzlo.player.feature.library.NO_ARTIST
 import org.muzzzlo.player.feature.library.TracksScreen
@@ -40,6 +41,7 @@ private const val ROUTE_ALBUM = "album/{$ALBUM_ID_ARG}"
 private const val ROUTE_TRACKS = "tracks?$ARTIST_ID_ARG={$ARTIST_ID_ARG}"
 private const val ROUTE_ARTISTS = "artists"
 private const val ROUTE_ARTIST_CHECK = "artistCheck"
+private const val ROUTE_COMPOUND_NAMES = "compoundNames"
 private const val ROUTE_ARTIST = "artist?$ARTIST_ID_ARG={$ARTIST_ID_ARG}&$ARTIST_NAME_ARG={$ARTIST_NAME_ARG}"
 private const val ROUTE_PLAYER = "player"
 private const val ROUTE_QUEUE = "queue"
@@ -119,7 +121,13 @@ fun MuzzzloNavHost() {
                 )
             }
             composable(ROUTE_ARTIST_CHECK) {
-                ArtistCheckScreen(onBack = { navController.popBackStack() })
+                ArtistCheckScreen(
+                    onBack = { navController.popBackStack() },
+                    onOpenCompoundNames = { navController.navigate(ROUTE_COMPOUND_NAMES) },
+                )
+            }
+            composable(ROUTE_COMPOUND_NAMES) {
+                CompoundNamesScreen(onBack = { navController.popBackStack() })
             }
             composable(ROUTE_ARTIST, arguments = artistArguments) {
                 ArtistScreen(

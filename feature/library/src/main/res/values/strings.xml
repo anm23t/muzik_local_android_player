@@ -75,5 +75,23 @@
     <string name="remember_not_parts">The name must be the selected artists in this order, separated by commas.</string>
     <string name="remember_duplicate">This name is already remembered.</string>
 
+    <string name="compound_title">Compound names</string>
+    <string name="compound_empty">No names yet.</string>
+    <string name="compound_add_label">Add a name</string>
+    <string name="compound_add_hint">An artist whose name has a comma in it, like “Tyler, The Creator”.</string>
+    <string name="compound_add">Add</string>
+    <string name="compound_origin_own">Yours</string>
+    <string name="compound_origin_builtin">Built-in</string>
+    <string name="compound_origin_off">Built-in, switched off</string>
+    <string name="compound_delete">Delete</string>
+    <string name="compound_switch_off">Switch off</string>
+    <string name="compound_switch_on">Switch on</string>
+    <string name="compound_remove_title">Stop treating “%1$s” as one artist?</string>
+    <plurals name="compound_remove_warning">
+        <item quantity="one">%d track will be split into separate artists again. Files stay as they are.</item>
+        <item quantity="other">%d tracks will be split into separate artists again. Files stay as they are.</item>
+    </plurals>
+    <string name="check_compound_names">Compound names</string>
+
     <string name="tracks_title">All songs</string>
 </resources>

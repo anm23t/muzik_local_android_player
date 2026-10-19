@@ -79,5 +79,25 @@
     <string name="remember_not_parts">Имя должно состоять из выбранных исполнителей в этом порядке через запятую.</string>
     <string name="remember_duplicate">Такое имя уже запомнено.</string>
 
+    <string name="compound_title">Составные имена</string>
+    <string name="compound_empty">Пока нет ни одного имени.</string>
+    <string name="compound_add_label">Добавить имя</string>
+    <string name="compound_add_hint">Исполнитель, в имени которого есть запятая, например «Tyler, The Creator».</string>
+    <string name="compound_add">Добавить</string>
+    <string name="compound_origin_own">Ваше</string>
+    <string name="compound_origin_builtin">Встроенное</string>
+    <string name="compound_origin_off">Встроенное, выключено</string>
+    <string name="compound_delete">Удалить</string>
+    <string name="compound_switch_off">Выключить</string>
+    <string name="compound_switch_on">Включить</string>
+    <string name="compound_remove_title">Больше не считать «%1$s» одним исполнителем?</string>
+    <plurals name="compound_remove_warning">
+        <item quantity="one">%d трек снова разделится на отдельных исполнителей. Файлы не меняются.</item>
+        <item quantity="few">%d трека снова разделятся на отдельных исполнителей. Файлы не меняются.</item>
+        <item quantity="many">%d треков снова разделятся на отдельных исполнителей. Файлы не меняются.</item>
+        <item quantity="other">%d трека снова разделятся на отдельных исполнителей. Файлы не меняются.</item>
+    </plurals>
+    <string name="check_compound_names">Составные имена</string>
+
     <string name="tracks_title">Все песни</string>
 </resources>

@@ -27,12 +27,15 @@ import org.muzzzlo.player.core.designsystem.theme.MuzzzloDimens
 @Composable
 fun ArtistCheckScreen(
     onBack: () -> Unit,
+    onOpenCompoundNames: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: ArtistCheckViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     ScreenFrame(modifier) {
-        ScreenHeader(onBack = onBack)
+        ScreenHeader(onBack = onBack) {
+            PillButton(text = stringResource(R.string.check_compound_names), onClick = onOpenCompoundNames)
+        }
         SectionTitle(stringResource(R.string.check_title))
         when {
             !state.isLoaded -> Notice(stringResource(R.string.check_loading))
