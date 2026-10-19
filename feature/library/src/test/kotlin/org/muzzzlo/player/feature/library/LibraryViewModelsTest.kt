@@ -75,6 +75,24 @@ class LibraryViewModelsTest {
         }
 
     @Test
+    fun `the album card gives each album artist their photo and null when there is none`() =
+        runTest {
+            val twoArtists = Album(12, "Duo", listOf("A", "B", "Nobody"), 2020, 1, 10)
+            val lib = FakeLibrary(listOf(first), listOf(twoArtists), listOf(anna.copy(photoPath = "/p/a.jpg"), bob))
+            val viewModel = AlbumViewModel(lib, player, SavedStateHandle(mapOf(ALBUM_ID_ARG to twoArtists.id)))
+            subscribe(viewModel.state)
+
+            assertEquals(listOf("/p/a.jpg", null, null), viewModel.state.value.artistPhotos)
+        }
+
+    @Test
+    fun `an album without artists has no photos`() =
+        assertEquals(
+            emptyList<String?>(),
+            photosOf(emptyList(), listOf(anna)),
+        )
+
+    @Test
     fun `the album card marks the playing track`() =
         runTest {
             val viewModel = AlbumViewModel(library, player, SavedStateHandle(mapOf(ALBUM_ID_ARG to album.id)))

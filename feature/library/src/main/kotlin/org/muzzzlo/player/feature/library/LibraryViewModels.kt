@@ -301,12 +301,26 @@ class ArtistViewModel
         }
     }
 
-/** What the album card renders. [album] is null while loading and after the album disappeared. */
+/**
+ * What the album card renders. [album] is null while loading and after the album disappeared.
+ *
+ * @property artistPhotos photo path of each of `album.artists`, in the same order; null where the artist has no photo.
+ */
 data class AlbumUiState(
     val album: Album? = null,
     val tracks: List<Track> = emptyList(),
     val currentTrackId: Long? = null,
+    val artistPhotos: List<String?> = emptyList(),
 )
+
+/** Photo path of each name in [names] taken from the library's [artists] (null when the artist has none). */
+internal fun photosOf(
+    names: List<String>,
+    artists: List<Artist>,
+): List<String?> {
+    val byName = artists.associate { it.name to it.photoPath }
+    return names.map { byName[it] }
+}
 
 /** Album card (4:311). */
 @HiltViewModel
@@ -324,8 +338,10 @@ class AlbumViewModel
                 library.observeAlbums().map { albums -> albums.firstOrNull { it.id == albumId } },
                 library.observeAlbumTracks(albumId),
                 player.currentTrackId(),
-            ) { album, tracks, current -> AlbumUiState(album, tracks, current) }
-                .stateIn(this, AlbumUiState())
+                library.observeArtists(),
+            ) { album, tracks, current, artists ->
+                AlbumUiState(album, tracks, current, photosOf(album?.artists.orEmpty(), artists))
+            }.stateIn(this, AlbumUiState())
 
         /** The "Play" button: the whole album from the first track. */
         fun onPlayAlbum() = onTrackClicked(0)

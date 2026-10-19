@@ -1,7 +1,10 @@
 package org.muzzzlo.player.feature.library
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -20,7 +23,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import org.muzzzlo.player.core.designsystem.component.ArtistLinks
 import org.muzzzlo.player.core.designsystem.component.ArtistPhotoPlaceholder
 import org.muzzzlo.player.core.designsystem.component.CoverCard
 import org.muzzzlo.player.core.designsystem.component.CoverImage
@@ -63,7 +65,7 @@ fun AlbumScreen(
     ScreenFrame(modifier) {
         ScreenHeader(onBack = onBack) { HomeButton(onHome) }
         val album = state.album ?: return@ScreenFrame
-        AlbumHeader(album, onOpenArtist)
+        AlbumHeader(album, state.artistPhotos, onOpenArtist)
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Icon(
                 painter = painterResource(DesignR.drawable.ic_folder_check),
@@ -114,6 +116,7 @@ fun AlbumScreen(
 @Composable
 private fun AlbumHeader(
     album: Album,
+    artistPhotos: List<String?>,
     onOpenArtist: (String) -> Unit,
 ) {
     Row(
@@ -135,12 +138,12 @@ private fun AlbumHeader(
                 maxLines = 3,
                 overflow = TextOverflow.Ellipsis,
             )
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(MuzzzloDimens.ItemGap),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                ArtistPhotoPlaceholder(MuzzzloDimens.InlineArtistPhoto)
-                if (album.artists.isEmpty()) {
+            if (album.artists.isEmpty()) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(MuzzzloDimens.ItemGap),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    ArtistPhotoPlaceholder(MuzzzloDimens.InlineArtistPhoto)
                     Text(
                         text = albumSubtitle(album),
                         style = MaterialTheme.typography.titleSmall,
@@ -148,21 +151,46 @@ private fun AlbumHeader(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
-                } else {
-                    ArtistLinks(
-                        names = album.artists,
-                        onClick = { onOpenArtist(album.artists[it]) },
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MuzzzloColors.TextSecondary,
-                        maxLines = 2,
-                    )
                 }
+            } else {
+                AlbumArtists(album.artists, artistPhotos, onOpenArtist)
             }
             album.year?.let { year ->
                 Text(
                     text = year.toString(),
                     style = MaterialTheme.typography.bodySmall,
                     color = MuzzzloColors.TextSecondary,
+                )
+            }
+        }
+    }
+}
+
+/** Each album artist as a photo with the name after it (4:311); a tap on the pair opens the artist card. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun AlbumArtists(
+    names: List<String>,
+    photos: List<String?>,
+    onOpenArtist: (String) -> Unit,
+) {
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(MuzzzloDimens.ContentGap),
+        verticalArrangement = Arrangement.spacedBy(MuzzzloDimens.TinyGap),
+    ) {
+        names.forEachIndexed { index, name ->
+            Row(
+                Modifier.clickable { onOpenArtist(name) },
+                horizontalArrangement = Arrangement.spacedBy(MuzzzloDimens.ItemGap),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                ArtistPhoto(photos.getOrNull(index), MuzzzloDimens.InlineArtistPhoto)
+                Text(
+                    text = name,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MuzzzloColors.TextSecondary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
         }
