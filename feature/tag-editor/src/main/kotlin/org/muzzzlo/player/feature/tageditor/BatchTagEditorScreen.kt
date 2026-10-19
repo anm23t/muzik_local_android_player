@@ -150,6 +150,10 @@ private fun BatchFields(
         values = draft.albumArtists.value,
         onValuesChange = { onChange(draft.copy(albumArtists = draft.albumArtists.edit(it))) },
         addLabel = stringResource(R.string.tag_editor_add_album_artist),
+        onMove = { index, delta ->
+            val moved = draft.albumArtists.value.moved(index, delta)
+            onChange(draft.copy(albumArtists = draft.albumArtists.edit(moved)))
+        },
         hint = mixed.takeIf { draft.albumArtists.mixed },
     )
     TagTextField(

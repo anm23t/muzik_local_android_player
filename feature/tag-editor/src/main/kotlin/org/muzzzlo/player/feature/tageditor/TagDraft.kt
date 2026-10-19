@@ -118,6 +118,29 @@ internal fun List<String>.mergeWithNext(index: Int): List<String> {
     return take(index) + merged + drop(index + 2)
 }
 
+/** Swaps the value at [index] with the one above it; the list stays as it is for the first row or a bad index. */
+internal fun List<String>.moveUp(index: Int): List<String> = swapped(index - 1, index)
+
+/** Swaps the value at [index] with the one below it; the list stays as it is for the last row or a bad index. */
+internal fun List<String>.moveDown(index: Int): List<String> = swapped(index, index + 1)
+
+/** Moves the value at [index] up for a negative [delta] and down for a positive one. */
+internal fun List<String>.moved(
+    index: Int,
+    delta: Int,
+): List<String> = if (delta < 0) moveUp(index) else moveDown(index)
+
+private fun List<String>.swapped(
+    first: Int,
+    second: Int,
+): List<String> {
+    if (first < 0 || second > lastIndex || first >= second) return this
+    return toMutableList().also {
+        it[first] = this[second]
+        it[second] = this[first]
+    }
+}
+
 internal fun String.cleaned(): String? = trim().ifEmpty { null }
 
 internal fun List<String>.cleaned(): List<String> = mapNotNull { it.cleaned() }

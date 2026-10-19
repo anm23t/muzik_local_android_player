@@ -133,6 +133,16 @@ class TagDraftTest {
     }
 
     @Test
+    fun `reordering the artists is a change`() {
+        val draft = TagDraft.from(tags).copy(artists = tags.artists.moveUp(1))
+
+        assertEquals(
+            listOf(TagChange(TagField.Artists, "Tyler, The Creator · Kanye West", "Kanye West · Tyler, The Creator")),
+            changesOf(tags, draft.toEdit()!!),
+        )
+    }
+
+    @Test
     fun `an added empty row or extra spaces are no change`() {
         val draft = TagDraft.from(tags).copy(title = " Song ", artists = tags.artists + "", genres = tags.genres + " ")
         assertEquals(emptyList<TagChange>(), changesOf(tags, draft.toEdit()!!))

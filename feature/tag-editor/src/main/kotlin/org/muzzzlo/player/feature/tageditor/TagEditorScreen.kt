@@ -222,6 +222,7 @@ private fun TagFields(
         canSplit = ::canSplit,
         onSplit = { onChange(draft.copy(artists = draft.artists.splitAt(it))) },
         onMerge = { onChange(draft.copy(artists = draft.artists.mergeWithNext(it))) },
+        onMove = { index, delta -> onChange(draft.copy(artists = draft.artists.moved(index, delta))) },
     )
     TagTextField(stringResource(R.string.tag_editor_field_album), draft.album, { onChange(draft.copy(album = it)) })
     ValueListField(
@@ -232,6 +233,7 @@ private fun TagFields(
         canSplit = ::canSplit,
         onSplit = { onChange(draft.copy(albumArtists = draft.albumArtists.splitAt(it))) },
         onMerge = { onChange(draft.copy(albumArtists = draft.albumArtists.mergeWithNext(it))) },
+        onMove = { index, delta -> onChange(draft.copy(albumArtists = draft.albumArtists.moved(index, delta))) },
     )
     NumberPair(
         numberLabel = stringResource(R.string.tag_editor_field_track),

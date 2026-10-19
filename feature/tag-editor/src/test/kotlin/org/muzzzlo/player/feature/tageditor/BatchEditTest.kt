@@ -93,6 +93,17 @@ class BatchEditTest {
     }
 
     @Test
+    fun `reordering the album artists is a change written to every track`() {
+        val tracks = listOf(one.copy(albumArtists = listOf("X", "Y")), two.copy(albumArtists = listOf("X", "Y")))
+        val draft = BatchDraft.from(tracks)
+        val moved = draft.copy(albumArtists = draft.albumArtists.edit(draft.albumArtists.value.moveDown(0)))
+
+        assertTrue(moved.albumArtists.changed)
+        assertEquals(listOf("Y", "X"), moved.applyTo(tracks[0]).albumArtists)
+        assertEquals(listOf("Y", "X"), moved.applyTo(tracks[1]).albumArtists)
+    }
+
+    @Test
     fun `the cover goes to every track`() {
         val picture = EmbeddedPicture(byteArrayOf(1), "image/png", EmbeddedPicture.TYPE_FRONT_COVER)
         val draft = BatchDraft.from(listOf(one, two)).copy(cover = CoverEdit.Replace(picture))
