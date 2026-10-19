@@ -149,6 +149,7 @@ core:playback  core:library core:stats core:tags
 - Очередь и позиция сохраняются в БД или DataStore при изменениях и восстанавливаются при запуске.
 - Аудиофокус и отключение наушников обрабатываются штатными механизмами Media3.
 - Gapless, ReplayGain и crossfade добавляются в версии 0.5 поверх этого же слоя без смены архитектуры. Их параметры читаются из репозитория настроек (раздел 9) и применяются к плееру в сервисе, а не в UI.
+- Gapless (0.5.2): ExoPlayer сам обрезает encoder delay и padding (LAME/iTunSMPB в MP3, edit list в M4A; в FLAC пауз нет, в Opus pre-skip часть декодера). Выключателя в Media3 нет, поэтому `GaplessRenderersFactory` подменяет `MediaCodecAudioRenderer` на подкласс, который при выключенной настройке обнуляет delay и padding во `Format` (`Format.forGapless`). Значение читается при старте каждого трека, смена применяется со следующего. Сервис получает `SettingsRepository` через Hilt (`@AndroidEntryPoint`).
 
 ## 7. Статистика (`core:stats`)
 
