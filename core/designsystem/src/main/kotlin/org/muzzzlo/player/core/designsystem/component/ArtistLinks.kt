@@ -23,6 +23,7 @@ private const val SEPARATOR = ", "
  * mockup, and wrap like one line of text.
  *
  * @param onClick receives the index of the tapped name in [names].
+ * @param marquee keeps the names on one line and scrolls them slowly when they do not fit (the player, 1:3).
  */
 @Composable
 fun ArtistLinks(
@@ -33,6 +34,7 @@ fun ArtistLinks(
     modifier: Modifier = Modifier,
     textAlign: TextAlign? = null,
     maxLines: Int = Int.MAX_VALUE,
+    marquee: Boolean = false,
 ) {
     val currentOnClick by rememberUpdatedState(onClick)
     val text =
@@ -46,11 +48,11 @@ fun ArtistLinks(
         }
     Text(
         text = text,
-        modifier = modifier,
+        modifier = if (marquee) modifier.slowMarquee() else modifier,
         style = style,
         color = color,
         textAlign = textAlign,
-        maxLines = maxLines,
-        overflow = TextOverflow.Ellipsis,
+        maxLines = if (marquee) 1 else maxLines,
+        overflow = if (marquee) TextOverflow.Clip else TextOverflow.Ellipsis,
     )
 }

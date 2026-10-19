@@ -19,7 +19,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.muzzzlo.player.core.designsystem.component.ArtistLinks
@@ -30,6 +29,7 @@ import org.muzzzlo.player.core.designsystem.component.BottomNavItem
 import org.muzzzlo.player.core.designsystem.component.CoverCard
 import org.muzzzlo.player.core.designsystem.component.CoverImage
 import org.muzzzlo.player.core.designsystem.component.CoverSource
+import org.muzzzlo.player.core.designsystem.component.MarqueeText
 import org.muzzzlo.player.core.designsystem.component.ProgressBar
 import org.muzzzlo.player.core.designsystem.component.RoundIconButton
 import org.muzzzlo.player.core.designsystem.component.RoundIconButtonSize
@@ -129,13 +129,12 @@ private fun TrackTitle(
         ArtistPickerMenu(artists = track.artists, onPick = onOpenArtist, onDismiss = { picking = false })
     }
     Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(
+        // One line each, so the cover keeps its size whatever the title length is; long lines scroll.
+        MarqueeText(
             text = track?.title ?: stringResource(R.string.player_nothing_playing),
             style = MaterialTheme.typography.headlineMedium,
             color = MuzzzloColors.TextPrimary,
             textAlign = TextAlign.Center,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
         )
         Spacer(Modifier.height(MuzzzloDimens.SmallGap))
         // A tap on the artists opens the card of the only artist or the picker of several (DESIGN.md, section 3).
@@ -151,7 +150,7 @@ private fun TrackTitle(
             style = MaterialTheme.typography.titleSmall,
             color = MuzzzloColors.TextSecondary,
             textAlign = TextAlign.Center,
-            maxLines = 2,
+            marquee = true,
         )
     }
 }
