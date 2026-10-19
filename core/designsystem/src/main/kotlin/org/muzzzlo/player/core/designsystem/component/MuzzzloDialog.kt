@@ -105,6 +105,7 @@ fun MuzzzloDialog(
  *
  * @param secondary optional second line under [text]; with it the text wraps to [maxLines] lines instead of
  * being cut and the row grows (not in the mockup, DESIGN.md, section 7).
+ * @param secondaryMaxLines lines of [secondary] before it is cut with an ellipsis.
  */
 @Composable
 fun RadioOptionRow(
@@ -114,6 +115,7 @@ fun RadioOptionRow(
     modifier: Modifier = Modifier,
     secondary: String? = null,
     maxLines: Int = 1,
+    secondaryMaxLines: Int = 1,
 ) {
     val accent = MuzzzloTheme.accent
     Row(
@@ -143,7 +145,8 @@ fun RadioOptionRow(
                     text = secondary,
                     style = MaterialTheme.typography.bodySmall,
                     color = MuzzzloColors.TextSecondary,
-                    maxLines = 1,
+                    maxLines = secondaryMaxLines,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
         }

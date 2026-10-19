@@ -23,6 +23,7 @@ import org.muzzzlo.player.core.designsystem.theme.MuzzzloColors
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloDimens
 import org.muzzzlo.player.core.model.AppLanguage
 import org.muzzzlo.player.core.model.AppSettings
+import org.muzzzlo.player.core.model.ReplayGainSettings
 
 /**
  * Settings (no mockup, DESIGN.md, section 7): sections of rows. A row either shows its value and opens a choice
@@ -89,6 +90,7 @@ fun SettingsScreen(
                 onCheckedChange = viewModel::onGaplessChanged,
                 secondary = stringResource(R.string.settings_gapless_hint),
             )
+            ReplayGainRows(settings.replayGain, viewModel)
 
             GroupTitle(R.string.settings_group_interface)
             ValueRow(
@@ -113,6 +115,24 @@ fun SettingsScreen(
             )
         SettingsDialog.Id3Version -> Id3Dialog(settings, viewModel::onId3VersionChosen, viewModel::onDialogDismissed)
         SettingsDialog.Language -> LanguageDialog(settings, viewModel::onLanguageChosen, viewModel::onDialogDismissed)
+        SettingsDialog.ReplayGainMode ->
+            ReplayGainModeDialog(settings.replayGain, viewModel::onReplayGainModeChosen, viewModel::onDialogDismissed)
+        SettingsDialog.Preamp ->
+            DecibelDialog(
+                title = stringResource(R.string.settings_replay_gain_preamp),
+                db = settings.replayGain.preampDb,
+                range = ReplayGainSettings.PREAMP_MIN_DB..ReplayGainSettings.PREAMP_MAX_DB,
+                onStep = viewModel::onPreampStepped,
+                onDismiss = viewModel::onDialogDismissed,
+            )
+        SettingsDialog.UntaggedGain ->
+            DecibelDialog(
+                title = stringResource(R.string.settings_replay_gain_untagged),
+                db = settings.replayGain.untaggedGainDb,
+                range = ReplayGainSettings.UNTAGGED_MIN_DB..ReplayGainSettings.UNTAGGED_MAX_DB,
+                onStep = viewModel::onUntaggedGainStepped,
+                onDismiss = viewModel::onDialogDismissed,
+            )
         null -> Unit
     }
 }

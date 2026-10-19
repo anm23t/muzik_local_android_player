@@ -14,11 +14,13 @@ import org.muzzzlo.player.core.model.AppLanguage
 import org.muzzzlo.player.core.model.AppSettings
 import org.muzzzlo.player.core.model.LibraryMaintenance
 import org.muzzzlo.player.core.model.LibraryRepository
+import org.muzzzlo.player.core.model.ReplayGainMode
+import org.muzzzlo.player.core.model.ReplayGainSettings
 import org.muzzzlo.player.core.model.SettingsRepository
 import javax.inject.Inject
 
 /** A choice dialog over the settings screen. */
-enum class SettingsDialog { MinLength, Id3Version, Language }
+enum class SettingsDialog { MinLength, Id3Version, Language, ReplayGainMode, Preamp, UntaggedGain }
 
 /**
  * State of the settings screen.
@@ -87,6 +89,30 @@ class SettingsViewModel
             viewModelScope.launch { repository.setGapless(enabled) }
         }
 
+        fun onReplayGainModeChosen(mode: ReplayGainMode) {
+            local.update { it.copy(dialog = null) }
+            changeReplayGain { it.copy(mode = mode) }
+        }
+
+        /** Moves the preamp by [steps] of [ReplayGainSettings.STEP_DB]; the dialog stays open. */
+        fun onPreampStepped(steps: Int) = changeReplayGain { it.copy(preampDb = it.preampDb + steps * STEP) }
+
+        /** Moves the gain for untagged files by [steps] of [ReplayGainSettings.STEP_DB]; the dialog stays open. */
+        fun onUntaggedGainStepped(steps: Int) =
+            changeReplayGain { it.copy(untaggedGainDb = it.untaggedGainDb + steps * STEP) }
+
+        fun onClipProtectionChanged(enabled: Boolean) = changeReplayGain { it.copy(clipProtection = enabled) }
+
+        /**
+         * Applies [change] to the shown settings at once, so quick taps on a stepper build on each other, and saves
+         * the result.
+         */
+        private fun changeReplayGain(change: (ReplayGainSettings) -> ReplayGainSettings) {
+            val updated = change(local.value.settings.replayGain).clamped()
+            local.update { it.copy(settings = it.settings.copy(replayGain = updated)) }
+            viewModelScope.launch { repository.setReplayGain(updated) }
+        }
+
         fun onRescanClicked() {
             if (local.value.isScanning) return
             viewModelScope.launch { scan() }
@@ -101,6 +127,10 @@ class SettingsViewModel
                 local.update { it.copy(isScanning = false) }
             }
             refreshQuarantine()
+        }
+
+        private companion object {
+            const val STEP = ReplayGainSettings.STEP_DB
         }
 
         private fun refreshQuarantine() {

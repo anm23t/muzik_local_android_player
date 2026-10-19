@@ -42,6 +42,23 @@
     <string name="settings_group_playback">Playback</string>
     <string name="settings_gapless">Gapless playback</string>
     <string name="settings_gapless_hint">No pause between tracks. Turn off if some files click. Applies from the next track.</string>
+    <string name="settings_replay_gain">ReplayGain</string>
+    <string name="settings_replay_gain_hint">Evens out loudness using ReplayGain tags in the files.</string>
+    <string name="settings_replay_gain_track">By track</string>
+    <string name="settings_replay_gain_album">By album</string>
+    <string name="settings_replay_gain_auto">Auto</string>
+    <string name="settings_replay_gain_track_note">Every track plays at the same loudness.</string>
+    <string name="settings_replay_gain_album_note">Keeps the loudness differences between tracks of an album.</string>
+    <string name="settings_replay_gain_auto_note">By album while an album plays in order, by track otherwise.</string>
+    <string name="settings_replay_gain_preamp">Preamp</string>
+    <string name="settings_replay_gain_preamp_hint">Added to the gain from the tags.</string>
+    <string name="settings_replay_gain_untagged">Files without tags</string>
+    <string name="settings_replay_gain_untagged_hint">Gain for files that have no ReplayGain tags.</string>
+    <string name="settings_replay_gain_clipping">Prevent clipping</string>
+    <string name="settings_replay_gain_clipping_hint">Lowers the gain so the loudest peak stays below full scale.</string>
+    <string name="settings_decibels">%1$s dB</string>
+    <string name="settings_decrease">Decrease</string>
+    <string name="settings_increase">Increase</string>
 
     <string name="settings_group_interface">Interface</string>
     <string name="settings_language">Language</string>

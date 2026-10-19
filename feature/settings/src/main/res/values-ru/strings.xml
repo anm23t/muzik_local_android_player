@@ -46,6 +46,23 @@
     <string name="settings_group_playback">Воспроизведение</string>
     <string name="settings_gapless">Без пауз между треками</string>
     <string name="settings_gapless_hint">Без паузы между треками. Выключите, если файлы щёлкают. Со следующего трека.</string>
+    <string name="settings_replay_gain">ReplayGain</string>
+    <string name="settings_replay_gain_hint">Выравнивает громкость по тегам ReplayGain в файлах.</string>
+    <string name="settings_replay_gain_track">По треку</string>
+    <string name="settings_replay_gain_album">По альбому</string>
+    <string name="settings_replay_gain_auto">Авто</string>
+    <string name="settings_replay_gain_track_note">Все треки звучат одинаково громко.</string>
+    <string name="settings_replay_gain_album_note">Сохраняет разницу громкости между треками альбома.</string>
+    <string name="settings_replay_gain_auto_note">По альбому, когда альбом играет по порядку, иначе по треку.</string>
+    <string name="settings_replay_gain_preamp">Предусилитель</string>
+    <string name="settings_replay_gain_preamp_hint">Добавляется к усилению из тегов.</string>
+    <string name="settings_replay_gain_untagged">Файлы без тегов</string>
+    <string name="settings_replay_gain_untagged_hint">Усиление для файлов без тегов ReplayGain.</string>
+    <string name="settings_replay_gain_clipping">Защита от клиппинга</string>
+    <string name="settings_replay_gain_clipping_hint">Снижает усиление, чтобы самый громкий пик не выходил за предел.</string>
+    <string name="settings_decibels">%1$s дБ</string>
+    <string name="settings_decrease">Уменьшить</string>
+    <string name="settings_increase">Увеличить</string>
 
     <string name="settings_group_interface">Интерфейс</string>
     <string name="settings_language">Язык</string>

@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import org.muzzzlo.player.core.designsystem.R
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloColors
@@ -111,6 +112,59 @@ fun ValueRow(
                 tint = MuzzzloColors.TextSecondary,
             )
         }
+    }
+}
+
+/**
+ * Row of a dialog that changes a number in steps: [value] in the middle, round minus and plus buttons (41:894) at the
+ * sides, in the look of an unselected dialog row (15:124). A button at the end of the range is disabled.
+ * Not in the mockup, see DESIGN.md, section 7.
+ */
+@Composable
+fun StepperRow(
+    value: String,
+    onDecrease: () -> Unit,
+    onIncrease: () -> Unit,
+    decreaseDescription: String,
+    increaseDescription: String,
+    modifier: Modifier = Modifier,
+    canDecrease: Boolean = true,
+    canIncrease: Boolean = true,
+) {
+    Row(
+        modifier
+            .fillMaxWidth()
+            .heightIn(min = MuzzzloDimens.DialogRowHeight)
+            .clip(MuzzzloDimens.RowShape)
+            .background(MuzzzloColors.SurfaceElevated)
+            .padding(horizontal = MuzzzloDimens.ItemGap, vertical = MuzzzloDimens.ItemGap),
+        horizontalArrangement = Arrangement.spacedBy(MuzzzloDimens.ContentGap),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        RoundIconButton(
+            icon = R.drawable.ic_minus,
+            contentDescription = decreaseDescription,
+            onClick = onDecrease,
+            size = RoundIconButtonSize.Small,
+            enabled = canDecrease,
+            containerColor = MuzzzloColors.Surface,
+        )
+        Text(
+            text = value,
+            modifier = Modifier.weight(1f),
+            style = MaterialTheme.typography.titleMedium,
+            color = MuzzzloTheme.accent.accent,
+            textAlign = TextAlign.Center,
+            maxLines = 1,
+        )
+        RoundIconButton(
+            icon = R.drawable.ic_plus,
+            contentDescription = increaseDescription,
+            onClick = onIncrease,
+            size = RoundIconButtonSize.Small,
+            enabled = canIncrease,
+            containerColor = MuzzzloColors.Surface,
+        )
     }
 }
 
