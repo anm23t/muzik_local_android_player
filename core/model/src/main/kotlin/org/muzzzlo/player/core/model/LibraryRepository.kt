@@ -22,6 +22,9 @@ interface LibraryRepository {
     /** Id of the artist with this name (compared by [NameNormalizer.key]), null when there is none. */
     suspend fun artistId(name: String): Long?
 
+    /** Artists credited on the track in tag order, with their photos; empty for an unknown track. */
+    suspend fun artistsOfTrack(trackId: Long): List<ArtistRef>
+
     /**
      * Makes a reduced copy of the picture at [sourceUri] (a `content://` URI from the photo picker) the artist's
      * photo. The previous photo is deleted.

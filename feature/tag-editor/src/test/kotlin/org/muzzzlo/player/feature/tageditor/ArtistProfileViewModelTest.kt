@@ -22,6 +22,7 @@ import org.muzzzlo.player.core.model.ArtistDiscography
 import org.muzzzlo.player.core.model.ArtistEdit
 import org.muzzzlo.player.core.model.ArtistEditToken
 import org.muzzzlo.player.core.model.ArtistProfileRepository
+import org.muzzzlo.player.core.model.ArtistRef
 import org.muzzzlo.player.core.model.AudioFormat
 import org.muzzzlo.player.core.model.CompoundNames
 import org.muzzzlo.player.core.model.CompoundRepository
@@ -295,6 +296,8 @@ class ArtistProfileViewModelTest {
         override fun observeArtistAlbums(artistId: Long): Flow<ArtistDiscography> = emptyFlow()
 
         override suspend fun artistId(name: String): Long? = artistIds[name]
+
+        override suspend fun artistsOfTrack(trackId: Long): List<ArtistRef> = emptyList()
 
         override suspend fun setArtistPhoto(
             artistId: Long,

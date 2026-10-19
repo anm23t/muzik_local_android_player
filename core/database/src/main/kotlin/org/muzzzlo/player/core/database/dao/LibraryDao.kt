@@ -66,6 +66,13 @@ data class TrackArtistName(
     val name: String,
 )
 
+/** Artist of one track with the photo copy, as the artist picker shows it. */
+data class TrackArtistRow(
+    val id: Long,
+    val name: String,
+    @ColumnInfo(name = "photo_uri") val photoPath: String?,
+)
+
 /** Album to artist name pair, already ordered by `position` in the query. */
 data class AlbumArtistName(
     @ColumnInfo(name = "album_id") val albumId: Long,
@@ -181,6 +188,12 @@ interface LibraryDao {
             "WHERE ta.track_id IN (:trackIds) ORDER BY ta.track_id, ta.position",
     )
     suspend fun artistNamesFor(trackIds: List<Long>): List<TrackArtistName>
+
+    @Query(
+        "SELECT ar.id, ar.name, ar.photo_uri FROM track_artist ta JOIN artist ar ON ar.id = ta.artist_id " +
+            "WHERE ta.track_id = :trackId ORDER BY ta.position",
+    )
+    suspend fun artistsOfTrack(trackId: Long): List<TrackArtistRow>
 
     @Query("SELECT uri, title FROM track WHERE uri IN (:uris)")
     suspend fun titlesByUris(uris: List<String>): List<UriTitle>

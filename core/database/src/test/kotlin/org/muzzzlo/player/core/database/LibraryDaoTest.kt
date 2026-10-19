@@ -14,6 +14,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.muzzzlo.player.core.database.dao.ArtistAlbumRef
 import org.muzzzlo.player.core.database.dao.LibraryDao
+import org.muzzzlo.player.core.database.dao.TrackArtistRow
 import org.muzzzlo.player.core.database.entity.AlbumArtistEntity
 import org.muzzzlo.player.core.database.entity.AlbumEntity
 import org.muzzzlo.player.core.database.entity.ArtistAliasEntity
@@ -470,5 +471,27 @@ class LibraryDaoTest {
             val alone = dao.insertTrack(track("content://2", "two"))
             assertEquals(album, dao.albumIdOfTrack(inAlbum))
             assertEquals(null, dao.albumIdOfTrack(alone))
+        }
+
+    @Test
+    fun `artists of a track come in tag order with their photos`() =
+        runBlocking {
+            val first = dao.artistId("Zed", "zed")
+            val second = dao.artistId("Amy", "amy")
+            dao.setArtistPhotoPath(second, "amy.jpg")
+            val song = dao.insertTrack(track("u1", "Song"))
+            dao.insertTrackArtists(listOf(TrackArtistEntity(song, second, 1), TrackArtistEntity(song, first, 0)))
+
+            assertEquals(
+                listOf(TrackArtistRow(first, "Zed", null), TrackArtistRow(second, "Amy", "amy.jpg")),
+                dao.artistsOfTrack(song),
+            )
+        }
+
+    @Test
+    fun `a track without artists has none`() =
+        runBlocking {
+            assertEquals(emptyList<TrackArtistRow>(), dao.artistsOfTrack(dao.insertTrack(track("u1", "Alone"))))
+            assertEquals(emptyList<TrackArtistRow>(), dao.artistsOfTrack(9999))
         }
 }
