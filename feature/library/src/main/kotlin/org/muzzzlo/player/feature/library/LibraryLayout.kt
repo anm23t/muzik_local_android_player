@@ -19,6 +19,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import org.muzzzlo.player.core.designsystem.component.ArtistChoice
 import org.muzzzlo.player.core.designsystem.component.RoundIconButton
 import org.muzzzlo.player.core.designsystem.component.TrackAction
 import org.muzzzlo.player.core.designsystem.component.TrackActionsMenu
@@ -87,14 +88,16 @@ internal fun Notice(
  * Returns the function that opens the menu.
  *
  * @param onEditTags opens the tag editor of the track with this id.
- * @param onOpenArtist opens the card of the artist with this name ("Go to artist").
+ * @param loadArtists artists of the track with this id, for "Go to artist" and its picker.
+ * @param onOpenArtist opens the card of the artist with this id ("Go to artist").
  */
 @Composable
 internal fun rememberTrackMenu(
     onAction: (Track, TrackAction) -> Unit,
     onOpenQueue: () -> Unit,
     onEditTags: (Long) -> Unit,
-    onOpenArtist: (String) -> Unit,
+    loadArtists: suspend (Long) -> List<ArtistChoice>,
+    onOpenArtist: (Long) -> Unit,
 ): (Track) -> Unit {
     var menuTrack by remember { mutableStateOf<Track?>(null) }
     menuTrack?.let { track ->
@@ -110,7 +113,7 @@ internal fun rememberTrackMenu(
                 }
             },
             onDismiss = { menuTrack = null },
-            artistNames = track.artists,
+            loadArtists = { loadArtists(track.id) },
             onOpenArtist = onOpenArtist,
         )
     }

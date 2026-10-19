@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -21,6 +22,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.launch
+import org.muzzzlo.player.core.designsystem.component.ArtistChoice
 import org.muzzzlo.player.core.designsystem.component.ArtistLinks
 import org.muzzzlo.player.core.designsystem.component.ArtistPickerMenu
 import org.muzzzlo.player.core.designsystem.component.ArtistTap
@@ -58,7 +61,7 @@ fun PlayerScreen(
     onOpenQueue: () -> Unit,
     onOpenArtists: () -> Unit,
     onOpenAlbums: () -> Unit,
-    onOpenArtist: (String) -> Unit,
+    onOpenArtist: (Long) -> Unit,
     onHome: () -> Unit,
     onEditTags: (Long) -> Unit,
     modifier: Modifier = Modifier,
@@ -91,7 +94,7 @@ fun PlayerScreen(
             )
         }
         Spacer(Modifier.height(MuzzzloDimens.RowGap))
-        TrackTitle(state, onOpenArtist)
+        TrackTitle(state, viewModel::artistChoices, onOpenArtist)
         Spacer(Modifier.height(MuzzzloDimens.ContentGap))
         Progress(state, viewModel::onSeek)
         Spacer(Modifier.height(MuzzzloDimens.SectionGap))
@@ -112,7 +115,7 @@ fun PlayerScreen(
                 }
             },
             onDismiss = { menuOpen = false },
-            artistNames = track.artists,
+            loadArtists = { viewModel.artistChoices(track.id) },
             onOpenArtist = onOpenArtist,
         )
     }
@@ -121,12 +124,14 @@ fun PlayerScreen(
 @Composable
 private fun TrackTitle(
     state: PlayerState,
-    onOpenArtist: (String) -> Unit,
+    loadArtists: suspend (Long) -> List<ArtistChoice>,
+    onOpenArtist: (Long) -> Unit,
 ) {
     val track = state.currentTrack
-    var picking by remember { mutableStateOf(false) }
-    if (picking && track != null) {
-        ArtistPickerMenu(artists = track.artists, onPick = onOpenArtist, onDismiss = { picking = false })
+    val scope = rememberCoroutineScope()
+    var choices by remember { mutableStateOf<List<ArtistChoice>?>(null) }
+    choices?.let { artists ->
+        ArtistPickerMenu(artists = artists, onPick = { onOpenArtist(it.id) }, onDismiss = { choices = null })
     }
     Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
         // One line each, so the cover keeps its size whatever the title length is; long lines scroll.
@@ -141,10 +146,14 @@ private fun TrackTitle(
         ArtistLinks(
             names = track?.artists.orEmpty(),
             onClick = {
-                when (val tap = ArtistTap.of(track?.artists.orEmpty())) {
-                    is ArtistTap.Open -> onOpenArtist(tap.name)
-                    is ArtistTap.Choose -> picking = true
-                    ArtistTap.Nothing -> Unit
+                if (track != null) {
+                    scope.launch {
+                        when (val tap = ArtistTap.of(loadArtists(track.id))) {
+                            is ArtistTap.Open -> onOpenArtist(tap.artist.id)
+                            is ArtistTap.Choose -> choices = tap.artists
+                            ArtistTap.Nothing -> Unit
+                        }
+                    }
                 }
             },
             style = MaterialTheme.typography.titleSmall,
@@ -252,7 +261,7 @@ fun MiniPlayer(
     onOpen: () -> Unit,
     onOpenQueue: () -> Unit,
     onEditTags: (Long) -> Unit,
-    onOpenArtist: (String) -> Unit,
+    onOpenArtist: (Long) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: PlayerViewModel = hiltViewModel(),
 ) {
@@ -272,7 +281,7 @@ fun MiniPlayer(
                 }
             },
             onDismiss = { menuOpen = false },
-            artistNames = track.artists,
+            loadArtists = { viewModel.artistChoices(track.id) },
             onOpenArtist = onOpenArtist,
         )
     }

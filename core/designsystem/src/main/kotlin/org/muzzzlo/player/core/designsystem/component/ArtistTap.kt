@@ -7,21 +7,21 @@ sealed interface ArtistTap {
 
     /** One artist: the card opens at once. */
     data class Open(
-        val name: String,
+        val artist: ArtistChoice,
     ) : ArtistTap
 
     /** Several artists: the picker asks which card to open. */
     data class Choose(
-        val names: List<String>,
+        val artists: List<ArtistChoice>,
     ) : ArtistTap
 
     companion object {
         /** Decides the result of a tap on a track with these artists. */
-        fun of(names: List<String>): ArtistTap =
-            when (names.size) {
+        fun of(artists: List<ArtistChoice>): ArtistTap =
+            when (artists.size) {
                 0 -> Nothing
-                1 -> Open(names.single())
-                else -> Choose(names)
+                1 -> Open(artists.single())
+                else -> Choose(artists)
             }
     }
 }

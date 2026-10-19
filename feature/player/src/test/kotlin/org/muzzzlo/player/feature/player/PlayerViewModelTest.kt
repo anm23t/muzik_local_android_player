@@ -1,9 +1,13 @@
 package org.muzzzlo.player.feature.player
 
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
+import org.muzzzlo.player.core.designsystem.component.ArtistChoice
 import org.muzzzlo.player.core.designsystem.component.TrackAction
+import org.muzzzlo.player.core.model.ArtistRef
 import org.muzzzlo.player.core.model.Track
 
 class PlayerViewModelTest {
@@ -13,11 +17,21 @@ class PlayerViewModelTest {
     @EnumSource(TrackAction::class)
     fun `only queue actions reach the player`(action: TrackAction) {
         val player = FakePlayerController()
-        PlayerViewModel(player).onTrackAction(track, action)
+        PlayerViewModel(player, FakeLibrary()).onTrackAction(track, action)
 
         val expectedNext = if (action == TrackAction.PlayNext) listOf(track) else emptyList()
         val expectedQueue = if (action == TrackAction.AddToQueue) listOf(track) else emptyList()
         assertEquals(expectedNext, player.playedNext)
         assertEquals(expectedQueue, player.addedToQueue)
     }
+
+    @Test
+    fun `the picker gets the artists of the track in order with their photos`() =
+        runBlocking {
+            val library = FakeLibrary(mapOf(1L to listOf(ArtistRef(5, "B", "/b.jpg"), ArtistRef(4, "A"))))
+            val viewModel = PlayerViewModel(FakePlayerController(), library)
+
+            assertEquals(listOf(ArtistChoice(5, "B", "/b.jpg"), ArtistChoice(4, "A", null)), viewModel.artistChoices(1))
+            assertEquals(emptyList<ArtistChoice>(), viewModel.artistChoices(2))
+        }
 }

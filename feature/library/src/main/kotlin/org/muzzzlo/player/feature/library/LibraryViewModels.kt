@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.muzzzlo.player.core.designsystem.component.ArtistChoice
 import org.muzzzlo.player.core.designsystem.component.TrackAction
 import org.muzzzlo.player.core.model.Album
 import org.muzzzlo.player.core.model.Artist
@@ -328,7 +329,7 @@ internal fun photosOf(
 class AlbumViewModel
     @Inject
     constructor(
-        library: LibraryRepository,
+        private val library: LibraryRepository,
         private val player: PlayerController,
         savedState: SavedStateHandle,
     ) : ViewModel() {
@@ -356,6 +357,9 @@ class AlbumViewModel
             track: Track,
             action: TrackAction,
         ) = player.onTrackAction(track, action)
+
+        /** Artists of the track for the track menu ("Go to artist"). */
+        suspend fun artistChoices(trackId: Long): List<ArtistChoice> = library.artistChoices(trackId)
     }
 
 /**
@@ -378,7 +382,7 @@ data class TracksUiState(
 class TracksViewModel
     @Inject
     constructor(
-        library: LibraryRepository,
+        private val library: LibraryRepository,
         private val player: PlayerController,
         savedState: SavedStateHandle,
     ) : ViewModel() {
@@ -406,4 +410,11 @@ class TracksViewModel
             track: Track,
             action: TrackAction,
         ) = player.onTrackAction(track, action)
+
+        /** Artists of the track for the track menu ("Go to artist"). */
+        suspend fun artistChoices(trackId: Long): List<ArtistChoice> = library.artistChoices(trackId)
     }
+
+/** Artists of the track as the artist picker shows them. */
+internal suspend fun LibraryRepository.artistChoices(trackId: Long): List<ArtistChoice> =
+    artistsOfTrack(trackId).map { ArtistChoice(it.id, it.name, it.photoPath) }

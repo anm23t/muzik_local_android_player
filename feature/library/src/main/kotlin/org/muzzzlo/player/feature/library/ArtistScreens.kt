@@ -33,6 +33,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.muzzzlo.player.core.designsystem.component.ActionRow
+import org.muzzzlo.player.core.designsystem.component.ArtistPhoto
 import org.muzzzlo.player.core.designsystem.component.ArtistRow
 import org.muzzzlo.player.core.designsystem.component.CoverImage
 import org.muzzzlo.player.core.designsystem.component.CoverSource

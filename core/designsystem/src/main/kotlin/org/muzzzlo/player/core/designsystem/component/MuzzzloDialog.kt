@@ -171,6 +171,27 @@ fun ActionRow(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+) = ActionRow(
+    text = text,
+    onClick = onClick,
+    modifier = modifier,
+    leading = {
+        Icon(
+            painter = painterResource(icon),
+            contentDescription = null,
+            modifier = Modifier.size(MuzzzloDimens.SmallIcon),
+            tint = MuzzzloColors.TextSecondary,
+        )
+    },
+)
+
+/** The row of [ActionRow] with any [leading] content (for example an artist photo) in place of the icon. */
+@Composable
+fun ActionRow(
+    text: String,
+    onClick: () -> Unit,
+    leading: @Composable () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     Row(
         modifier
@@ -183,12 +204,7 @@ fun ActionRow(
         horizontalArrangement = Arrangement.spacedBy(MuzzzloDimens.ContentGap),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(
-            painter = painterResource(icon),
-            contentDescription = null,
-            modifier = Modifier.size(MuzzzloDimens.SmallIcon),
-            tint = MuzzzloColors.TextSecondary,
-        )
+        leading()
         Text(
             text = text,
             modifier = Modifier.weight(1f),

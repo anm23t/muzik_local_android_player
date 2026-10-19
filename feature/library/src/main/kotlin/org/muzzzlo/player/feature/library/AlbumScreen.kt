@@ -23,6 +23,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import org.muzzzlo.player.core.designsystem.component.ArtistPhoto
 import org.muzzzlo.player.core.designsystem.component.ArtistPhotoPlaceholder
 import org.muzzzlo.player.core.designsystem.component.CoverCard
 import org.muzzzlo.player.core.designsystem.component.CoverImage
@@ -44,6 +45,7 @@ import org.muzzzlo.player.core.designsystem.R as DesignR
  * A track row shows its own artists only when they differ from the album artists.
  *
  * @param onOpenArtist opens the card of the album artist with this name.
+ * @param onOpenArtistById opens the card of the artist with this id (track menu).
  * @param onEditAlbumTags opens the editor that changes the tags of every track of the album (id of the album).
  * @param miniPlayer the mini player of `feature:player`, passed in by the app.
  */
@@ -52,6 +54,7 @@ fun AlbumScreen(
     onBack: () -> Unit,
     onHome: () -> Unit,
     onOpenArtist: (String) -> Unit,
+    onOpenArtistById: (Long) -> Unit,
     onOpenQueue: () -> Unit,
     onEditTags: (Long) -> Unit,
     onEditAlbumTags: (Long) -> Unit,
@@ -60,7 +63,8 @@ fun AlbumScreen(
     viewModel: AlbumViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val openMenu = rememberTrackMenu(viewModel::onTrackAction, onOpenQueue, onEditTags, onOpenArtist)
+    val openMenu =
+        rememberTrackMenu(viewModel::onTrackAction, onOpenQueue, onEditTags, viewModel::artistChoices, onOpenArtistById)
 
     ScreenFrame(modifier) {
         ScreenHeader(onBack = onBack) { HomeButton(onHome) }

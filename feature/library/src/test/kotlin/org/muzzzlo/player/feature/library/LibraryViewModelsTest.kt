@@ -21,11 +21,13 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
+import org.muzzzlo.player.core.designsystem.component.ArtistChoice
 import org.muzzzlo.player.core.designsystem.component.TrackAction
 import org.muzzzlo.player.core.model.Album
 import org.muzzzlo.player.core.model.Artist
 import org.muzzzlo.player.core.model.ArtistCheckRepository
 import org.muzzzlo.player.core.model.ArtistDiscography
+import org.muzzzlo.player.core.model.ArtistRef
 import org.muzzzlo.player.core.model.CompoundNameProblem
 import org.muzzzlo.player.core.model.CompoundNames
 import org.muzzzlo.player.core.model.CompoundRepository
@@ -61,6 +63,19 @@ class LibraryViewModelsTest {
         assertEquals(if (action == TrackAction.PlayNext) listOf(first) else emptyList<Track>(), player.playedNext)
         assertEquals(if (action == TrackAction.AddToQueue) listOf(first) else emptyList<Track>(), player.addedToQueue)
     }
+
+    @Test
+    fun `the track menu gets the artists of the track in tag order with their photos`() =
+        runTest {
+            val lib = FakeLibrary(listOf(second), listOf(album), listOf(anna.copy(photoPath = "/p/a.jpg"), bob))
+            val viewModel = TracksViewModel(lib, player, SavedStateHandle())
+
+            assertEquals(
+                listOf(ArtistChoice(7, "A", "/p/a.jpg"), ArtistChoice(8, "B", null)),
+                viewModel.artistChoices(second.id),
+            )
+            assertEquals(emptyList<ArtistChoice>(), viewModel.artistChoices(999))
+        }
 
     @Test
     fun `the album card plays the whole album from the tapped track`() =
@@ -437,6 +452,11 @@ class LibraryViewModelsTest {
             }
 
         override suspend fun artistId(name: String): Long? = artists.value.firstOrNull { it.name == name }?.id
+
+        override suspend fun artistsOfTrack(trackId: Long): List<ArtistRef> =
+            tracks.value.firstOrNull { it.id == trackId }?.artists.orEmpty().mapNotNull { name ->
+                artists.value.firstOrNull { it.name == name }?.let { ArtistRef(it.id, it.name, it.photoPath) }
+            }
 
         override suspend fun setArtistPhoto(
             artistId: Long,

@@ -1,4 +1,4 @@
-package org.muzzzlo.player.feature.library
+package org.muzzzlo.player.core.designsystem.component
 
 import android.graphics.BitmapFactory
 import androidx.compose.foundation.Image
@@ -15,14 +15,13 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import org.muzzzlo.player.core.designsystem.component.ArtistPhotoPlaceholder
 
 /**
  * Round artist photo from the copy the library keeps ([path]), or the empty circle of the mockup while it loads
  * and when there is none. The photos are small (512 px), so they are decoded as they are, off the main thread.
  */
 @Composable
-internal fun ArtistPhoto(
+fun ArtistPhoto(
     path: String?,
     size: Dp,
     modifier: Modifier = Modifier,

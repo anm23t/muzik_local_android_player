@@ -3,7 +3,9 @@ package org.muzzzlo.player.feature.player
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.StateFlow
+import org.muzzzlo.player.core.designsystem.component.ArtistChoice
 import org.muzzzlo.player.core.designsystem.component.TrackAction
+import org.muzzzlo.player.core.model.LibraryRepository
 import org.muzzzlo.player.core.model.PlayerController
 import org.muzzzlo.player.core.model.PlayerState
 import org.muzzzlo.player.core.model.Track
@@ -14,6 +16,7 @@ class PlayerViewModel
     @Inject
     constructor(
         private val player: PlayerController,
+        private val library: LibraryRepository,
     ) : ViewModel() {
         val state: StateFlow<PlayerState> = player.state
 
@@ -37,6 +40,10 @@ class PlayerViewModel
         ) = player.moveQueueItem(from, to)
 
         fun onQueueItemRemoved(index: Int) = player.removeQueueItem(index)
+
+        /** Artists of the track with their photos, for the artist picker. */
+        suspend fun artistChoices(trackId: Long): List<ArtistChoice> =
+            library.artistsOfTrack(trackId).map { ArtistChoice(it.id, it.name, it.photoPath) }
 
         /** Item chosen in the track menu. Navigation items are handled by the screen. */
         fun onTrackAction(

@@ -93,7 +93,7 @@ private fun NavHostController.goHome() {
 fun MuzzzloNavHost() {
     val navController = rememberNavController()
     val openTagEditor: (Long) -> Unit = { navController.navigate(tagEditorRoute(it)) }
-    val openArtist: (String) -> Unit = { navController.navigate(artistRoute(it)) }
+    val openArtist: (Long) -> Unit = { navController.navigate(artistRoute(it)) }
     val miniPlayer: @Composable () -> Unit = {
         MiniPlayer(
             onOpen = { navController.navigate(ROUTE_PLAYER) },
@@ -163,6 +163,7 @@ fun MuzzzloNavHost() {
                     onBack = { navController.popBackStack() },
                     onHome = { navController.goHome() },
                     onOpenArtist = { navController.navigate(artistRoute(it)) },
+                    onOpenArtistById = openArtist,
                     onOpenQueue = { navController.navigate(ROUTE_QUEUE) },
                     onEditTags = openTagEditor,
                     onEditAlbumTags = { navController.navigate(batchTagEditorRoute(it)) },
