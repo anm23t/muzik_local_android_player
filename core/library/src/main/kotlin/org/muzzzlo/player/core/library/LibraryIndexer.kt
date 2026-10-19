@@ -8,6 +8,7 @@ import org.muzzzlo.player.core.database.entity.AlbumArtistEntity
 import org.muzzzlo.player.core.database.entity.AlbumEntity
 import org.muzzzlo.player.core.database.entity.TrackArtistEntity
 import org.muzzzlo.player.core.database.entity.TrackScanFields
+import org.muzzzlo.player.core.model.CompoundRepository
 import org.muzzzlo.player.core.model.NameNormalizer
 import javax.inject.Inject
 
@@ -18,15 +19,21 @@ class LibraryIndexer
         private val database: MuzzzloDatabase,
         private val dao: LibraryDao,
         private val tagLoader: FileTagLoader,
+        private val compoundRepository: CompoundRepository,
     ) {
         suspend fun index(files: List<ScannedFile>) {
+            compoundRepository.syncBuiltIn()
+            val compounds = compoundRepository.compoundNames()
             val known = dao.trackStamps().associateBy { it.uri }
             val seenUris = files.mapTo(HashSet()) { it.uri }
             val toRead = files.filter { needsReading(known[it.uri], it) }
 
             toRead.chunked(BATCH_SIZE).forEach { batch ->
                 // Tags are read before the transaction, so the database is not locked while files are read.
-                val read = batch.map { file -> file to trackMetadata(file, tagLoader.load(file.uri, file.displayName)) }
+                val read =
+                    batch.map { file ->
+                        file to trackMetadata(file, tagLoader.load(file.uri, file.displayName), compounds)
+                    }
                 database.withTransaction {
                     for ((file, metadata) in read) write(file, metadata, known[file.uri]?.id)
                 }
@@ -44,7 +51,8 @@ class LibraryIndexer
          * Other tracks are not touched; an album left without tracks is deleted.
          */
         suspend fun reindex(file: ScannedFile) {
-            val metadata = trackMetadata(file, tagLoader.load(file.uri, file.displayName))
+            val compounds = compoundRepository.compoundNames()
+            val metadata = trackMetadata(file, tagLoader.load(file.uri, file.displayName), compounds)
             database.withTransaction {
                 write(file, metadata, dao.trackIdByUri(file.uri))
                 dao.deleteEmptyAlbums()

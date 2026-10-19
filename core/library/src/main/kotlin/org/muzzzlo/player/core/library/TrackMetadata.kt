@@ -42,6 +42,7 @@ internal data class TrackMetadata(
 internal fun trackMetadata(
     file: ScannedFile,
     result: TagReadResult,
+    compounds: CompoundNames = CompoundNames.None,
 ): TrackMetadata =
     when (result) {
         is TagReadResult.Success -> {
@@ -50,8 +51,12 @@ internal fun trackMetadata(
             TrackMetadata(
                 title = tags.title ?: file.title,
                 artistTagValues = tags.artists,
-                artists = splitArtists(tags.artists),
-                albumArtistValues = albumArtists(splitArtists(tags.albumArtists), splitArtists(tags.artists)),
+                artists = splitArtists(tags.artists, compounds),
+                albumArtistValues =
+                    albumArtists(
+                        splitArtists(tags.albumArtists, compounds),
+                        splitArtists(tags.artists, compounds),
+                    ),
                 album = tags.album,
                 year = tags.year,
                 trackNumber = tags.trackNumber,
@@ -64,18 +69,19 @@ internal fun trackMetadata(
                 isDamaged = false,
             )
         }
-        TagReadResult.Unreadable -> mediaStoreMetadata(file, isDamaged = false)
-        TagReadResult.Quarantined -> mediaStoreMetadata(file, isDamaged = true)
+        TagReadResult.Unreadable -> mediaStoreMetadata(file, isDamaged = false, compounds)
+        TagReadResult.Quarantined -> mediaStoreMetadata(file, isDamaged = true, compounds)
     }
 
 private fun mediaStoreMetadata(
     file: ScannedFile,
     isDamaged: Boolean,
+    compounds: CompoundNames,
 ) = TrackMetadata(
     title = file.title,
     artistTagValues = artistNames(file.artist),
-    artists = splitArtists(artistNames(file.artist)),
-    albumArtistValues = splitArtists(artistNames(file.artist)),
+    artists = splitArtists(artistNames(file.artist), compounds),
+    albumArtistValues = splitArtists(artistNames(file.artist), compounds),
     album = cleanAlbum(file.album),
     year = file.year,
     trackNumber = file.trackNumber,
@@ -88,8 +94,11 @@ private fun mediaStoreMetadata(
     isDamaged = isDamaged,
 )
 
-/** Splits raw artist tag values into names. Compound names (0.4.6) are not known to the scanner yet. */
-private fun splitArtists(values: List<String>): List<String> = ArtistSplitter.split(values, CompoundNames.None)
+/** Splits raw artist tag values into names; [compounds] are the names with a comma inside. */
+private fun splitArtists(
+    values: List<String>,
+    compounds: CompoundNames,
+): List<String> = ArtistSplitter.split(values, compounds)
 
 /** The album artist tag without blank values; the track artists stand in when nothing is left. */
 internal fun albumArtists(
