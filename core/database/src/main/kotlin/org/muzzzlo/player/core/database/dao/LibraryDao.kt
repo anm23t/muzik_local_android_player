@@ -45,13 +45,19 @@ data class ArtistRow(
 )
 
 /**
- * An album of an artist.
+ * An album of an artist with the tag totals of its present tracks, which tell a single from an album.
  *
  * @property isOwn the artist is one of the album artists; false when they only appear on some of its tracks.
+ * @property maxTrackTotal largest "total tracks" tag among the tracks, null when no track has one.
+ * @property maxDiscTotal largest "total discs" tag among the tracks, null when no track has one.
+ * @property maxDiscNumber largest disc number among the tracks, null when no track has one.
  */
 data class ArtistAlbumRef(
     @ColumnInfo(name = "album_id") val albumId: Long,
     @ColumnInfo(name = "is_own") val isOwn: Boolean,
+    @ColumnInfo(name = "max_track_total") val maxTrackTotal: Int? = null,
+    @ColumnInfo(name = "max_disc_total") val maxDiscTotal: Int? = null,
+    @ColumnInfo(name = "max_disc_number") val maxDiscNumber: Int? = null,
 )
 
 /** Track to artist name pair, already ordered by `position` in the query. */
@@ -133,13 +139,20 @@ interface LibraryDao {
     )
     fun observeArtistTracks(artistId: Long): Flow<List<TrackEntity>>
 
-    /** Albums credited to the artist and albums with at least one present track of theirs. */
+    /**
+     * Albums credited to the artist and albums with at least one present track of theirs. The totals are taken
+     * over all present tracks of the album, not only the artist's.
+     */
     @Query(
         "SELECT a.id AS album_id, " +
-            "EXISTS (SELECT 1 FROM album_artist aa WHERE aa.album_id = a.id AND aa.artist_id = :artistId) AS is_own " +
-            "FROM album a WHERE a.id IN (SELECT album_id FROM album_artist WHERE artist_id = :artistId) " +
-            "OR a.id IN (SELECT t.album_id FROM track t JOIN track_artist ta ON ta.track_id = t.id " +
-            "WHERE ta.artist_id = :artistId AND t.is_missing = 0)",
+            "EXISTS (SELECT 1 FROM album_artist aa WHERE aa.album_id = a.id AND aa.artist_id = :artistId) AS is_own, " +
+            "MAX(t.track_total) AS max_track_total, MAX(t.disc_total) AS max_disc_total, " +
+            "MAX(t.disc_number) AS max_disc_number " +
+            "FROM album a LEFT JOIN track t ON t.album_id = a.id AND t.is_missing = 0 " +
+            "WHERE a.id IN (SELECT album_id FROM album_artist WHERE artist_id = :artistId) " +
+            "OR a.id IN (SELECT t2.album_id FROM track t2 JOIN track_artist ta ON ta.track_id = t2.id " +
+            "WHERE ta.artist_id = :artistId AND t2.is_missing = 0) " +
+            "GROUP BY a.id",
     )
     fun observeArtistAlbumRefs(artistId: Long): Flow<List<ArtistAlbumRef>>
 

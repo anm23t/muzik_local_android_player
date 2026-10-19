@@ -10,6 +10,7 @@ import org.muzzzlo.player.core.database.dao.LibraryDao
 import org.muzzzlo.player.core.database.entity.TrackEntity
 import org.muzzzlo.player.core.model.Album
 import org.muzzzlo.player.core.model.Artist
+import org.muzzzlo.player.core.model.ArtistDiscography
 import org.muzzzlo.player.core.model.DispatcherProvider
 import org.muzzzlo.player.core.model.LibraryRepository
 import org.muzzzlo.player.core.model.NameNormalizer
@@ -53,8 +54,9 @@ internal class DefaultLibraryRepository
                 toTracks(t, a.groupBy({ it.trackId }, { it.name }), al.associate { it.id to it.title })
             }.flowOn(dispatchers.default)
 
-        override fun observeArtistAlbums(artistId: Long): Flow<List<Album>> =
-            combine(observeAlbums(), dao.observeArtistAlbumRefs(artistId), ::artistAlbums).flowOn(dispatchers.default)
+        override fun observeArtistAlbums(artistId: Long): Flow<ArtistDiscography> =
+            combine(observeAlbums(), dao.observeArtistAlbumRefs(artistId), ::artistDiscography)
+                .flowOn(dispatchers.default)
 
         override suspend fun artistId(name: String): Long? =
             withContext(dispatchers.io) { dao.artistIdByKey(NameNormalizer.key(name)) }

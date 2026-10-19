@@ -48,6 +48,7 @@ import org.muzzzlo.player.core.designsystem.theme.MuzzzloColors
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloDimens
 import org.muzzzlo.player.core.model.Album
 import org.muzzzlo.player.core.model.Artist
+import org.muzzzlo.player.core.model.ArtistDiscography
 import org.muzzzlo.player.core.model.CompoundNameProblem
 import org.muzzzlo.player.core.designsystem.R as DesignR
 
@@ -262,7 +263,11 @@ fun ArtistScreen(
                     onPhotoLongPress = { if (artist.photoPath == null) pickPhoto() else photoMenuOpen = true },
                 )
                 TopSongs()
-                ArtistAlbums(state.albums, onOpenAlbum, onOpenSongs = { onOpenSongs(artist.id) })
+                ArtistDiscographySections(
+                    state.discography,
+                    onOpenAlbum,
+                    onOpenSongs = { onOpenSongs(artist.id) },
+                )
             }
         }
         if (photoMenuOpen) {
@@ -348,16 +353,52 @@ private fun TopSongs() {
     }
 }
 
+/**
+ * "Albums", "Singles" and "Appears on", each a title and a row of tiles; empty sections are hidden. The "All songs"
+ * button sits in the header of the first visible section, or alone when the artist has no albums.
+ */
 @Composable
-private fun ArtistAlbums(
-    albums: List<Album>,
+private fun ArtistDiscographySections(
+    discography: ArtistDiscography,
     onOpenAlbum: (Long) -> Unit,
     onOpenSongs: () -> Unit,
 ) {
+    val sections =
+        listOf(
+            R.string.artist_albums to discography.albums,
+            R.string.artist_singles to discography.singles,
+            R.string.artist_appears_on to discography.appearsOn,
+        ).filter { (_, albums) -> albums.isNotEmpty() }
+    if (sections.isEmpty()) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+            PillButton(text = stringResource(R.string.artist_all_songs), onClick = onOpenSongs)
+        }
+        return
+    }
+    sections.forEachIndexed { index, (title, albums) ->
+        AlbumSection(
+            title = stringResource(title),
+            albums = albums,
+            onOpenAlbum = onOpenAlbum,
+            onOpenSongs = onOpenSongs.takeIf { index == 0 },
+        )
+    }
+}
+
+/** One section of the artist card: [SectionTitle], the optional "All songs" button and a row of [CoverTile]. */
+@Composable
+private fun AlbumSection(
+    title: String,
+    albums: List<Album>,
+    onOpenAlbum: (Long) -> Unit,
+    onOpenSongs: (() -> Unit)?,
+) {
     Column(verticalArrangement = Arrangement.spacedBy(MuzzzloDimens.ContentGap)) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            SectionTitle(stringResource(R.string.artist_albums), Modifier.weight(1f))
-            PillButton(text = stringResource(R.string.artist_all_songs), onClick = onOpenSongs)
+            SectionTitle(title, Modifier.weight(1f))
+            if (onOpenSongs != null) {
+                PillButton(text = stringResource(R.string.artist_all_songs), onClick = onOpenSongs)
+            }
         }
         LazyRow(horizontalArrangement = Arrangement.spacedBy(MuzzzloDimens.SectionGap)) {
             items(albums, key = { it.id }) { album ->

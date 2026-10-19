@@ -25,6 +25,7 @@ import org.muzzzlo.player.core.designsystem.component.TrackAction
 import org.muzzzlo.player.core.model.Album
 import org.muzzzlo.player.core.model.Artist
 import org.muzzzlo.player.core.model.ArtistCheckRepository
+import org.muzzzlo.player.core.model.ArtistDiscography
 import org.muzzzlo.player.core.model.CompoundNameProblem
 import org.muzzzlo.player.core.model.CompoundNames
 import org.muzzzlo.player.core.model.CompoundRepository
@@ -176,7 +177,7 @@ class LibraryViewModelsTest {
             subscribe(viewModel.state)
 
             assertEquals(anna, viewModel.state.value.artist)
-            assertEquals(listOf(album), viewModel.state.value.albums)
+            assertEquals(ArtistDiscography(albums = listOf(album)), viewModel.state.value.discography)
         }
 
     @Test
@@ -426,9 +427,13 @@ class LibraryViewModelsTest {
                 list.filter { it.artists.contains(name) }
             }
 
-        override fun observeArtistAlbums(artistId: Long): Flow<List<Album>> =
-            observeArtistTracks(artistId).combine(albums) { list, albums ->
-                albums.filter { album -> list.any { it.albumId == album.id } }
+        /** Albums credited to the artist go to "Albums", the rest of their albums to "Appears on". */
+        override fun observeArtistAlbums(artistId: Long): Flow<ArtistDiscography> =
+            combine(observeArtistTracks(artistId), albums, artists) { list, albums, artists ->
+                val name = artists.firstOrNull { it.id == artistId }?.name
+                val theirs = albums.filter { album -> list.any { it.albumId == album.id } }
+                val (credited, others) = theirs.partition { name in it.artists }
+                ArtistDiscography(albums = credited, appearsOn = others)
             }
 
         override suspend fun artistId(name: String): Long? = artists.value.firstOrNull { it.name == name }?.id

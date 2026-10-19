@@ -51,6 +51,8 @@
     <string name="artist_streams">Прослушано</string>
     <string name="artist_top_songs_empty">Топ песен и число прослушиваний появятся здесь, когда накопится статистика прослушиваний.</string>
     <string name="artist_albums">Альбомы</string>
+    <string name="artist_singles">Синглы</string>
+    <string name="artist_appears_on">Встречается в</string>
     <string name="artist_all_songs">Все песни</string>
     <string name="artist_photo_change">Сменить фото</string>
     <string name="artist_edit_profile">Профиль исполнителя</string>

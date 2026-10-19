@@ -47,6 +47,8 @@
     <string name="artist_streams">Streams</string>
     <string name="artist_top_songs_empty">Top songs and play counts will appear here once listening statistics are collected.</string>
     <string name="artist_albums">Albums</string>
+    <string name="artist_singles">Singles</string>
+    <string name="artist_appears_on">Appears on</string>
     <string name="artist_all_songs">All songs</string>
     <string name="artist_photo_change">Change photo</string>
     <string name="artist_edit_profile">Edit artist</string>

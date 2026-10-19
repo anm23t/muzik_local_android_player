@@ -21,6 +21,7 @@ import kotlinx.coroutines.launch
 import org.muzzzlo.player.core.designsystem.component.TrackAction
 import org.muzzzlo.player.core.model.Album
 import org.muzzzlo.player.core.model.Artist
+import org.muzzzlo.player.core.model.ArtistDiscography
 import org.muzzzlo.player.core.model.CompoundNameProblem
 import org.muzzzlo.player.core.model.CompoundRepository
 import org.muzzzlo.player.core.model.CompoundRules
@@ -251,7 +252,7 @@ class ArtistListViewModel
  */
 data class ArtistUiState(
     val artist: Artist? = null,
-    val albums: List<Album> = emptyList(),
+    val discography: ArtistDiscography = ArtistDiscography(),
     val isLoaded: Boolean = false,
 )
 
@@ -282,7 +283,7 @@ class ArtistViewModel
                     combine(
                         library.observeArtists().map { artists -> artists.firstOrNull { it.id == id } },
                         library.observeArtistAlbums(id),
-                    ) { artist, albums -> ArtistUiState(artist, albums, isLoaded = true) }
+                    ) { artist, discography -> ArtistUiState(artist, discography, isLoaded = true) }
                 }
             }.stateIn(this, ArtistUiState())
 

@@ -18,6 +18,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.muzzzlo.player.core.model.Album
 import org.muzzzlo.player.core.model.Artist
+import org.muzzzlo.player.core.model.ArtistDiscography
 import org.muzzzlo.player.core.model.AudioFormat
 import org.muzzzlo.player.core.model.CoverEdit
 import org.muzzzlo.player.core.model.EmbeddedPicture
@@ -318,7 +319,7 @@ class BatchTagEditorViewModelTest {
 
         override fun observeArtistTracks(artistId: Long): Flow<List<Track>> = emptyFlow()
 
-        override fun observeArtistAlbums(artistId: Long): Flow<List<Album>> = emptyFlow()
+        override fun observeArtistAlbums(artistId: Long): Flow<ArtistDiscography> = emptyFlow()
 
         override suspend fun artistId(name: String): Long? = null
 

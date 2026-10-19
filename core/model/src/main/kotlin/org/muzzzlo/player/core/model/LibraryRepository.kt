@@ -16,11 +16,8 @@ interface LibraryRepository {
     /** Tracks that credit the artist, in title order. */
     fun observeArtistTracks(artistId: Long): Flow<List<Track>>
 
-    /**
-     * Albums of the artist: albums credited to them first, then albums where they only appear on some tracks.
-     * Each group goes from the newest year to the oldest.
-     */
-    fun observeArtistAlbums(artistId: Long): Flow<List<Album>>
+    /** Albums of the artist split into "Albums", "Singles" and "Appears on" ([ArtistDiscography]). */
+    fun observeArtistAlbums(artistId: Long): Flow<ArtistDiscography>
 
     /** Id of the artist with this name (compared by [NameNormalizer.key]), null when there is none. */
     suspend fun artistId(name: String): Long?

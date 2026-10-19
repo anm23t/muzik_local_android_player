@@ -12,6 +12,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.muzzzlo.player.core.database.dao.ArtistAlbumRef
 import org.muzzzlo.player.core.database.dao.LibraryDao
 import org.muzzzlo.player.core.database.entity.AlbumArtistEntity
 import org.muzzzlo.player.core.database.entity.AlbumEntity
@@ -42,6 +43,10 @@ class LibraryDaoTest {
         title: String,
         albumId: Long? = null,
         number: Int? = null,
+        trackTotal: Int? = null,
+        discNumber: Int? = null,
+        discTotal: Int? = null,
+        isMissing: Boolean = false,
     ) = TrackEntity(
         mediaStoreId = null,
         uri = uri,
@@ -50,7 +55,11 @@ class LibraryDaoTest {
         artistTagValues = "[]",
         albumId = albumId,
         trackNumber = number,
+        discNumber = discNumber,
+        trackTotal = trackTotal,
+        discTotal = discTotal,
         durationMs = 1000,
+        isMissing = isMissing,
     )
 
     @Test
@@ -341,6 +350,31 @@ class LibraryDaoTest {
             val refs = dao.observeArtistAlbumRefs(anna).first().sortedBy { it.albumId }
 
             assertEquals(listOf(own to true, guest to false), refs.map { it.albumId to it.isOwn })
+        }
+
+    @Test
+    fun `artist album refs carry the totals of all present tracks of the album`() =
+        runBlocking {
+            val anna = dao.artistId("Anna", "anna")
+            val album = dao.insertAlbum(AlbumEntity(title = "Own", titleKey = "own"))
+            dao.insertAlbumArtists(listOf(AlbumArtistEntity(album, anna, 0)))
+            dao.insertTrack(track("u1", "One", album, 1, trackTotal = 2, discNumber = 1))
+            // Another artist's track still counts for the album; a missing one does not.
+            dao.insertTrack(track("u2", "Two", album, 2, trackTotal = 3, discNumber = 1, discTotal = 1))
+            dao.insertTrack(track("u3", "Gone", album, 3, trackTotal = 9, discNumber = 2, isMissing = true))
+            val noTotals = dao.insertAlbum(AlbumEntity(title = "Bare", titleKey = "bare"))
+            dao.insertAlbumArtists(listOf(AlbumArtistEntity(noTotals, anna, 0)))
+            dao.insertTrack(track("u4", "Bare", noTotals, 1))
+
+            val refs = dao.observeArtistAlbumRefs(anna).first().sortedBy { it.albumId }
+
+            assertEquals(
+                listOf(
+                    ArtistAlbumRef(album, isOwn = true, maxTrackTotal = 3, maxDiscTotal = 1, maxDiscNumber = 1),
+                    ArtistAlbumRef(noTotals, isOwn = true),
+                ),
+                refs,
+            )
         }
 
     @Test
