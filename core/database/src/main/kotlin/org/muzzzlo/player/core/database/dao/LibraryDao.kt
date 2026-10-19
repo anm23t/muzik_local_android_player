@@ -280,4 +280,52 @@ interface LibraryDao {
         insertArtist(ArtistEntity(name = name, nameKey = key))
         return checkNotNull(artistIdByKey(key))
     }
+
+    /** Gives the tracks of [from] to [to]; a track that already has [to] simply loses [from]. */
+    @Query("UPDATE OR IGNORE track_artist SET artist_id = :to WHERE artist_id = :from")
+    suspend fun moveTrackCredits(
+        from: Long,
+        to: Long,
+    )
+
+    @Query("DELETE FROM track_artist WHERE artist_id = :artistId")
+    suspend fun deleteTrackCredits(artistId: Long)
+
+    @Query("UPDATE OR IGNORE album_artist SET artist_id = :to WHERE artist_id = :from")
+    suspend fun moveAlbumCredits(
+        from: Long,
+        to: Long,
+    )
+
+    @Query("DELETE FROM album_artist WHERE artist_id = :artistId")
+    suspend fun deleteAlbumCredits(artistId: Long)
+
+    @Query("SELECT name_key FROM artist WHERE id = :artistId")
+    suspend fun artistKey(artistId: Long): String?
+
+    /**
+     * Folds artist [from] into [to] (the "Check" button): credits and aliases move, the old name becomes an alias
+     * of [to], the photo goes along when [to] has none, and [from] is deleted. Files are not touched.
+     */
+    @Transaction
+    suspend fun mergeArtists(
+        from: Long,
+        to: Long,
+    ) {
+        if (from == to) return
+        val name = artistName(from) ?: return
+        val key = artistKey(from) ?: return
+        moveTrackCredits(from, to)
+        deleteTrackCredits(from)
+        moveAlbumCredits(from, to)
+        deleteAlbumCredits(from)
+        moveAliases(from, to)
+        insertAlias(ArtistAliasEntity(aliasKey = key, aliasDisplay = name, artistId = to))
+        val photo = artistPhotoPath(from)
+        if (photo != null && artistPhotoPath(to) == null) {
+            setArtistPhotoPath(to, photo)
+            setArtistPhotoPath(from, null)
+        }
+        deleteArtistIfOrphan(from)
+    }
 }

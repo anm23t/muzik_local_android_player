@@ -119,6 +119,52 @@ class LibraryDaoTest {
         }
 
     @Test
+    fun `merging folds credits aliases and photo into one artist and keeps the old spelling`() =
+        runBlocking {
+            val keep = dao.artistId("Beyoncé", "beyoncé")
+            val old = dao.artistId("Beyonce", "beyonce")
+            val both = dao.insertTrack(track("u1", "Both"))
+            val onlyOld = dao.insertTrack(track("u2", "Old"))
+            val album = dao.insertAlbum(AlbumEntity(title = "Album", titleKey = "album"))
+            dao.insertTrackArtists(
+                listOf(
+                    TrackArtistEntity(both, keep, 0),
+                    TrackArtistEntity(both, old, 1),
+                    TrackArtistEntity(onlyOld, old, 0),
+                ),
+            )
+            dao.insertAlbumArtists(listOf(AlbumArtistEntity(album, old, 0)))
+            dao.insertAlias(ArtistAliasEntity(aliasKey = "bey", aliasDisplay = "Bey", artistId = old))
+            dao.setArtistPhotoPath(old, "p.jpg")
+
+            dao.mergeArtists(old, keep)
+
+            assertEquals(null, dao.artistName(old))
+            assertEquals(listOf(both, onlyOld), dao.trackIdsOfArtist(keep))
+            assertEquals(listOf(keep), dao.albumArtistIds(album))
+            assertEquals(keep, dao.aliasArtistId("beyonce"))
+            assertEquals(keep, dao.aliasArtistId("bey"))
+            assertEquals("p.jpg", dao.artistPhotoPath(keep))
+            // A rescan of a file spelled the old way lands on the kept artist.
+            assertEquals(keep, dao.artistId("Beyonce", "beyonce"))
+        }
+
+    @Test
+    fun `merging leaves a photo of the kept artist alone and ignores merging into itself`() =
+        runBlocking {
+            val keep = dao.artistId("Pink", "pink")
+            val old = dao.artistId("P!nk", "p!nk")
+            dao.setArtistPhotoPath(keep, "keep.jpg")
+            dao.setArtistPhotoPath(old, "old.jpg")
+
+            dao.mergeArtists(keep, keep)
+            assertEquals("Pink", dao.artistName(keep))
+
+            dao.mergeArtists(old, keep)
+            assertEquals("keep.jpg", dao.artistPhotoPath(keep))
+        }
+
+    @Test
     fun `track artists keep their order`() =
         runBlocking {
             val a = dao.artistId("A", "a")
