@@ -15,6 +15,19 @@ data class ArtistEntity(
     @ColumnInfo(name = "photo_uri") val photoUri: String? = null,
 )
 
+/** Another spelling of an artist: tags with this key go to [artistId] (DATABASE.md). */
+@Entity(
+    tableName = "artist_alias",
+    foreignKeys = [ForeignKey(ArtistEntity::class, ["id"], ["artist_id"], onDelete = ForeignKey.CASCADE)],
+    indices = [Index(value = ["alias_key"], unique = true), Index("artist_id")],
+)
+data class ArtistAliasEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    @ColumnInfo(name = "alias_key") val aliasKey: String,
+    @ColumnInfo(name = "alias_display") val aliasDisplay: String,
+    @ColumnInfo(name = "artist_id") val artistId: Long,
+)
+
 @Entity(tableName = "album", indices = [Index("title_key")])
 data class AlbumEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,

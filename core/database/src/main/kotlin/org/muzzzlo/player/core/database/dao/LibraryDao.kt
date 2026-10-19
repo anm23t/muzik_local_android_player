@@ -10,6 +10,7 @@ import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 import org.muzzzlo.player.core.database.entity.AlbumArtistEntity
 import org.muzzzlo.player.core.database.entity.AlbumEntity
+import org.muzzzlo.player.core.database.entity.ArtistAliasEntity
 import org.muzzzlo.player.core.database.entity.ArtistEntity
 import org.muzzzlo.player.core.database.entity.TrackArtistEntity
 import org.muzzzlo.player.core.database.entity.TrackEntity
@@ -225,12 +226,56 @@ interface LibraryDao {
     @Query("DELETE FROM album WHERE id NOT IN (SELECT DISTINCT album_id FROM track WHERE album_id IS NOT NULL)")
     suspend fun deleteEmptyAlbums()
 
-    /** Finds or creates an artist by its comparison key. */
+    @Query("SELECT artist_id FROM artist_alias WHERE alias_key = :key")
+    suspend fun aliasArtistId(key: String): Long?
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAlias(alias: ArtistAliasEntity)
+
+    @Query("SELECT * FROM artist_alias WHERE alias_key IN (:keys)")
+    suspend fun aliasesByKeys(keys: List<String>): List<ArtistAliasEntity>
+
+    @Query("DELETE FROM artist_alias WHERE alias_key IN (:keys)")
+    suspend fun deleteAliasesByKeys(keys: List<String>)
+
+    @Query("UPDATE artist_alias SET artist_id = :to WHERE artist_id = :from")
+    suspend fun moveAliases(
+        from: Long,
+        to: Long,
+    )
+
+    @Query("SELECT name FROM artist WHERE id = :artistId")
+    suspend fun artistName(artistId: Long): String?
+
+    @Query("UPDATE artist SET name = :name WHERE id = :artistId")
+    suspend fun setArtistName(
+        artistId: Long,
+        name: String,
+    )
+
+    /** Present tracks that credit the artist as a track artist or through their album's artists. */
+    @Query(
+        "SELECT t.id FROM track t WHERE t.is_missing = 0 AND (" +
+            "EXISTS (SELECT 1 FROM track_artist ta WHERE ta.track_id = t.id AND ta.artist_id = :artistId) " +
+            "OR t.album_id IN (SELECT album_id FROM album_artist WHERE artist_id = :artistId)) ORDER BY t.id",
+    )
+    suspend fun trackIdsOfArtist(artistId: Long): List<Long>
+
+    /** Deletes the artist when no track or album credits them and they have no photo. Aliases go with the row. */
+    @Query(
+        "DELETE FROM artist WHERE id = :artistId AND photo_uri IS NULL " +
+            "AND NOT EXISTS (SELECT 1 FROM track_artist WHERE artist_id = :artistId) " +
+            "AND NOT EXISTS (SELECT 1 FROM album_artist WHERE artist_id = :artistId)",
+    )
+    suspend fun deleteArtistIfOrphan(artistId: Long)
+
+    /** Finds an artist by its comparison key, an alias first, or creates it. */
     @Transaction
     suspend fun artistId(
         name: String,
         key: String,
     ): Long {
+        aliasArtistId(key)?.let { return it }
         artistIdByKey(key)?.let { return it }
         insertArtist(ArtistEntity(name = name, nameKey = key))
         return checkNotNull(artistIdByKey(key))

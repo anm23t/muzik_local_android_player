@@ -15,6 +15,7 @@ import org.junit.runner.RunWith
 import org.muzzzlo.player.core.database.dao.LibraryDao
 import org.muzzzlo.player.core.database.entity.AlbumArtistEntity
 import org.muzzzlo.player.core.database.entity.AlbumEntity
+import org.muzzzlo.player.core.database.entity.ArtistAliasEntity
 import org.muzzzlo.player.core.database.entity.TrackArtistEntity
 import org.muzzzlo.player.core.database.entity.TrackEntity
 import org.muzzzlo.player.core.database.entity.TrackScanFields
@@ -57,6 +58,64 @@ class LibraryDaoTest {
             val first = dao.artistId("Eminem", "eminem")
             val second = dao.artistId("EMINEM", "eminem")
             assertEquals(first, second)
+        }
+
+    @Test
+    fun `alias sends a spelling to its artist`() =
+        runBlocking {
+            val jay = dao.artistId("Jay-Z", "jay-z")
+            dao.insertAlias(ArtistAliasEntity(aliasKey = "jay z", aliasDisplay = "Jay Z", artistId = jay))
+            assertEquals(jay, dao.artistId("Jay Z", "jay z"))
+            assertEquals(jay, dao.artistId("Jay-Z", "jay-z"))
+        }
+
+    @Test
+    fun `tracks of an artist include tracks of their albums but not missing ones`() =
+        runBlocking {
+            val anna = dao.artistId("Anna", "anna")
+            val album = dao.insertAlbum(AlbumEntity(title = "Album", titleKey = "album"))
+            dao.insertAlbumArtists(listOf(AlbumArtistEntity(album, anna, 0)))
+            val direct = dao.insertTrack(track("u1", "Direct"))
+            val viaAlbum = dao.insertTrack(track("u2", "Via album", album))
+            val gone = dao.insertTrack(track("u3", "Gone", album))
+            dao.insertTrack(track("u4", "Other"))
+            dao.insertTrackArtists(listOf(TrackArtistEntity(direct, anna, 0)))
+            dao.setMissing(listOf(gone), true)
+
+            assertEquals(listOf(direct, viaAlbum), dao.trackIdsOfArtist(anna))
+        }
+
+    @Test
+    fun `orphan artist is deleted with aliases, one with tracks or a photo stays`() =
+        runBlocking {
+            val orphan = dao.artistId("Orphan", "orphan")
+            val withPhoto = dao.artistId("Photo", "photo")
+            val withTrack = dao.artistId("Track", "track")
+            dao.setArtistPhotoPath(withPhoto, "p.jpg")
+            dao.insertTrackArtists(listOf(TrackArtistEntity(dao.insertTrack(track("u1", "S")), withTrack, 0)))
+            dao.insertAlias(ArtistAliasEntity(aliasKey = "o", aliasDisplay = "O", artistId = orphan))
+
+            listOf(orphan, withPhoto, withTrack).forEach { dao.deleteArtistIfOrphan(it) }
+
+            assertEquals(null, dao.artistName(orphan))
+            assertEquals(null, dao.aliasArtistId("o"))
+            assertEquals("Photo", dao.artistName(withPhoto))
+            assertEquals("Track", dao.artistName(withTrack))
+        }
+
+    @Test
+    fun `aliases move to another artist and can be dropped by key`() =
+        runBlocking {
+            val from = dao.artistId("From", "from")
+            val to = dao.artistId("To", "to")
+            dao.insertAlias(ArtistAliasEntity(aliasKey = "a", aliasDisplay = "A", artistId = from))
+            dao.insertAlias(ArtistAliasEntity(aliasKey = "b", aliasDisplay = "B", artistId = from))
+
+            dao.moveAliases(from, to)
+            dao.deleteAliasesByKeys(listOf("b"))
+
+            assertEquals(to, dao.aliasArtistId("a"))
+            assertEquals(null, dao.aliasArtistId("b"))
         }
 
     @Test

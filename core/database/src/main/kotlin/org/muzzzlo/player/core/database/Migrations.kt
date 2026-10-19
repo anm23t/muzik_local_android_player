@@ -21,3 +21,19 @@ val MIGRATION_2_3 =
             db.execSQL("UPDATE track SET date_modified = NULL")
         }
     }
+
+/** Version 4: `artist_alias`, spellings that point to one artist (task 0.4.4, the "Check" button fills it in 0.4.5). */
+val MIGRATION_3_4 =
+    object : Migration(3, 4) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                "CREATE TABLE IF NOT EXISTS `artist_alias` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                    "`alias_key` TEXT NOT NULL, `alias_display` TEXT NOT NULL, `artist_id` INTEGER NOT NULL, " +
+                    "FOREIGN KEY(`artist_id`) REFERENCES `artist`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE)",
+            )
+            db.execSQL(
+                "CREATE UNIQUE INDEX IF NOT EXISTS `index_artist_alias_alias_key` ON `artist_alias` (`alias_key`)",
+            )
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_artist_alias_artist_id` ON `artist_alias` (`artist_id`)")
+        }
+    }

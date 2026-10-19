@@ -58,6 +58,22 @@ class MigrationTest {
         }
     }
 
+    @Test
+    fun `3 to 4 adds artist_alias and keeps artists`() {
+        helper.createDatabase(DB_NAME, 3).use { db ->
+            db.execSQL("INSERT INTO artist (id, name, name_key) VALUES (1, 'Jay-Z', 'jay-z')")
+        }
+
+        helper.runMigrationsAndValidate(DB_NAME, 4, true, MIGRATION_3_4).use { db ->
+            db.execSQL("INSERT INTO artist_alias (alias_key, alias_display, artist_id) VALUES ('jay z', 'Jay Z', 1)")
+            db.query("SELECT a.name, l.alias_display FROM artist a JOIN artist_alias l ON l.artist_id = a.id").use {
+                it.moveToFirst()
+                assertEquals("Jay-Z", it.getString(0))
+                assertEquals("Jay Z", it.getString(1))
+            }
+        }
+    }
+
     private companion object {
         const val DB_NAME = "migration-test.db"
     }
