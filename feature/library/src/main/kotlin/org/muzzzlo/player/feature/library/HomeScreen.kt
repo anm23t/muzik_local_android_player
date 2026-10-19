@@ -53,7 +53,7 @@ private const val TILES_PER_ROW = 3
 
 /**
  * Home screen (28:620). Only the parts that need neither statistics nor smart playlists: the greeting,
- * "Continue listening", the mini player and the bottom menu. Playlists, statistics and settings
+ * "Continue listening", the mini player and the bottom menu. Playlists and statistics
  * are shown disabled until their tasks.
  *
  * @param miniPlayer the mini player of `feature:player`, passed in by the app.
@@ -64,6 +64,7 @@ fun HomeScreen(
     onOpenAlbums: () -> Unit,
     onOpenAlbum: (Long) -> Unit,
     onOpenTracks: () -> Unit,
+    onOpenSettings: () -> Unit,
     miniPlayer: @Composable () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel(),
@@ -77,7 +78,7 @@ fun HomeScreen(
     LaunchedEffect(granted) { if (granted) viewModel.onScanRequested() }
 
     ScreenFrame(modifier, spacing = MuzzzloDimens.SectionGap, outlined = false) {
-        HomeHeader()
+        HomeHeader(onOpenSettings)
         // Not in the mockup: the list of all tracks has no other entry point (DESIGN.md, section 7).
         if (granted && state.hasMusic) {
             PillButton(text = stringResource(R.string.home_all_songs), onClick = onOpenTracks)
@@ -99,7 +100,7 @@ fun HomeScreen(
 }
 
 @Composable
-private fun HomeHeader() {
+private fun HomeHeader(onOpenSettings: () -> Unit) {
     Row(
         Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(MuzzzloDimens.ContentGap),
@@ -113,12 +114,10 @@ private fun HomeHeader() {
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
         )
-        // Settings arrive in 0.5.1.
         RoundIconButton(
             icon = DesignR.drawable.ic_settings,
             contentDescription = stringResource(R.string.home_settings),
-            onClick = {},
-            enabled = false,
+            onClick = onOpenSettings,
         )
     }
 }

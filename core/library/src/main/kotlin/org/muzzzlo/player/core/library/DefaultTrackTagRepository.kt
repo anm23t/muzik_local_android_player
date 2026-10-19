@@ -1,8 +1,10 @@
 package org.muzzzlo.player.core.library
 
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import org.muzzzlo.player.core.model.DispatcherProvider
 import org.muzzzlo.player.core.model.EmbeddedPicture
+import org.muzzzlo.player.core.model.SettingsRepository
 import org.muzzzlo.player.core.model.TagEdit
 import org.muzzzlo.player.core.model.TagReadResult
 import org.muzzzlo.player.core.model.TagWriteResult
@@ -21,6 +23,7 @@ internal class DefaultTrackTagRepository
         private val files: TrackFiles,
         private val writer: TagWriter,
         private val dispatchers: DispatcherProvider,
+        private val settings: SettingsRepository,
     ) : TrackTagRepository {
         override suspend fun readTags(trackId: Long): TagReadResult =
             withContext(dispatchers.io) {
@@ -40,7 +43,12 @@ internal class DefaultTrackTagRepository
                 val file = files.find(trackId)
                 // Without its name the tag library cannot tell the format.
                 val fileName = file?.displayName ?: return@withContext TagWriteResult.Unreadable
-                val result = writer.writeTags(TagWriteTarget.ContentUri(file.uri, fileName), edit)
+                val result =
+                    writer.writeTags(
+                        TagWriteTarget.ContentUri(file.uri, fileName),
+                        edit,
+                        settings.settings.first().id3v2VersionForNewTags,
+                    )
                 if (result == TagWriteResult.Success) files.reindex(files.find(trackId) ?: file)
                 result
             }

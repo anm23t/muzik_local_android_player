@@ -8,8 +8,10 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import org.muzzzlo.player.core.model.DispatcherProvider
+import org.muzzzlo.player.core.model.QuarantineList
 import org.muzzzlo.player.core.model.TagReader
 import org.muzzzlo.player.core.model.TagWriter
+import org.muzzzlo.player.core.tags.GuardQuarantineList
 import org.muzzzlo.player.core.tags.MediaStoreOriginalFiles
 import org.muzzzlo.player.core.tags.NativeCallGuard
 import org.muzzzlo.player.core.tags.OriginalFiles
@@ -27,6 +29,9 @@ internal abstract class TagsModule {
     @Binds
     @Singleton
     abstract fun tagReader(impl: TagLibTagReader): TagReader
+
+    @Binds
+    abstract fun quarantineList(impl: GuardQuarantineList): QuarantineList
 
     companion object {
         /** Markers and the quarantine list; `noBackupFilesDir`, because they describe this device's files only. */

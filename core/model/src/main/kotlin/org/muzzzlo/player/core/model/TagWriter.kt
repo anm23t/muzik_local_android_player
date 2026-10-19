@@ -145,7 +145,7 @@ interface TagWriter {
     ): TagWriteResult
 
     companion object {
-        /** ID3v2 version written to MP3 files without one until the setting from task 0.5.1 exists. */
+        /** Default of the "ID3 version for files without tags" setting. */
         const val DEFAULT_ID3V2_VERSION = 4
     }
 }

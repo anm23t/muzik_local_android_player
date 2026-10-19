@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_title">Настройки</string>
+    <string name="settings_back">Назад</string>
+    <string name="settings_loading">Загрузка…</string>
+    <string name="settings_off">Выкл</string>
+    <string name="settings_seconds">%d с</string>
+    <string name="settings_minutes">%d мин</string>
+
+    <string name="settings_group_library">Библиотека</string>
+    <string name="settings_folders">Папки</string>
+    <plurals name="settings_folders_excluded">
+        <item quantity="one">Исключена %d папка</item>
+        <item quantity="few">Исключено %d папки</item>
+        <item quantity="many">Исключено %d папок</item>
+        <item quantity="other">Исключено %d папки</item>
+    </plurals>
+    <string name="settings_folders_empty">Папок с музыкой не найдено</string>
+    <string name="settings_folder_root">Корень хранилища</string>
+    <plurals name="settings_folder_tracks">
+        <item quantity="one">%d трек</item>
+        <item quantity="few">%d трека</item>
+        <item quantity="many">%d треков</item>
+        <item quantity="other">%d трека</item>
+    </plurals>
+    <string name="settings_min_length">Минимальная длительность трека</string>
+    <string name="settings_min_length_hint">Более короткие файлы не попадают в библиотеку</string>
+    <string name="settings_rescan">Пересканировать сейчас</string>
+    <string name="settings_scanning">Сканирование…</string>
+    <string name="settings_quarantine">Файлы в карантине</string>
+    <string name="settings_quarantine_hint">Файлы, на которых упал чтец тегов</string>
+    <string name="settings_quarantine_empty">В карантине нет файлов</string>
+    <string name="settings_quarantine_explanation">На этих файлах упал чтец тегов, поэтому приложение их пропускает. Попробуйте снова после замены или починки файла.</string>
+    <string name="settings_quarantine_retry">Попробовать снова</string>
+
+    <string name="settings_group_tags">Теги и исполнители</string>
+    <string name="settings_id3_version">Версия ID3 для файлов без тегов</string>
+    <string name="settings_id3_version_hint">Для MP3-файлов, у которых ещё нет тега ID3v2</string>
+    <string name="settings_id3_option">ID3v2.%d</string>
+    <string name="settings_id3_v3_note">Лучшая совместимость со старыми плеерами</string>
+    <string name="settings_id3_v4_note">Рекомендуется</string>
+    <string name="settings_confirm_write">Подтверждать запись в файл</string>
+    <string name="settings_confirm_write_hint">Показывает изменения перед сохранением одного трека. Правки альбома и исполнителя спрашивают всегда.</string>
+    <string name="settings_compound_names">Составные имена</string>
+
+    <string name="settings_group_interface">Интерфейс</string>
+    <string name="settings_language">Язык</string>
+    <string name="settings_language_system">Как в системе</string>
+    <string name="settings_language_english">English</string>
+    <string name="settings_language_russian">Русский</string>
+    <string name="settings_dynamic_accent">Динамический акцент</string>
+    <string name="settings_dynamic_accent_hint">Акцентный цвет следует за обложкой играющего трека. Выключен: всегда красный.</string>
+</resources>

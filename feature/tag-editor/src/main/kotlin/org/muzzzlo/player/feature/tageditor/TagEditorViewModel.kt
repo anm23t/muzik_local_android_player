@@ -7,11 +7,13 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.muzzzlo.player.core.model.CoverEdit
 import org.muzzzlo.player.core.model.EmbeddedPicture
 import org.muzzzlo.player.core.model.LibraryRepository
+import org.muzzzlo.player.core.model.SettingsRepository
 import org.muzzzlo.player.core.model.TagReadResult
 import org.muzzzlo.player.core.model.TagWriteResult
 import org.muzzzlo.player.core.model.TrackTagRepository
@@ -98,6 +100,7 @@ class TagEditorViewModel
         private val library: LibraryRepository,
         private val pictures: PictureReader,
         private val permissions: WritePermissions,
+        private val settings: SettingsRepository,
         savedState: SavedStateHandle,
     ) : ViewModel() {
         private val trackId: Long = checkNotNull(savedState[TRACK_ID_ARG])
@@ -162,8 +165,12 @@ class TagEditorViewModel
             updateDraft(currentDraft()?.copy(cover = CoverEdit.Remove) ?: return)
         }
 
+        /** Asks first unless the user switched the confirmation off in the settings. */
         fun onSave() {
-            if (state.value.canSave) showDialog(EditorDialog.ConfirmWrite)
+            if (!state.value.canSave) return
+            viewModelScope.launch {
+                if (settings.settings.first().confirmBeforeWrite) showDialog(EditorDialog.ConfirmWrite) else write()
+            }
         }
 
         fun onConfirmWrite() {

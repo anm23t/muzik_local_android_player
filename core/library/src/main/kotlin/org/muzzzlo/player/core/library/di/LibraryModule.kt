@@ -9,6 +9,7 @@ import org.muzzzlo.player.core.library.DefaultArtistCheckRepository
 import org.muzzzlo.player.core.library.DefaultArtistProfileRepository
 import org.muzzzlo.player.core.library.DefaultCompoundRepository
 import org.muzzzlo.player.core.library.DefaultCoverRepository
+import org.muzzzlo.player.core.library.DefaultLibraryMaintenance
 import org.muzzzlo.player.core.library.DefaultLibraryRepository
 import org.muzzzlo.player.core.library.DefaultTrackTagRepository
 import org.muzzzlo.player.core.library.MediaStoreTrackFiles
@@ -18,6 +19,7 @@ import org.muzzzlo.player.core.model.ArtistCheckRepository
 import org.muzzzlo.player.core.model.ArtistProfileRepository
 import org.muzzzlo.player.core.model.CompoundRepository
 import org.muzzzlo.player.core.model.CoverRepository
+import org.muzzzlo.player.core.model.LibraryMaintenance
 import org.muzzzlo.player.core.model.LibraryRepository
 import org.muzzzlo.player.core.model.TrackTagRepository
 import javax.inject.Singleton
@@ -55,4 +57,7 @@ internal abstract class LibraryModule {
     @Binds
     @Singleton
     abstract fun accents(impl: DefaultAccentRepository): AccentRepository
+
+    @Binds
+    abstract fun maintenance(impl: DefaultLibraryMaintenance): LibraryMaintenance
 }

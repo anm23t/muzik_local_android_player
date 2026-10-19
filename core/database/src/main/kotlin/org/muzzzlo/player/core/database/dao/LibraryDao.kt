@@ -72,6 +72,9 @@ data class TrackTagValues(
     @ColumnInfo(name = "artist_tag_values") val artistTagValues: String,
 )
 
+/** Track uri and title pair. */
+data class UriTitle(val uri: String, val title: String)
+
 /** Album id and title pair. */
 data class AlbumTitle(val id: Long, val title: String)
 
@@ -165,6 +168,9 @@ interface LibraryDao {
             "WHERE ta.track_id IN (:trackIds) ORDER BY ta.track_id, ta.position",
     )
     suspend fun artistNamesFor(trackIds: List<Long>): List<TrackArtistName>
+
+    @Query("SELECT uri, title FROM track WHERE uri IN (:uris)")
+    suspend fun titlesByUris(uris: List<String>): List<UriTitle>
 
     @Query("SELECT id, title FROM album WHERE id IN (:ids)")
     suspend fun albumTitles(ids: List<Long>): List<AlbumTitle>

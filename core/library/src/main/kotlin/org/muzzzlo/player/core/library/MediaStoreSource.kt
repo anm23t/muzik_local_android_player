@@ -6,6 +6,7 @@ import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
 import dagger.hilt.android.qualifiers.ApplicationContext
+import org.muzzzlo.player.core.model.LibraryFolder
 import javax.inject.Inject
 
 /** Reads the list of music files from MediaStore. */
@@ -16,6 +17,27 @@ class MediaStoreSource
     ) {
         /** Every music file of the device. */
         fun query(): List<ScannedFile> = query(extraSelection = null, args = null)
+
+        /** Every folder with music (and the root, as an empty path) with its track count; filters of the settings do not apply. */
+        fun folders(): List<LibraryFolder> {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return emptyList()
+            val counts = HashMap<String, Int>()
+            val projection = arrayOf(MediaStore.Audio.Media.RELATIVE_PATH, MediaStore.Audio.Media.DISPLAY_NAME)
+            context.contentResolver.query(
+                MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                projection,
+                musicSelection(null),
+                null,
+                null,
+            )
+                ?.use { cursor ->
+                    while (cursor.moveToNext()) {
+                        if (isAudiobookFile(cursor.getString(1))) continue
+                        counts.merge(cursor.getString(0).orEmpty(), 1, Int::plus)
+                    }
+                }
+            return counts.map { LibraryFolder(it.key, it.value) }.sortedBy { it.relativePath.lowercase() }
+        }
 
         /**
          * The music file at [uri] (a `content://` URI of this collection), null when MediaStore no longer has it.
@@ -48,19 +70,7 @@ class MediaStoreSource
                     add(MediaStore.Audio.Media.DATE_MODIFIED)
                     if (hasRelativePath) add(MediaStore.Audio.Media.RELATIVE_PATH)
                 }.toTypedArray()
-            // Podcasts and audiobooks never enter the library (ARCHITECTURE.md, section 3).
-            val selection =
-                buildList {
-                    add("${MediaStore.Audio.Media.IS_MUSIC} != 0")
-                    add("${MediaStore.Audio.Media.IS_PODCAST} = 0")
-                    add("${MediaStore.Audio.Media.DURATION} > 0")
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                        add(
-                            "${MediaStore.Audio.Media.IS_AUDIOBOOK} = 0",
-                        )
-                    }
-                    if (extraSelection != null) add(extraSelection)
-                }.joinToString(" AND ")
+            val selection = musicSelection(extraSelection)
 
             val result = ArrayList<ScannedFile>()
             context.contentResolver.query(collection, projection, selection, args, null)?.use { cursor ->
@@ -110,4 +120,14 @@ class MediaStoreSource
             }
             return result
         }
+
+        /** Podcasts and audiobooks never enter the library (ARCHITECTURE.md, section 3). */
+        private fun musicSelection(extraSelection: String?): String =
+            buildList {
+                add("${MediaStore.Audio.Media.IS_MUSIC} != 0")
+                add("${MediaStore.Audio.Media.IS_PODCAST} = 0")
+                add("${MediaStore.Audio.Media.DURATION} > 0")
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) add("${MediaStore.Audio.Media.IS_AUDIOBOOK} = 0")
+                if (extraSelection != null) add(extraSelection)
+            }.joinToString(" AND ")
     }

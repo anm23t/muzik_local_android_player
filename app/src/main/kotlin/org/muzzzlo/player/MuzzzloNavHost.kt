@@ -28,6 +28,9 @@ import org.muzzzlo.player.feature.library.TracksScreen
 import org.muzzzlo.player.feature.player.MiniPlayer
 import org.muzzzlo.player.feature.player.PlayerScreen
 import org.muzzzlo.player.feature.player.QueueScreen
+import org.muzzzlo.player.feature.settings.FoldersScreen
+import org.muzzzlo.player.feature.settings.QuarantineScreen
+import org.muzzzlo.player.feature.settings.SettingsScreen
 import org.muzzzlo.player.feature.tageditor.ArtistProfileScreen
 import org.muzzzlo.player.feature.tageditor.BATCH_ALBUM_ID_ARG
 import org.muzzzlo.player.feature.tageditor.BatchTagEditorScreen
@@ -42,6 +45,9 @@ private const val ROUTE_TRACKS = "tracks?$ARTIST_ID_ARG={$ARTIST_ID_ARG}"
 private const val ROUTE_ARTISTS = "artists"
 private const val ROUTE_ARTIST_CHECK = "artistCheck"
 private const val ROUTE_COMPOUND_NAMES = "compoundNames"
+private const val ROUTE_SETTINGS = "settings"
+private const val ROUTE_SETTINGS_FOLDERS = "settingsFolders"
+private const val ROUTE_SETTINGS_QUARANTINE = "settingsQuarantine"
 private const val ROUTE_ARTIST = "artist?$ARTIST_ID_ARG={$ARTIST_ID_ARG}&$ARTIST_NAME_ARG={$ARTIST_NAME_ARG}"
 private const val ROUTE_PLAYER = "player"
 private const val ROUTE_QUEUE = "queue"
@@ -104,6 +110,7 @@ fun MuzzzloNavHost() {
                     onOpenAlbums = { navController.navigate(ROUTE_ALBUMS) },
                     onOpenAlbum = { navController.navigate(albumRoute(it)) },
                     onOpenTracks = { navController.navigate(tracksRoute()) },
+                    onOpenSettings = { navController.navigate(ROUTE_SETTINGS) },
                     miniPlayer = miniPlayer,
                 )
             }
@@ -131,6 +138,16 @@ fun MuzzzloNavHost() {
             composable(ROUTE_COMPOUND_NAMES) {
                 CompoundNamesScreen(onBack = { navController.popBackStack() })
             }
+            composable(ROUTE_SETTINGS) {
+                SettingsScreen(
+                    onBack = { navController.popBackStack() },
+                    onOpenFolders = { navController.navigate(ROUTE_SETTINGS_FOLDERS) },
+                    onOpenQuarantine = { navController.navigate(ROUTE_SETTINGS_QUARANTINE) },
+                    onOpenCompoundNames = { navController.navigate(ROUTE_COMPOUND_NAMES) },
+                )
+            }
+            composable(ROUTE_SETTINGS_FOLDERS) { FoldersScreen(onBack = { navController.popBackStack() }) }
+            composable(ROUTE_SETTINGS_QUARANTINE) { QuarantineScreen(onBack = { navController.popBackStack() }) }
             composable(ROUTE_ARTIST, arguments = artistArguments) {
                 ArtistScreen(
                     onBack = { navController.popBackStack() },

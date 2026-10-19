@@ -2,16 +2,20 @@ package org.muzzzlo.player.core.library
 
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
+import org.muzzzlo.player.core.model.AppLanguage
+import org.muzzzlo.player.core.model.AppSettings
 import org.muzzzlo.player.core.model.AudioFormat
 import org.muzzzlo.player.core.model.DispatcherProvider
 import org.muzzzlo.player.core.model.EmbeddedPicture
 import org.muzzzlo.player.core.model.FileTags
+import org.muzzzlo.player.core.model.SettingsRepository
 import org.muzzzlo.player.core.model.TagEdit
 import org.muzzzlo.player.core.model.TagReadResult
 import org.muzzzlo.player.core.model.TagWriteResult
@@ -23,7 +27,8 @@ class DefaultTrackTagRepositoryTest {
     private val file = scannedFile(dateModified = 1)
     private val files = FakeTrackFiles(mutableMapOf(TRACK_ID to file))
     private val writer = FakeTagWriter(TagWriteResult.Success)
-    private val repository = DefaultTrackTagRepository(files, writer, TestDispatchers)
+    private val settings = FakeSettings()
+    private val repository = DefaultTrackTagRepository(files, writer, TestDispatchers, settings)
 
     @Test
     fun `tags are read from the track's file`() =
@@ -45,6 +50,20 @@ class DefaultTrackTagRepositoryTest {
             val edit = TagEdit(title = "New")
             repository.writeTags(TRACK_ID, edit)
             assertEquals(listOf(TagWriteTarget.ContentUri(file.uri, "song.mp3") to edit), writer.writes)
+        }
+
+    @Test
+    fun `the ID3 version of the settings goes to the writer`() =
+        runBlocking {
+            DefaultTrackTagRepository(
+                files,
+                writer,
+                TestDispatchers,
+                FakeSettings(AppSettings(id3v2VersionForNewTags = 3)),
+            )
+                .writeTags(TRACK_ID, TagEdit())
+            repository.writeTags(TRACK_ID, TagEdit())
+            assertEquals(listOf(3, 4), writer.id3Versions)
         }
 
     @Test
@@ -76,6 +95,25 @@ class DefaultTrackTagRepositoryTest {
             assertEquals(emptyList<Any>(), writer.writes)
         }
 
+    private class FakeSettings(initial: AppSettings = AppSettings()) : SettingsRepository {
+        override val settings = flowOf(initial)
+
+        override suspend fun setFolderIncluded(
+            relativePath: String,
+            included: Boolean,
+        ) = Unit
+
+        override suspend fun setMinTrackSeconds(seconds: Int) = Unit
+
+        override suspend fun setId3v2VersionForNewTags(version: Int) = Unit
+
+        override suspend fun setConfirmBeforeWrite(enabled: Boolean) = Unit
+
+        override suspend fun setLanguage(language: AppLanguage) = Unit
+
+        override suspend fun setDynamicAccent(enabled: Boolean) = Unit
+    }
+
     private class FakeTrackFiles(val byId: MutableMap<Long, ScannedFile>) : TrackFiles {
         val read = mutableListOf<ScannedFile>()
         val reindexed = mutableListOf<ScannedFile>()
@@ -97,6 +135,7 @@ class DefaultTrackTagRepositoryTest {
     private class FakeTagWriter(var result: TagWriteResult) : TagWriter {
         val writes = mutableListOf<Pair<TagWriteTarget, TagEdit>>()
         var onWrite: () -> Unit = {}
+        var id3Versions = mutableListOf<Int>()
 
         override suspend fun writeTags(
             target: TagWriteTarget,
@@ -104,6 +143,7 @@ class DefaultTrackTagRepositoryTest {
             id3v2VersionForNewTags: Int,
         ): TagWriteResult {
             writes += target to edit
+            id3Versions += id3v2VersionForNewTags
             onWrite()
             return result
         }

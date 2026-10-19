@@ -2,6 +2,7 @@ package org.muzzzlo.player.core.library
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
@@ -12,6 +13,7 @@ import org.muzzzlo.player.core.model.Artist
 import org.muzzzlo.player.core.model.DispatcherProvider
 import org.muzzzlo.player.core.model.LibraryRepository
 import org.muzzzlo.player.core.model.NameNormalizer
+import org.muzzzlo.player.core.model.SettingsRepository
 import org.muzzzlo.player.core.model.Track
 import javax.inject.Inject
 
@@ -23,6 +25,7 @@ internal class DefaultLibraryRepository
         private val indexer: LibraryIndexer,
         private val dispatchers: DispatcherProvider,
         private val photos: ArtistPhotoStore,
+        private val settings: SettingsRepository,
     ) : LibraryRepository {
         override fun observeTracks(): Flow<List<Track>> =
             combine(dao.observeTracks(), dao.observeTrackArtists(), dao.observeAlbums()) { tracks, artists, albums ->
@@ -94,7 +97,7 @@ internal class DefaultLibraryRepository
 
         override suspend fun scan() =
             withContext(dispatchers.io) {
-                indexer.index(source.query())
+                indexer.index(ScanFilter.apply(source.query(), settings.settings.first()))
             }
 
         private fun toTracks(

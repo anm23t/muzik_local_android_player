@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_title">Settings</string>
+    <string name="settings_back">Back</string>
+    <string name="settings_loading">Loading…</string>
+    <string name="settings_off">Off</string>
+    <string name="settings_seconds">%d s</string>
+    <string name="settings_minutes">%d min</string>
+
+    <string name="settings_group_library">Library</string>
+    <string name="settings_folders">Folders</string>
+    <plurals name="settings_folders_excluded">
+        <item quantity="one">%d folder excluded</item>
+        <item quantity="other">%d folders excluded</item>
+    </plurals>
+    <string name="settings_folders_empty">No folders with music found</string>
+    <string name="settings_folder_root">Storage root</string>
+    <plurals name="settings_folder_tracks">
+        <item quantity="one">%d track</item>
+        <item quantity="other">%d tracks</item>
+    </plurals>
+    <string name="settings_min_length">Minimum track length</string>
+    <string name="settings_min_length_hint">Shorter files stay out of the library</string>
+    <string name="settings_rescan">Rescan now</string>
+    <string name="settings_scanning">Scanning…</string>
+    <string name="settings_quarantine">Quarantined files</string>
+    <string name="settings_quarantine_hint">Files that crashed the tag reader</string>
+    <string name="settings_quarantine_empty">No files in quarantine</string>
+    <string name="settings_quarantine_explanation">The tag reader crashed on these files, so the app skips them. Try again after you have replaced or repaired a file.</string>
+    <string name="settings_quarantine_retry">Try again</string>
+
+    <string name="settings_group_tags">Tags and artists</string>
+    <string name="settings_id3_version">ID3 version for files without tags</string>
+    <string name="settings_id3_version_hint">Used for MP3 files that have no ID3v2 tag yet</string>
+    <string name="settings_id3_option">ID3v2.%d</string>
+    <string name="settings_id3_v3_note">Most compatible with old players</string>
+    <string name="settings_id3_v4_note">Recommended</string>
+    <string name="settings_confirm_write">Confirm before writing a file</string>
+    <string name="settings_confirm_write_hint">Shows what changes before one track is saved. Album and artist edits always ask.</string>
+    <string name="settings_compound_names">Compound names</string>
+
+    <string name="settings_group_interface">Interface</string>
+    <string name="settings_language">Language</string>
+    <string name="settings_language_system">System</string>
+    <string name="settings_language_english">English</string>
+    <string name="settings_language_russian">Русский</string>
+    <string name="settings_dynamic_accent">Dynamic accent</string>
+    <string name="settings_dynamic_accent_hint">The accent color follows the cover of the playing track. Off: always red.</string>
+</resources>

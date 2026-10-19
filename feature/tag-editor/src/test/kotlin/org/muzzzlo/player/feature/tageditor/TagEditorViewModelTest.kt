@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
@@ -18,12 +19,15 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 import org.muzzzlo.player.core.model.Album
+import org.muzzzlo.player.core.model.AppLanguage
+import org.muzzzlo.player.core.model.AppSettings
 import org.muzzzlo.player.core.model.Artist
 import org.muzzzlo.player.core.model.AudioFormat
 import org.muzzzlo.player.core.model.CoverEdit
 import org.muzzzlo.player.core.model.EmbeddedPicture
 import org.muzzzlo.player.core.model.FileTags
 import org.muzzzlo.player.core.model.LibraryRepository
+import org.muzzzlo.player.core.model.SettingsRepository
 import org.muzzzlo.player.core.model.TagEdit
 import org.muzzzlo.player.core.model.TagReadResult
 import org.muzzzlo.player.core.model.TagWriteResult
@@ -43,6 +47,7 @@ class TagEditorViewModelTest {
     private val pictures = PictureReader { uri -> if (uri == PICKED_URI) picked else null }
     private var permissionRequest: WritePermissionRequest = WritePermissionRequest.RuntimePermission(PERMISSION)
     private val permissionUris = mutableListOf<String>()
+    private val settings = FakeSettings()
 
     @BeforeEach
     fun setUp() = Dispatchers.setMain(UnconfinedTestDispatcher())
@@ -59,6 +64,7 @@ class TagEditorViewModelTest {
                 permissionUris += uris
                 permissionRequest
             },
+            settings = settings,
             savedState = SavedStateHandle(mapOf(TRACK_ID_ARG to TRACK_ID)),
         )
 
@@ -96,6 +102,19 @@ class TagEditorViewModelTest {
 
         viewModel.onDismissDialog()
         assertEquals(emptyList<TagEdit>(), repository.writes)
+    }
+
+    @Test
+    fun `with the confirmation switched off save writes at once`() {
+        settings.state.value = AppSettings(confirmBeforeWrite = false)
+        val viewModel = viewModel()
+        viewModel.retitle("New")
+
+        viewModel.onSave()
+
+        assertEquals(listOf(TagEdit.from(tags).copy(title = "New")), repository.writes)
+        assertNull(viewModel.state.value.dialog)
+        assertTrue(viewModel.state.value.done)
     }
 
     @Test
@@ -317,4 +336,24 @@ class TagEditorViewModelTest {
                 TagWriteResult.ReplaceFailed(restored = false),
             )
     }
+}
+
+private class FakeSettings : SettingsRepository {
+    val state = MutableStateFlow(AppSettings())
+    override val settings: Flow<AppSettings> = state
+
+    override suspend fun setFolderIncluded(
+        relativePath: String,
+        included: Boolean,
+    ) = Unit
+
+    override suspend fun setMinTrackSeconds(seconds: Int) = Unit
+
+    override suspend fun setId3v2VersionForNewTags(version: Int) = Unit
+
+    override suspend fun setConfirmBeforeWrite(enabled: Boolean) = Unit
+
+    override suspend fun setLanguage(language: AppLanguage) = Unit
+
+    override suspend fun setDynamicAccent(enabled: Boolean) = Unit
 }
