@@ -5,6 +5,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
@@ -13,6 +14,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import org.muzzzlo.player.core.model.AppLanguage
 import org.muzzzlo.player.core.model.AppSettings
+import org.muzzzlo.player.core.model.ReplayGainMode
+import org.muzzzlo.player.core.model.ReplayGainSettings
 import org.muzzzlo.player.core.model.SettingsRepository
 import javax.inject.Inject
 
@@ -68,6 +71,16 @@ class DataStoreSettingsRepository
             store.edit { it[GAPLESS] = enabled }
         }
 
+        override suspend fun setReplayGain(settings: ReplayGainSettings) {
+            val clamped = settings.clamped()
+            store.edit {
+                it[REPLAY_GAIN_MODE] = clamped.mode.name
+                it[REPLAY_GAIN_PREAMP_DB] = clamped.preampDb
+                it[REPLAY_GAIN_UNTAGGED_DB] = clamped.untaggedGainDb
+                it[REPLAY_GAIN_CLIP_PROTECTION] = clamped.clipProtection
+            }
+        }
+
         internal companion object {
             val EXCLUDED_FOLDERS = stringSetPreferencesKey("excluded_folders")
             val MIN_TRACK_SECONDS = intPreferencesKey("min_track_seconds")
@@ -76,6 +89,10 @@ class DataStoreSettingsRepository
             val LANGUAGE = stringPreferencesKey("language")
             val DYNAMIC_ACCENT = booleanPreferencesKey("dynamic_accent")
             val GAPLESS = booleanPreferencesKey("gapless")
+            val REPLAY_GAIN_MODE = stringPreferencesKey("replay_gain_mode")
+            val REPLAY_GAIN_PREAMP_DB = floatPreferencesKey("replay_gain_preamp_db")
+            val REPLAY_GAIN_UNTAGGED_DB = floatPreferencesKey("replay_gain_untagged_db")
+            val REPLAY_GAIN_CLIP_PROTECTION = booleanPreferencesKey("replay_gain_clip_protection")
 
             fun toSettings(preferences: Preferences): AppSettings {
                 val defaults = AppSettings()
@@ -92,7 +109,18 @@ class DataStoreSettingsRepository
                         AppLanguage.entries.firstOrNull { it.name == preferences[LANGUAGE] } ?: defaults.language,
                     dynamicAccent = preferences[DYNAMIC_ACCENT] ?: defaults.dynamicAccent,
                     gapless = preferences[GAPLESS] ?: defaults.gapless,
+                    replayGain = replayGainOf(preferences, defaults.replayGain),
                 )
             }
+
+            private fun replayGainOf(
+                preferences: Preferences,
+                defaults: ReplayGainSettings,
+            ) = ReplayGainSettings(
+                mode = ReplayGainMode.entries.firstOrNull { it.name == preferences[REPLAY_GAIN_MODE] } ?: defaults.mode,
+                preampDb = preferences[REPLAY_GAIN_PREAMP_DB] ?: defaults.preampDb,
+                untaggedGainDb = preferences[REPLAY_GAIN_UNTAGGED_DB] ?: defaults.untaggedGainDb,
+                clipProtection = preferences[REPLAY_GAIN_CLIP_PROTECTION] ?: defaults.clipProtection,
+            ).clamped()
         }
     }

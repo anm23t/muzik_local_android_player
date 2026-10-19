@@ -29,6 +29,7 @@ import org.muzzzlo.player.core.model.CoverEdit
 import org.muzzzlo.player.core.model.EmbeddedPicture
 import org.muzzzlo.player.core.model.FileTags
 import org.muzzzlo.player.core.model.LibraryRepository
+import org.muzzzlo.player.core.model.ReplayGainSettings
 import org.muzzzlo.player.core.model.SettingsRepository
 import org.muzzzlo.player.core.model.TagEdit
 import org.muzzzlo.player.core.model.TagReadResult
@@ -362,4 +363,6 @@ private class FakeSettings : SettingsRepository {
     override suspend fun setDynamicAccent(enabled: Boolean) = Unit
 
     override suspend fun setGapless(enabled: Boolean) = Unit
+
+    override suspend fun setReplayGain(settings: ReplayGainSettings) = Unit
 }

@@ -18,6 +18,8 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.muzzzlo.player.core.model.AppLanguage
 import org.muzzzlo.player.core.model.AppSettings
+import org.muzzzlo.player.core.model.ReplayGainMode
+import org.muzzzlo.player.core.model.ReplayGainSettings
 import java.io.File
 
 class DataStoreSettingsRepositoryTest {
@@ -49,6 +51,8 @@ class DataStoreSettingsRepositoryTest {
             repository.setLanguage(AppLanguage.RUSSIAN)
             repository.setDynamicAccent(false)
             repository.setGapless(false)
+            val replayGain = ReplayGainSettings(ReplayGainMode.ALBUM, 2.5f, -10f, clipProtection = false)
+            repository.setReplayGain(replayGain)
 
             val expected =
                 AppSettings(
@@ -59,6 +63,7 @@ class DataStoreSettingsRepositoryTest {
                     language = AppLanguage.RUSSIAN,
                     dynamicAccent = false,
                     gapless = false,
+                    replayGain = replayGain,
                 )
             assertEquals(expected, repository.settings.first())
         }
@@ -84,6 +89,20 @@ class DataStoreSettingsRepositoryTest {
     }
 
     @ParameterizedTest
+    @CsvSource("-20, 3.3, -15, 0", "16, -0.2, 15, 0", "1.26, -6.24, 1.5, -6", "0, 4, 0, 0")
+    fun `ReplayGain decibels are stepped and clamped when saved`(
+        preamp: Float,
+        untagged: Float,
+        expectedPreamp: Float,
+        expectedUntagged: Float,
+    ) = runBlocking {
+        repository.setReplayGain(ReplayGainSettings(preampDb = preamp, untaggedGainDb = untagged))
+        val saved = repository.settings.first().replayGain
+        assertEquals(expectedPreamp, saved.preampDb)
+        assertEquals(expectedUntagged, saved.untaggedGainDb)
+    }
+
+    @ParameterizedTest
     @CsvSource("2", "5", "0")
     fun `an unsupported ID3 version is refused`(version: Int) {
         assertThrows(
@@ -98,11 +117,15 @@ class DataStoreSettingsRepositoryTest {
                 it[DataStoreSettingsRepository.ID3V2_VERSION] = 7
                 it[DataStoreSettingsRepository.MIN_TRACK_SECONDS] = -20
                 it[DataStoreSettingsRepository.LANGUAGE] = "KLINGON"
+                it[DataStoreSettingsRepository.REPLAY_GAIN_MODE] = "LOUDER"
+                it[DataStoreSettingsRepository.REPLAY_GAIN_PREAMP_DB] = 99f
+                it[DataStoreSettingsRepository.REPLAY_GAIN_UNTAGGED_DB] = Float.NaN
             }
             val settings = repository.settings.first()
             assertEquals(4, settings.id3v2VersionForNewTags)
             assertEquals(0, settings.minTrackSeconds)
             assertEquals(AppLanguage.SYSTEM, settings.language)
+            assertEquals(ReplayGainSettings(preampDb = 15f, untaggedGainDb = 0f), settings.replayGain)
         }
 
     @Test

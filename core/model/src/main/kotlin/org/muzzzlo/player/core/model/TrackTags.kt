@@ -67,12 +67,14 @@ enum class AudioFormat {
  *   A write keeps this version (ARCHITECTURE.md, section 5).
  * @property tags the tags.
  * @property audio stream properties; null when they were not requested or could not be read.
+ * @property replayGain ReplayGain values; read only, a tag write leaves them in the file as they are.
  */
 data class FileTags(
     val format: AudioFormat,
     val id3v2Version: Int?,
     val tags: TrackTags,
     val audio: AudioInfo?,
+    val replayGain: ReplayGainInfo = ReplayGainInfo.NONE,
 )
 
 /**

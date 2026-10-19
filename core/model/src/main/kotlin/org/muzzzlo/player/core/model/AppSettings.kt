@@ -22,6 +22,7 @@ enum class AppLanguage(val tag: String?) {
  * @property dynamicAccent the accent follows the cover of the playing track; off means always the default red.
  * @property gapless the encoder delay and padding of MP3, M4A and similar files are cut off, so albums play without
  *   a pause between tracks; off for files where this causes clicks or cut-off sound.
+ * @property replayGain loudness levelling by ReplayGain tags.
  */
 data class AppSettings(
     val excludedFolders: Set<String> = emptySet(),
@@ -31,6 +32,7 @@ data class AppSettings(
     val language: AppLanguage = AppLanguage.SYSTEM,
     val dynamicAccent: Boolean = true,
     val gapless: Boolean = true,
+    val replayGain: ReplayGainSettings = ReplayGainSettings(),
 ) {
     companion object {
         const val DEFAULT_MIN_TRACK_SECONDS = 30
@@ -64,4 +66,7 @@ interface SettingsRepository {
     suspend fun setDynamicAccent(enabled: Boolean)
 
     suspend fun setGapless(enabled: Boolean)
+
+    /** Stores [settings] with their decibel values clamped ([ReplayGainSettings.clamped]). */
+    suspend fun setReplayGain(settings: ReplayGainSettings)
 }

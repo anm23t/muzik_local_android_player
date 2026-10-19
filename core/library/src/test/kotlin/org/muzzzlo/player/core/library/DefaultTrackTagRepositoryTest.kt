@@ -15,6 +15,7 @@ import org.muzzzlo.player.core.model.AudioFormat
 import org.muzzzlo.player.core.model.DispatcherProvider
 import org.muzzzlo.player.core.model.EmbeddedPicture
 import org.muzzzlo.player.core.model.FileTags
+import org.muzzzlo.player.core.model.ReplayGainSettings
 import org.muzzzlo.player.core.model.SettingsRepository
 import org.muzzzlo.player.core.model.TagEdit
 import org.muzzzlo.player.core.model.TagReadResult
@@ -114,6 +115,8 @@ class DefaultTrackTagRepositoryTest {
         override suspend fun setDynamicAccent(enabled: Boolean) = Unit
 
         override suspend fun setGapless(enabled: Boolean) = Unit
+
+        override suspend fun setReplayGain(settings: ReplayGainSettings) = Unit
     }
 
     private class FakeTrackFiles(val byId: MutableMap<Long, ScannedFile>) : TrackFiles {
