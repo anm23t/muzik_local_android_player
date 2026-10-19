@@ -9,6 +9,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import org.muzzzlo.player.core.designsystem.component.CoverImage
+import org.muzzzlo.player.core.designsystem.component.CoverSource
 import org.muzzzlo.player.core.designsystem.component.ScreenFrame
 import org.muzzzlo.player.core.designsystem.component.SectionTitle
 import org.muzzzlo.player.core.designsystem.component.TrackRow
@@ -52,6 +54,7 @@ fun TracksScreen(
                             title = track.title,
                             onClick = { viewModel.onTrackClicked(index) },
                             subtitle = track.artistsText.ifEmpty { unknownArtist },
+                            cover = { CoverImage(CoverSource.Track(track.id), it) },
                             isCurrent = track.id == state.currentTrackId,
                             onMoreClick = { openMenu(track) },
                         )

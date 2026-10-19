@@ -35,6 +35,7 @@ import org.muzzzlo.player.core.designsystem.theme.MuzzzloTheme
  *
  * @param number track number shown on the left ("01"), null hides the column.
  * @param subtitle artists under the title, null hides the line (album card shows only titles).
+ * @param cover cover slot on the left (40 dp, rounded as the row), null hides it. Not in the mockup, see DESIGN.md.
  * @param onMoreClick opens the track menu; null hides the "more" button.
  * @param trailing extra controls before the "more" button (for example the queue drag handle).
  */
@@ -46,6 +47,7 @@ fun TrackRow(
     modifier: Modifier = Modifier,
     number: String? = null,
     subtitle: String? = null,
+    cover: (@Composable (Modifier) -> Unit)? = null,
     isCurrent: Boolean = false,
     onMoreClick: (() -> Unit)? = null,
     onLongClick: (() -> Unit)? = null,
@@ -72,6 +74,9 @@ fun TrackRow(
                 color = if (isCurrent) accent.accent else MuzzzloColors.TextSecondary,
                 maxLines = 1,
             )
+        }
+        if (cover != null) {
+            cover(Modifier.size(MuzzzloDimens.MiniPlayerCover).clip(MuzzzloDimens.RowShape))
         }
         Column(Modifier.weight(1f).padding(vertical = MuzzzloDimens.RowPadding)) {
             Text(
