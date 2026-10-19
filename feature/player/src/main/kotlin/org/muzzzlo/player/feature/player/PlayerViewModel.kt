@@ -46,7 +46,7 @@ class PlayerViewModel
             when (action) {
                 TrackAction.PlayNext -> player.playNext(track)
                 TrackAction.AddToQueue -> player.addToQueue(track)
-                TrackAction.OpenQueue, TrackAction.EditTags -> Unit
+                TrackAction.OpenQueue, TrackAction.EditTags, TrackAction.GoToArtist -> Unit
                 // Placeholders: playlists, favorites and rating come in 1.1.
                 TrackAction.AddToPlaylist,
                 TrackAction.AddToFavorites,

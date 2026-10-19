@@ -87,12 +87,14 @@ internal fun Notice(
  * Returns the function that opens the menu.
  *
  * @param onEditTags opens the tag editor of the track with this id.
+ * @param onOpenArtist opens the card of the artist with this name ("Go to artist").
  */
 @Composable
 internal fun rememberTrackMenu(
     onAction: (Track, TrackAction) -> Unit,
     onOpenQueue: () -> Unit,
     onEditTags: (Long) -> Unit,
+    onOpenArtist: (String) -> Unit,
 ): (Track) -> Unit {
     var menuTrack by remember { mutableStateOf<Track?>(null) }
     menuTrack?.let { track ->
@@ -108,6 +110,8 @@ internal fun rememberTrackMenu(
                 }
             },
             onDismiss = { menuTrack = null },
+            artistNames = track.artists,
+            onOpenArtist = onOpenArtist,
         )
     }
     return { menuTrack = it }

@@ -15,7 +15,7 @@ internal fun PlayerController.onTrackAction(
     when (action) {
         TrackAction.PlayNext -> playNext(track)
         TrackAction.AddToQueue -> addToQueue(track)
-        TrackAction.OpenQueue, TrackAction.EditTags -> Unit
+        TrackAction.OpenQueue, TrackAction.EditTags, TrackAction.GoToArtist -> Unit
         // Placeholders: playlists, favorites and rating come in 1.1.
         TrackAction.AddToPlaylist,
         TrackAction.AddToFavorites,

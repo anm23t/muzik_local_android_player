@@ -26,12 +26,13 @@ fun TracksScreen(
     onBack: () -> Unit,
     onOpenQueue: () -> Unit,
     onEditTags: (Long) -> Unit,
+    onOpenArtist: (String) -> Unit,
     miniPlayer: @Composable () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: TracksViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val openMenu = rememberTrackMenu(viewModel::onTrackAction, onOpenQueue, onEditTags)
+    val openMenu = rememberTrackMenu(viewModel::onTrackAction, onOpenQueue, onEditTags, onOpenArtist)
     val unknownArtist = stringResource(R.string.unknown_artist)
 
     ScreenFrame(modifier) {

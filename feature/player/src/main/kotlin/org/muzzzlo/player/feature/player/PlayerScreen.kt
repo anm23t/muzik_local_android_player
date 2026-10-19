@@ -23,6 +23,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.muzzzlo.player.core.designsystem.component.ArtistLinks
+import org.muzzzlo.player.core.designsystem.component.ArtistPickerMenu
+import org.muzzzlo.player.core.designsystem.component.ArtistTap
 import org.muzzzlo.player.core.designsystem.component.BottomNav
 import org.muzzzlo.player.core.designsystem.component.BottomNavItem
 import org.muzzzlo.player.core.designsystem.component.CoverCard
@@ -110,6 +112,8 @@ fun PlayerScreen(
                 }
             },
             onDismiss = { menuOpen = false },
+            artistNames = track.artists,
+            onOpenArtist = onOpenArtist,
         )
     }
 }
@@ -120,6 +124,10 @@ private fun TrackTitle(
     onOpenArtist: (String) -> Unit,
 ) {
     val track = state.currentTrack
+    var picking by remember { mutableStateOf(false) }
+    if (picking && track != null) {
+        ArtistPickerMenu(artists = track.artists, onPick = onOpenArtist, onDismiss = { picking = false })
+    }
     Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
             text = track?.title ?: stringResource(R.string.player_nothing_playing),
@@ -130,10 +138,16 @@ private fun TrackTitle(
             overflow = TextOverflow.Ellipsis,
         )
         Spacer(Modifier.height(MuzzzloDimens.SmallGap))
-        // Every artist is its own tappable name that opens their card (DESIGN.md, section 3).
+        // A tap on the artists opens the card of the only artist or the picker of several (DESIGN.md, section 3).
         ArtistLinks(
             names = track?.artists.orEmpty(),
-            onClick = { index -> track?.artists?.getOrNull(index)?.let(onOpenArtist) },
+            onClick = {
+                when (val tap = ArtistTap.of(track?.artists.orEmpty())) {
+                    is ArtistTap.Open -> onOpenArtist(tap.name)
+                    is ArtistTap.Choose -> picking = true
+                    ArtistTap.Nothing -> Unit
+                }
+            },
             style = MaterialTheme.typography.titleSmall,
             color = MuzzzloColors.TextSecondary,
             textAlign = TextAlign.Center,
@@ -239,6 +253,7 @@ fun MiniPlayer(
     onOpen: () -> Unit,
     onOpenQueue: () -> Unit,
     onEditTags: (Long) -> Unit,
+    onOpenArtist: (String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: PlayerViewModel = hiltViewModel(),
 ) {
@@ -258,6 +273,8 @@ fun MiniPlayer(
                 }
             },
             onDismiss = { menuOpen = false },
+            artistNames = track.artists,
+            onOpenArtist = onOpenArtist,
         )
     }
     MiniPlayerView(

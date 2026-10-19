@@ -87,11 +87,13 @@ private fun NavHostController.goHome() {
 fun MuzzzloNavHost() {
     val navController = rememberNavController()
     val openTagEditor: (Long) -> Unit = { navController.navigate(tagEditorRoute(it)) }
+    val openArtist: (String) -> Unit = { navController.navigate(artistRoute(it)) }
     val miniPlayer: @Composable () -> Unit = {
         MiniPlayer(
             onOpen = { navController.navigate(ROUTE_PLAYER) },
             onOpenQueue = { navController.navigate(ROUTE_QUEUE) },
             onEditTags = openTagEditor,
+            onOpenArtist = openArtist,
         )
     }
     Surface(Modifier.fillMaxSize().safeDrawingPadding(), color = MaterialTheme.colorScheme.background) {
@@ -155,6 +157,7 @@ fun MuzzzloNavHost() {
                     onBack = { navController.popBackStack() },
                     onOpenQueue = { navController.navigate(ROUTE_QUEUE) },
                     onEditTags = openTagEditor,
+                    onOpenArtist = openArtist,
                     miniPlayer = miniPlayer,
                 )
             }
@@ -164,13 +167,17 @@ fun MuzzzloNavHost() {
                     onOpenQueue = { navController.navigate(ROUTE_QUEUE) },
                     onOpenArtists = { navController.navigate(ROUTE_ARTISTS) },
                     onOpenAlbums = { navController.navigate(ROUTE_ALBUMS) },
-                    onOpenArtist = { navController.navigate(artistRoute(it)) },
+                    onOpenArtist = openArtist,
                     onHome = { navController.goHome() },
                     onEditTags = openTagEditor,
                 )
             }
             composable(ROUTE_QUEUE) {
-                QueueScreen(onBack = { navController.popBackStack() }, onEditTags = openTagEditor)
+                QueueScreen(
+                    onBack = { navController.popBackStack() },
+                    onEditTags = openTagEditor,
+                    onOpenArtist = openArtist,
+                )
             }
             composable(ROUTE_TAG_EDITOR, arguments = listOf(navArgument(TRACK_ID_ARG) { type = NavType.LongType })) {
                 TagEditorScreen(onClose = { navController.popBackStack() })
