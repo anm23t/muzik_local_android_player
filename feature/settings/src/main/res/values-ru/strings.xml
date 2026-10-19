@@ -43,6 +43,10 @@
     <string name="settings_confirm_write_hint">Показывает изменения перед сохранением одного трека. Правки альбома и исполнителя спрашивают всегда.</string>
     <string name="settings_compound_names">Составные имена</string>
 
+    <string name="settings_group_playback">Воспроизведение</string>
+    <string name="settings_gapless">Без пауз между треками</string>
+    <string name="settings_gapless_hint">Без паузы между треками. Выключите, если файлы щёлкают. Со следующего трека.</string>
+
     <string name="settings_group_interface">Интерфейс</string>
     <string name="settings_language">Язык</string>
     <string name="settings_language_system">Как в системе</string>

@@ -82,6 +82,14 @@ fun SettingsScreen(
             )
             ValueRow(stringResource(R.string.settings_compound_names), onOpenCompoundNames)
 
+            GroupTitle(R.string.settings_group_playback)
+            SwitchRow(
+                text = stringResource(R.string.settings_gapless),
+                checked = settings.gapless,
+                onCheckedChange = viewModel::onGaplessChanged,
+                secondary = stringResource(R.string.settings_gapless_hint),
+            )
+
             GroupTitle(R.string.settings_group_interface)
             ValueRow(
                 text = stringResource(R.string.settings_language),

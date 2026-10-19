@@ -48,6 +48,7 @@ class DataStoreSettingsRepositoryTest {
             repository.setConfirmBeforeWrite(false)
             repository.setLanguage(AppLanguage.RUSSIAN)
             repository.setDynamicAccent(false)
+            repository.setGapless(false)
 
             val expected =
                 AppSettings(
@@ -57,6 +58,7 @@ class DataStoreSettingsRepositoryTest {
                     confirmBeforeWrite = false,
                     language = AppLanguage.RUSSIAN,
                     dynamicAccent = false,
+                    gapless = false,
                 )
             assertEquals(expected, repository.settings.first())
         }

@@ -15,6 +15,7 @@ class AppSettingsTest {
         assertEquals(true, settings.confirmBeforeWrite)
         assertEquals(AppLanguage.SYSTEM, settings.language)
         assertEquals(true, settings.dynamicAccent)
+        assertEquals(true, settings.gapless)
     }
 
     @ParameterizedTest

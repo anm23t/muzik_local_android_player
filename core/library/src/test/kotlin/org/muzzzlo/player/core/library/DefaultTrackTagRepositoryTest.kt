@@ -112,6 +112,8 @@ class DefaultTrackTagRepositoryTest {
         override suspend fun setLanguage(language: AppLanguage) = Unit
 
         override suspend fun setDynamicAccent(enabled: Boolean) = Unit
+
+        override suspend fun setGapless(enabled: Boolean) = Unit
     }
 
     private class FakeTrackFiles(val byId: MutableMap<Long, ScannedFile>) : TrackFiles {

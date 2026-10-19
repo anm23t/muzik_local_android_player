@@ -83,6 +83,10 @@ class SettingsViewModel
             viewModelScope.launch { repository.setDynamicAccent(enabled) }
         }
 
+        fun onGaplessChanged(enabled: Boolean) {
+            viewModelScope.launch { repository.setGapless(enabled) }
+        }
+
         fun onRescanClicked() {
             if (local.value.isScanning) return
             viewModelScope.launch { scan() }

@@ -20,6 +20,8 @@ enum class AppLanguage(val tag: String?) {
  * @property confirmBeforeWrite show the "was, will be" dialog before the tag editor writes one track; the album
  *   and artist editors always ask.
  * @property dynamicAccent the accent follows the cover of the playing track; off means always the default red.
+ * @property gapless the encoder delay and padding of MP3, M4A and similar files are cut off, so albums play without
+ *   a pause between tracks; off for files where this causes clicks or cut-off sound.
  */
 data class AppSettings(
     val excludedFolders: Set<String> = emptySet(),
@@ -28,6 +30,7 @@ data class AppSettings(
     val confirmBeforeWrite: Boolean = true,
     val language: AppLanguage = AppLanguage.SYSTEM,
     val dynamicAccent: Boolean = true,
+    val gapless: Boolean = true,
 ) {
     companion object {
         const val DEFAULT_MIN_TRACK_SECONDS = 30
@@ -59,4 +62,6 @@ interface SettingsRepository {
     suspend fun setLanguage(language: AppLanguage)
 
     suspend fun setDynamicAccent(enabled: Boolean)
+
+    suspend fun setGapless(enabled: Boolean)
 }

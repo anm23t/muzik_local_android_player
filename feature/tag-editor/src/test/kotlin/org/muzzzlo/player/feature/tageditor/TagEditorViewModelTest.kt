@@ -360,4 +360,6 @@ private class FakeSettings : SettingsRepository {
     override suspend fun setLanguage(language: AppLanguage) = Unit
 
     override suspend fun setDynamicAccent(enabled: Boolean) = Unit
+
+    override suspend fun setGapless(enabled: Boolean) = Unit
 }

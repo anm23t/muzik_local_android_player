@@ -64,6 +64,10 @@ class DataStoreSettingsRepository
             store.edit { it[DYNAMIC_ACCENT] = enabled }
         }
 
+        override suspend fun setGapless(enabled: Boolean) {
+            store.edit { it[GAPLESS] = enabled }
+        }
+
         internal companion object {
             val EXCLUDED_FOLDERS = stringSetPreferencesKey("excluded_folders")
             val MIN_TRACK_SECONDS = intPreferencesKey("min_track_seconds")
@@ -71,6 +75,7 @@ class DataStoreSettingsRepository
             val CONFIRM_BEFORE_WRITE = booleanPreferencesKey("confirm_before_write")
             val LANGUAGE = stringPreferencesKey("language")
             val DYNAMIC_ACCENT = booleanPreferencesKey("dynamic_accent")
+            val GAPLESS = booleanPreferencesKey("gapless")
 
             fun toSettings(preferences: Preferences): AppSettings {
                 val defaults = AppSettings()
@@ -86,6 +91,7 @@ class DataStoreSettingsRepository
                     language =
                         AppLanguage.entries.firstOrNull { it.name == preferences[LANGUAGE] } ?: defaults.language,
                     dynamicAccent = preferences[DYNAMIC_ACCENT] ?: defaults.dynamicAccent,
+                    gapless = preferences[GAPLESS] ?: defaults.gapless,
                 )
             }
         }
