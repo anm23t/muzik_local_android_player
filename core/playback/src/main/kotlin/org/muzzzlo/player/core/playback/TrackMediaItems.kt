@@ -3,6 +3,7 @@ package org.muzzzlo.player.core.playback
 import android.os.Bundle
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import org.muzzzlo.player.core.model.ReplayGainInfo
 import org.muzzzlo.player.core.model.Track
 
 private const val KEY_ID = "track_id"
@@ -10,6 +11,10 @@ private const val KEY_DURATION = "duration_ms"
 private const val KEY_ARTISTS = "artists"
 private const val KEY_ALBUM_ID = "album_id"
 private const val KEY_TRACK_NUMBER = "track_number"
+private const val KEY_TRACK_GAIN = "rg_track_gain"
+private const val KEY_TRACK_PEAK = "rg_track_peak"
+private const val KEY_ALBUM_GAIN = "rg_album_gain"
+private const val KEY_ALBUM_PEAK = "rg_album_peak"
 private const val ABSENT = -1L
 
 /** Builds the Media3 item. The full [Track] rides in the metadata extras, so the player can give it back. */
@@ -21,6 +26,10 @@ internal fun Track.toMediaItem(): MediaItem {
             putStringArray(KEY_ARTISTS, artists.toTypedArray())
             putLong(KEY_ALBUM_ID, albumId ?: ABSENT)
             putInt(KEY_TRACK_NUMBER, trackNumber ?: ABSENT.toInt())
+            putOptionalFloat(KEY_TRACK_GAIN, replayGain.trackGainDb)
+            putOptionalFloat(KEY_TRACK_PEAK, replayGain.trackPeak)
+            putOptionalFloat(KEY_ALBUM_GAIN, replayGain.albumGainDb)
+            putOptionalFloat(KEY_ALBUM_PEAK, replayGain.albumPeak)
         }
     return MediaItem.Builder()
         .setMediaId(id.toString())
@@ -45,9 +54,33 @@ internal fun MediaItem.toTrack(): Track? {
         uri = localConfiguration?.uri?.toString().orEmpty(),
         title = mediaMetadata.title?.toString().orEmpty(),
         artists = extras.getStringArray(KEY_ARTISTS)?.toList().orEmpty(),
-        albumId = extras.getLong(KEY_ALBUM_ID, ABSENT).takeIf { it != ABSENT },
+        albumId = albumId(),
         albumTitle = mediaMetadata.albumTitle?.toString(),
         durationMs = extras.getLong(KEY_DURATION),
         trackNumber = extras.getInt(KEY_TRACK_NUMBER, ABSENT.toInt()).takeIf { it >= 0 },
+        replayGain = replayGainInfo(),
     )
 }
+
+/** ReplayGain values stored by [toMediaItem]; none for other items. */
+internal fun MediaItem.replayGainInfo(): ReplayGainInfo {
+    val extras = mediaMetadata.extras ?: return ReplayGainInfo.NONE
+    return ReplayGainInfo(
+        trackGainDb = extras.optionalFloat(KEY_TRACK_GAIN),
+        trackPeak = extras.optionalFloat(KEY_TRACK_PEAK),
+        albumGainDb = extras.optionalFloat(KEY_ALBUM_GAIN),
+        albumPeak = extras.optionalFloat(KEY_ALBUM_PEAK),
+    )
+}
+
+/** Album id stored by [toMediaItem]; null for tracks without an album and for other items. */
+internal fun MediaItem.albumId(): Long? = mediaMetadata.extras?.getLong(KEY_ALBUM_ID, ABSENT)?.takeIf { it != ABSENT }
+
+private fun Bundle.putOptionalFloat(
+    key: String,
+    value: Float?,
+) {
+    if (value != null) putFloat(key, value)
+}
+
+private fun Bundle.optionalFloat(key: String): Float? = if (containsKey(key)) getFloat(key) else null

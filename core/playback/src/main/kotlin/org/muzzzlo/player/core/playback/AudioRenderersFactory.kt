@@ -2,7 +2,11 @@ package org.muzzzlo.player.core.playback
 
 import android.content.Context
 import android.os.Handler
+import androidx.media3.common.C
 import androidx.media3.common.Format
+import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
+import androidx.media3.common.Timeline
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.DecoderReuseEvaluation
 import androidx.media3.exoplayer.DefaultRenderersFactory
@@ -10,9 +14,13 @@ import androidx.media3.exoplayer.FormatHolder
 import androidx.media3.exoplayer.Renderer
 import androidx.media3.exoplayer.audio.AudioRendererEventListener
 import androidx.media3.exoplayer.audio.AudioSink
+import androidx.media3.exoplayer.audio.DefaultAudioSink
+import androidx.media3.exoplayer.audio.ForwardingAudioSink
 import androidx.media3.exoplayer.audio.MediaCodecAudioRenderer
 import androidx.media3.exoplayer.mediacodec.MediaCodecAdapter
 import androidx.media3.exoplayer.mediacodec.MediaCodecSelector
+import androidx.media3.exoplayer.source.MediaSource
+import org.muzzzlo.player.core.model.ReplayGainSettings
 import java.util.ArrayList
 
 /**
@@ -26,16 +34,43 @@ internal fun Format.forGapless(gapless: Boolean): Format =
         buildUpon().setEncoderDelay(0).setEncoderPadding(0).build()
     }
 
+/** The same format carrying [stream] to the audio sink; unchanged when it already does. */
+internal fun Format.withReplayGain(stream: ReplayGainStream): Format =
+    if (customData == stream) this else buildUpon().setCustomData(stream).build()
+
 /**
- * ExoPlayer trims the silence that encoders add at the start and end of a track, which gives gapless playback.
- * Media3 has no switch for it, so this factory swaps the audio renderer for one that can ignore the trim data.
- * [gapless] is read when a track starts, a change applies from the next track.
+ * Swaps the audio renderer and the audio sink of ExoPlayer for ones that follow the playback settings:
+ * - gapless: ExoPlayer trims the silence that encoders add at the start and end of a track. Media3 has no switch
+ *   for it, so the renderer can ignore the trim data. [gapless] is read when a track starts, a change applies from
+ *   the next track.
+ * - ReplayGain: the renderer finds the queue item of each new stream and passes its ReplayGain values in the
+ *   format to the sink, where [replayGain] applies them from the first sample of the track. [shuffle] tells which
+ *   tracks are its neighbours for [org.muzzzlo.player.core.model.ReplayGainMode.AUTO].
  */
 @UnstableApi
-internal class GaplessRenderersFactory(
+internal class AudioRenderersFactory(
     context: Context,
     @Volatile var gapless: Boolean,
+    replayGainSettings: ReplayGainSettings,
 ) : DefaultRenderersFactory(context) {
+    @Volatile var shuffle: Boolean = false
+
+    val replayGain = ReplayGainAudioProcessor(replayGainSettings)
+
+    override fun buildAudioSink(
+        context: Context,
+        enableFloatOutput: Boolean,
+        enableAudioTrackPlaybackParams: Boolean,
+    ): AudioSink =
+        ReplayGainAudioSink(
+            DefaultAudioSink.Builder(context)
+                .setEnableFloatOutput(enableFloatOutput)
+                .setEnableAudioTrackPlaybackParams(enableAudioTrackPlaybackParams)
+                .setAudioProcessors(arrayOf(replayGain))
+                .build(),
+            replayGain,
+        )
+
     override fun buildAudioRenderers(
         context: Context,
         extensionRendererMode: Int,
@@ -59,7 +94,7 @@ internal class GaplessRenderersFactory(
         val index = out.indexOfFirst { it is MediaCodecAudioRenderer }
         if (index < 0) return
         out[index] =
-            SwitchableGaplessRenderer(
+            PlaybackAudioRenderer(
                 context,
                 MediaCodecAdapter.Factory.getDefault(context),
                 mediaCodecSelector,
@@ -67,12 +102,30 @@ internal class GaplessRenderersFactory(
                 eventHandler,
                 eventListener,
                 audioSink,
-            ) { gapless }
+                isGapless = { gapless },
+                isShuffled = { shuffle },
+            )
+    }
+}
+
+/** Hands the ReplayGain values of the next track to [processor] when the renderer configures the sink for it. */
+@UnstableApi
+private class ReplayGainAudioSink(
+    sink: AudioSink,
+    private val processor: ReplayGainAudioProcessor,
+) : ForwardingAudioSink(sink) {
+    override fun configure(
+        inputFormat: Format,
+        specifiedBufferSize: Int,
+        outputChannels: IntArray?,
+    ) {
+        processor.stream = inputFormat.customData as? ReplayGainStream ?: ReplayGainStream.NONE
+        super.configure(inputFormat, specifiedBufferSize, outputChannels)
     }
 }
 
 @UnstableApi
-private class SwitchableGaplessRenderer(
+private class PlaybackAudioRenderer(
     context: Context,
     codecAdapterFactory: MediaCodecAdapter.Factory,
     mediaCodecSelector: MediaCodecSelector,
@@ -81,6 +134,7 @@ private class SwitchableGaplessRenderer(
     eventListener: AudioRendererEventListener,
     audioSink: AudioSink,
     private val isGapless: () -> Boolean,
+    private val isShuffled: () -> Boolean,
 ) : MediaCodecAudioRenderer(
         context,
         codecAdapterFactory,
@@ -90,8 +144,47 @@ private class SwitchableGaplessRenderer(
         eventListener,
         audioSink,
     ) {
+    /** ReplayGain values of the stream being read; every format read after a stream change belongs to it. */
+    private var stream = ReplayGainStream.NONE
+
+    override fun onStreamChanged(
+        formats: Array<out Format>,
+        startPositionUs: Long,
+        offsetUs: Long,
+        mediaPeriodId: MediaSource.MediaPeriodId,
+    ) {
+        stream = replayGainStreamOf(timeline, mediaPeriodId.periodUid, isShuffled())
+        super.onStreamChanged(formats, startPositionUs, offsetUs, mediaPeriodId)
+    }
+
     override fun onInputFormatChanged(formatHolder: FormatHolder): DecoderReuseEvaluation? {
-        formatHolder.format = formatHolder.format?.forGapless(isGapless())
+        formatHolder.format = formatHolder.format?.forGapless(isGapless())?.withReplayGain(stream)
         return super.onInputFormatChanged(formatHolder)
     }
+}
+
+/**
+ * ReplayGain values of the queue item that plays the period [periodUid], and whether its album plays in order:
+ * the neighbours are taken in play order, which depends on [shuffled].
+ */
+@UnstableApi
+internal fun replayGainStreamOf(
+    timeline: Timeline,
+    periodUid: Any,
+    shuffled: Boolean,
+): ReplayGainStream {
+    val periodIndex = timeline.getIndexOfPeriod(periodUid)
+    if (periodIndex == C.INDEX_UNSET) return ReplayGainStream.NONE
+    val windowIndex = timeline.getPeriod(periodIndex, Timeline.Period()).windowIndex
+    val window = Timeline.Window()
+
+    fun itemAt(index: Int): MediaItem? =
+        if (index == C.INDEX_UNSET) null else timeline.getWindow(index, window).mediaItem
+    val item = itemAt(windowIndex) ?: return ReplayGainStream.NONE
+    val previous = itemAt(timeline.getPreviousWindowIndex(windowIndex, Player.REPEAT_MODE_OFF, shuffled))
+    val next = itemAt(timeline.getNextWindowIndex(windowIndex, Player.REPEAT_MODE_OFF, shuffled))
+    return ReplayGainStream(
+        info = item.replayGainInfo(),
+        albumInOrder = playsAlbumInOrder(item.albumId(), previous?.albumId(), next?.albumId()),
+    )
 }
