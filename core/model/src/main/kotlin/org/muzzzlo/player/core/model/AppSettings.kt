@@ -71,4 +71,7 @@ interface SettingsRepository {
 
     /** Stores [settings] with their decibel values clamped ([ReplayGainSettings.clamped]). */
     suspend fun setReplayGain(settings: ReplayGainSettings)
+
+    /** Stores [settings] with the length clamped ([CrossfadeSettings.clamped]). */
+    suspend fun setCrossfade(settings: CrossfadeSettings)
 }

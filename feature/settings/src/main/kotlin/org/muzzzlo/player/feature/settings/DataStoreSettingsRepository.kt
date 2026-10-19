@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import org.muzzzlo.player.core.model.AppLanguage
 import org.muzzzlo.player.core.model.AppSettings
+import org.muzzzlo.player.core.model.CrossfadeSettings
 import org.muzzzlo.player.core.model.ReplayGainMode
 import org.muzzzlo.player.core.model.ReplayGainSettings
 import org.muzzzlo.player.core.model.SettingsRepository
@@ -81,6 +82,14 @@ class DataStoreSettingsRepository
             }
         }
 
+        override suspend fun setCrossfade(settings: CrossfadeSettings) {
+            val clamped = settings.clamped()
+            store.edit {
+                it[CROSSFADE_SECONDS] = clamped.seconds
+                it[CROSSFADE_WITHIN_ALBUM] = clamped.withinAlbum
+            }
+        }
+
         internal companion object {
             val EXCLUDED_FOLDERS = stringSetPreferencesKey("excluded_folders")
             val MIN_TRACK_SECONDS = intPreferencesKey("min_track_seconds")
@@ -93,6 +102,8 @@ class DataStoreSettingsRepository
             val REPLAY_GAIN_PREAMP_DB = floatPreferencesKey("replay_gain_preamp_db")
             val REPLAY_GAIN_UNTAGGED_DB = floatPreferencesKey("replay_gain_untagged_db")
             val REPLAY_GAIN_CLIP_PROTECTION = booleanPreferencesKey("replay_gain_clip_protection")
+            val CROSSFADE_SECONDS = intPreferencesKey("crossfade_seconds")
+            val CROSSFADE_WITHIN_ALBUM = booleanPreferencesKey("crossfade_within_album")
 
             fun toSettings(preferences: Preferences): AppSettings {
                 val defaults = AppSettings()
@@ -110,6 +121,11 @@ class DataStoreSettingsRepository
                     dynamicAccent = preferences[DYNAMIC_ACCENT] ?: defaults.dynamicAccent,
                     gapless = preferences[GAPLESS] ?: defaults.gapless,
                     replayGain = replayGainOf(preferences, defaults.replayGain),
+                    crossfade =
+                        CrossfadeSettings(
+                            seconds = preferences[CROSSFADE_SECONDS] ?: defaults.crossfade.seconds,
+                            withinAlbum = preferences[CROSSFADE_WITHIN_ALBUM] ?: defaults.crossfade.withinAlbum,
+                        ).clamped(),
                 )
             }
 

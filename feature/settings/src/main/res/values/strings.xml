@@ -56,6 +56,10 @@
     <string name="settings_replay_gain_untagged_hint">Gain for files that have no ReplayGain tags.</string>
     <string name="settings_replay_gain_clipping">Prevent clipping</string>
     <string name="settings_replay_gain_clipping_hint">Lowers the gain so the loudest peak stays below full scale.</string>
+    <string name="settings_crossfade">Crossfade</string>
+    <string name="settings_crossfade_hint">The end of a track overlaps the start of the next one. Only when a track ends by itself.</string>
+    <string name="settings_crossfade_within_album">Crossfade within an album</string>
+    <string name="settings_crossfade_within_album_hint">Also between consecutive tracks of one album. Off keeps albums without pauses.</string>
     <string name="settings_decibels">%1$s dB</string>
     <string name="settings_decrease">Decrease</string>
     <string name="settings_increase">Increase</string>

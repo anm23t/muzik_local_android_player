@@ -12,6 +12,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.muzzzlo.player.core.model.AppLanguage
 import org.muzzzlo.player.core.model.AppSettings
+import org.muzzzlo.player.core.model.CrossfadeSettings
 import org.muzzzlo.player.core.model.LibraryMaintenance
 import org.muzzzlo.player.core.model.LibraryRepository
 import org.muzzzlo.player.core.model.ReplayGainMode
@@ -20,7 +21,7 @@ import org.muzzzlo.player.core.model.SettingsRepository
 import javax.inject.Inject
 
 /** A choice dialog over the settings screen. */
-enum class SettingsDialog { MinLength, Id3Version, Language, ReplayGainMode, Preamp, UntaggedGain }
+enum class SettingsDialog { MinLength, Id3Version, Language, ReplayGainMode, Preamp, UntaggedGain, Crossfade }
 
 /**
  * State of the settings screen.
@@ -111,6 +112,18 @@ class SettingsViewModel
             val updated = change(local.value.settings.replayGain).clamped()
             local.update { it.copy(settings = it.settings.copy(replayGain = updated)) }
             viewModelScope.launch { repository.setReplayGain(updated) }
+        }
+
+        /** Moves the crossfade length by [steps] seconds; the dialog stays open. */
+        fun onCrossfadeStepped(steps: Int) = changeCrossfade { it.copy(seconds = it.seconds + steps) }
+
+        fun onCrossfadeWithinAlbumChanged(enabled: Boolean) = changeCrossfade { it.copy(withinAlbum = enabled) }
+
+        /** Like [changeReplayGain]: quick taps on the stepper build on the shown value. */
+        private fun changeCrossfade(change: (CrossfadeSettings) -> CrossfadeSettings) {
+            val updated = change(local.value.settings.crossfade).clamped()
+            local.update { it.copy(settings = it.settings.copy(crossfade = updated)) }
+            viewModelScope.launch { repository.setCrossfade(updated) }
         }
 
         fun onRescanClicked() {

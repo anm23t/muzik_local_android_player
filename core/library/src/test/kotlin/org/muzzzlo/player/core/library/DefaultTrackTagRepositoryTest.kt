@@ -12,6 +12,7 @@ import org.junit.jupiter.params.provider.MethodSource
 import org.muzzzlo.player.core.model.AppLanguage
 import org.muzzzlo.player.core.model.AppSettings
 import org.muzzzlo.player.core.model.AudioFormat
+import org.muzzzlo.player.core.model.CrossfadeSettings
 import org.muzzzlo.player.core.model.DispatcherProvider
 import org.muzzzlo.player.core.model.EmbeddedPicture
 import org.muzzzlo.player.core.model.FileTags
@@ -117,6 +118,8 @@ class DefaultTrackTagRepositoryTest {
         override suspend fun setGapless(enabled: Boolean) = Unit
 
         override suspend fun setReplayGain(settings: ReplayGainSettings) = Unit
+
+        override suspend fun setCrossfade(settings: CrossfadeSettings) = Unit
     }
 
     private class FakeTrackFiles(val byId: MutableMap<Long, ScannedFile>) : TrackFiles {

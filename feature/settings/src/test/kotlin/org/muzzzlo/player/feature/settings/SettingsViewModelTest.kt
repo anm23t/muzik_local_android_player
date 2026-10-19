@@ -13,6 +13,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.muzzzlo.player.core.model.AppLanguage
 import org.muzzzlo.player.core.model.AppSettings
+import org.muzzzlo.player.core.model.CrossfadeSettings
 import org.muzzzlo.player.core.model.LibraryFolder
 import org.muzzzlo.player.core.model.LibraryMaintenance
 import org.muzzzlo.player.core.model.LibraryRepository
@@ -77,6 +78,31 @@ class SettingsViewModelTest {
         )
     }
 
+    @Test
+    fun `crossfade steps build on each other, stop at the ends and keep the dialog open`() {
+        settings.saveOnly = false
+        viewModel.onDialogRequested(SettingsDialog.Crossfade)
+        repeat(5) { viewModel.onCrossfadeStepped(1) }
+        viewModel.onCrossfadeStepped(-1)
+
+        assertEquals(4, viewModel.state.value.settings.crossfade.seconds)
+        assertEquals(CrossfadeSettings(seconds = 4), settings.savedCrossfade.last())
+        assertEquals(SettingsDialog.Crossfade, viewModel.state.value.dialog)
+
+        repeat(20) { viewModel.onCrossfadeStepped(1) }
+        assertEquals(CrossfadeSettings.MAX_SECONDS, viewModel.state.value.settings.crossfade.seconds)
+        repeat(20) { viewModel.onCrossfadeStepped(-1) }
+        assertEquals(0, viewModel.state.value.settings.crossfade.seconds)
+    }
+
+    @Test
+    fun `crossfade within album is switched without touching the length`() {
+        viewModel.onCrossfadeStepped(3)
+        viewModel.onCrossfadeWithinAlbumChanged(true)
+
+        assertEquals(CrossfadeSettings(seconds = 3, withinAlbum = true), settings.state.value.crossfade)
+    }
+
     /**
      * Settings in memory. [saved] lists every ReplayGain save; with [saveOnly] off the flow does not change, as when
      * DataStore has not emitted yet, so the view model must build on its own state.
@@ -84,12 +110,18 @@ class SettingsViewModelTest {
     private class FakeSettings : SettingsRepository {
         val state = MutableStateFlow(AppSettings())
         val saved = mutableListOf<ReplayGainSettings>()
+        val savedCrossfade = mutableListOf<CrossfadeSettings>()
         var saveOnly = true
         override val settings = state
 
         override suspend fun setReplayGain(settings: ReplayGainSettings) {
             saved += settings
             if (saveOnly) state.value = state.value.copy(replayGain = settings.clamped())
+        }
+
+        override suspend fun setCrossfade(settings: CrossfadeSettings) {
+            savedCrossfade += settings
+            if (saveOnly) state.value = state.value.copy(crossfade = settings.clamped())
         }
 
         override suspend fun setFolderIncluded(

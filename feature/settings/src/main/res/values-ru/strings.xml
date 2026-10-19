@@ -60,6 +60,10 @@
     <string name="settings_replay_gain_untagged_hint">Усиление для файлов без тегов ReplayGain.</string>
     <string name="settings_replay_gain_clipping">Защита от клиппинга</string>
     <string name="settings_replay_gain_clipping_hint">Снижает усиление, чтобы самый громкий пик не выходил за предел.</string>
+    <string name="settings_crossfade">Плавный переход</string>
+    <string name="settings_crossfade_hint">Конец трека накладывается на начало следующего. Только когда трек доигрывает сам.</string>
+    <string name="settings_crossfade_within_album">Переход внутри альбома</string>
+    <string name="settings_crossfade_within_album_hint">Также между соседними треками одного альбома. Выключено: альбомы играют без пауз.</string>
     <string name="settings_decibels">%1$s дБ</string>
     <string name="settings_decrease">Уменьшить</string>
     <string name="settings_increase">Увеличить</string>

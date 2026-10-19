@@ -91,6 +91,7 @@ fun SettingsScreen(
                 secondary = stringResource(R.string.settings_gapless_hint),
             )
             ReplayGainRows(settings.replayGain, viewModel)
+            CrossfadeRows(settings.crossfade, viewModel)
 
             GroupTitle(R.string.settings_group_interface)
             ValueRow(
@@ -133,6 +134,8 @@ fun SettingsScreen(
                 onStep = viewModel::onUntaggedGainStepped,
                 onDismiss = viewModel::onDialogDismissed,
             )
+        SettingsDialog.Crossfade ->
+            CrossfadeDialog(settings.crossfade.seconds, viewModel::onCrossfadeStepped, viewModel::onDialogDismissed)
         null -> Unit
     }
 }

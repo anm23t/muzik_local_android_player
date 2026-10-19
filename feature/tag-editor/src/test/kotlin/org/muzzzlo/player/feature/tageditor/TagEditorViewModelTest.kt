@@ -26,6 +26,7 @@ import org.muzzzlo.player.core.model.ArtistDiscography
 import org.muzzzlo.player.core.model.ArtistRef
 import org.muzzzlo.player.core.model.AudioFormat
 import org.muzzzlo.player.core.model.CoverEdit
+import org.muzzzlo.player.core.model.CrossfadeSettings
 import org.muzzzlo.player.core.model.EmbeddedPicture
 import org.muzzzlo.player.core.model.FileTags
 import org.muzzzlo.player.core.model.LibraryRepository
@@ -365,4 +366,6 @@ private class FakeSettings : SettingsRepository {
     override suspend fun setGapless(enabled: Boolean) = Unit
 
     override suspend fun setReplayGain(settings: ReplayGainSettings) = Unit
+
+    override suspend fun setCrossfade(settings: CrossfadeSettings) = Unit
 }

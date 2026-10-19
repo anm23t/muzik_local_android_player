@@ -18,6 +18,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.muzzzlo.player.core.model.AppLanguage
 import org.muzzzlo.player.core.model.AppSettings
+import org.muzzzlo.player.core.model.CrossfadeSettings
 import org.muzzzlo.player.core.model.ReplayGainMode
 import org.muzzzlo.player.core.model.ReplayGainSettings
 import java.io.File
@@ -53,6 +54,7 @@ class DataStoreSettingsRepositoryTest {
             repository.setGapless(false)
             val replayGain = ReplayGainSettings(ReplayGainMode.ALBUM, 2.5f, -10f, clipProtection = false)
             repository.setReplayGain(replayGain)
+            repository.setCrossfade(CrossfadeSettings(seconds = 6, withinAlbum = true))
 
             val expected =
                 AppSettings(
@@ -64,6 +66,7 @@ class DataStoreSettingsRepositoryTest {
                     dynamicAccent = false,
                     gapless = false,
                     replayGain = replayGain,
+                    crossfade = CrossfadeSettings(seconds = 6, withinAlbum = true),
                 )
             assertEquals(expected, repository.settings.first())
         }
@@ -103,6 +106,16 @@ class DataStoreSettingsRepositoryTest {
     }
 
     @ParameterizedTest
+    @CsvSource("-3, 0", "0, 0", "12, 12", "13, 12")
+    fun `the crossfade length is clamped when saved`(
+        input: Int,
+        expected: Int,
+    ) = runBlocking {
+        repository.setCrossfade(CrossfadeSettings(seconds = input))
+        assertEquals(expected, repository.settings.first().crossfade.seconds)
+    }
+
+    @ParameterizedTest
     @CsvSource("2", "5", "0")
     fun `an unsupported ID3 version is refused`(version: Int) {
         assertThrows(
@@ -120,12 +133,14 @@ class DataStoreSettingsRepositoryTest {
                 it[DataStoreSettingsRepository.REPLAY_GAIN_MODE] = "LOUDER"
                 it[DataStoreSettingsRepository.REPLAY_GAIN_PREAMP_DB] = 99f
                 it[DataStoreSettingsRepository.REPLAY_GAIN_UNTAGGED_DB] = Float.NaN
+                it[DataStoreSettingsRepository.CROSSFADE_SECONDS] = 40
             }
             val settings = repository.settings.first()
             assertEquals(4, settings.id3v2VersionForNewTags)
             assertEquals(0, settings.minTrackSeconds)
             assertEquals(AppLanguage.SYSTEM, settings.language)
             assertEquals(ReplayGainSettings(preampDb = 15f, untaggedGainDb = 0f), settings.replayGain)
+            assertEquals(CrossfadeSettings(seconds = 12), settings.crossfade)
         }
 
     @Test
