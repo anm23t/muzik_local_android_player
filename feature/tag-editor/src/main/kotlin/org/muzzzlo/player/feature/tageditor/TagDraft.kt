@@ -136,17 +136,17 @@ private fun pairError(
 }
 
 /** A number field: empty, a valid number or invalid text. */
-private sealed interface Parsed {
+internal sealed interface Parsed {
     val value: Int?
 }
 
-private data class Valid(override val value: Int?) : Parsed
+internal data class Valid(override val value: Int?) : Parsed
 
-private data object Invalid : Parsed {
+internal data object Invalid : Parsed {
     override val value: Int? get() = null
 }
 
-private fun parse(text: String): Parsed {
+internal fun parse(text: String): Parsed {
     val trimmed = text.trim()
     if (trimmed.isEmpty()) return Valid(null)
     val number = trimmed.takeIf { digits -> digits.all { it in '0'..'9' } }?.toIntOrNull()

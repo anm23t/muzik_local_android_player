@@ -26,6 +26,8 @@ import org.muzzzlo.player.core.designsystem.component.CoverCard
 import org.muzzzlo.player.core.designsystem.component.CoverImage
 import org.muzzzlo.player.core.designsystem.component.CoverSource
 import org.muzzzlo.player.core.designsystem.component.PillButton
+import org.muzzzlo.player.core.designsystem.component.RoundIconButton
+import org.muzzzlo.player.core.designsystem.component.RoundIconButtonSize
 import org.muzzzlo.player.core.designsystem.component.ScreenFrame
 import org.muzzzlo.player.core.designsystem.component.TrackRow
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloColors
@@ -40,6 +42,7 @@ import org.muzzzlo.player.core.designsystem.R as DesignR
  * A track row shows its own artists only when they differ from the album artists.
  *
  * @param onOpenArtist opens the card of the album artist with this name.
+ * @param onEditAlbumTags opens the editor that changes the tags of every track of the album (id of the album).
  * @param miniPlayer the mini player of `feature:player`, passed in by the app.
  */
 @Composable
@@ -49,6 +52,7 @@ fun AlbumScreen(
     onOpenArtist: (String) -> Unit,
     onOpenQueue: () -> Unit,
     onEditTags: (Long) -> Unit,
+    onEditAlbumTags: (Long) -> Unit,
     miniPlayer: @Composable () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: AlbumViewModel = hiltViewModel(),
@@ -74,6 +78,13 @@ fun AlbumScreen(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MuzzzloColors.TextSecondary,
             )
+            RoundIconButton(
+                icon = DesignR.drawable.ic_pencil,
+                contentDescription = stringResource(R.string.album_edit_tags),
+                onClick = { onEditAlbumTags(album.id) },
+                size = RoundIconButtonSize.Small,
+            )
+            Spacer(Modifier.size(MuzzzloDimens.ItemGap))
             PillButton(
                 text = stringResource(R.string.album_play),
                 onClick = viewModel::onPlayAlbum,

@@ -26,6 +26,8 @@ import org.muzzzlo.player.feature.library.TracksScreen
 import org.muzzzlo.player.feature.player.MiniPlayer
 import org.muzzzlo.player.feature.player.PlayerScreen
 import org.muzzzlo.player.feature.player.QueueScreen
+import org.muzzzlo.player.feature.tageditor.BATCH_ALBUM_ID_ARG
+import org.muzzzlo.player.feature.tageditor.BatchTagEditorScreen
 import org.muzzzlo.player.feature.tageditor.TRACK_ID_ARG
 import org.muzzzlo.player.feature.tageditor.TagEditorScreen
 
@@ -38,10 +40,13 @@ private const val ROUTE_ARTIST = "artist?$ARTIST_ID_ARG={$ARTIST_ID_ARG}&$ARTIST
 private const val ROUTE_PLAYER = "player"
 private const val ROUTE_QUEUE = "queue"
 private const val ROUTE_TAG_EDITOR = "tagEditor/{$TRACK_ID_ARG}"
+private const val ROUTE_BATCH_TAG_EDITOR = "tagEditorAlbum/{$BATCH_ALBUM_ID_ARG}"
 
 private fun albumRoute(albumId: Long) = "album/$albumId"
 
 private fun tagEditorRoute(trackId: Long) = "tagEditor/$trackId"
+
+private fun batchTagEditorRoute(albumId: Long) = "tagEditorAlbum/$albumId"
 
 private fun tracksRoute(artistId: Long = NO_ARTIST) = "tracks?$ARTIST_ID_ARG=$artistId"
 
@@ -121,6 +126,7 @@ fun MuzzzloNavHost() {
                     onOpenArtist = { navController.navigate(artistRoute(it)) },
                     onOpenQueue = { navController.navigate(ROUTE_QUEUE) },
                     onEditTags = openTagEditor,
+                    onEditAlbumTags = { navController.navigate(batchTagEditorRoute(it)) },
                     miniPlayer = miniPlayer,
                 )
             }
@@ -148,6 +154,12 @@ fun MuzzzloNavHost() {
             }
             composable(ROUTE_TAG_EDITOR, arguments = listOf(navArgument(TRACK_ID_ARG) { type = NavType.LongType })) {
                 TagEditorScreen(onClose = { navController.popBackStack() })
+            }
+            composable(
+                ROUTE_BATCH_TAG_EDITOR,
+                arguments = listOf(navArgument(BATCH_ALBUM_ID_ARG) { type = NavType.LongType }),
+            ) {
+                BatchTagEditorScreen(onClose = { navController.popBackStack() })
             }
         }
     }

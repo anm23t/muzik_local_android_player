@@ -8,8 +8,8 @@ import javax.inject.Inject
 
 /** Builds the request that lets the app change a file; replaced by a fake in tests. */
 fun interface WritePermissions {
-    /** The request for the MediaStore file at [uri] (`content://`). */
-    suspend fun requestFor(uri: String): WritePermissionRequest
+    /** One request for the MediaStore files at [uris] (`content://`). */
+    suspend fun requestFor(uris: List<String>): WritePermissionRequest
 }
 
 /** [WritePermissions] on [TagWritePermission], which may open the file and so runs on the I/O dispatcher. */
@@ -19,6 +19,6 @@ internal class SystemWritePermissions
         private val permission: TagWritePermission,
         private val dispatchers: DispatcherProvider,
     ) : WritePermissions {
-        override suspend fun requestFor(uri: String): WritePermissionRequest =
-            withContext(dispatchers.io) { permission.requestFor(listOf(uri)) }
+        override suspend fun requestFor(uris: List<String>): WritePermissionRequest =
+            withContext(dispatchers.io) { permission.requestFor(uris) }
     }

@@ -126,7 +126,7 @@ fun TagEditorScreen(
 
 /** Shows the system request that lets the app change the file and reports the answer. */
 @Composable
-private fun PermissionPrompt(
+internal fun PermissionPrompt(
     request: WritePermissionRequest?,
     onResult: (Boolean) -> Unit,
 ) {
@@ -149,7 +149,7 @@ private fun PermissionPrompt(
 /** The cover card of the album card (4:311) and the track title; a tap or a long press opens the cover menu. */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun CoverHeader(
+internal fun CoverHeader(
     cover: EmbeddedPicture?,
     trackTitle: String,
     onClick: () -> Unit,
@@ -296,7 +296,7 @@ private fun NumberPair(
 
 /** Centered secondary text while the file is read or when it cannot be. */
 @Composable
-private fun Notice(
+internal fun Notice(
     text: String,
     modifier: Modifier = Modifier,
 ) {
@@ -306,7 +306,7 @@ private fun Notice(
 }
 
 @Composable
-private fun loadErrorText(error: LoadError): String =
+internal fun loadErrorText(error: LoadError): String =
     stringResource(
         when (error) {
             LoadError.Unreadable -> R.string.tag_editor_load_unreadable
@@ -315,7 +315,7 @@ private fun loadErrorText(error: LoadError): String =
     )
 
 @Composable
-private fun fieldErrorText(error: FieldError): String =
+internal fun fieldErrorText(error: FieldError): String =
     when (error) {
         FieldError.NotANumber -> stringResource(R.string.tag_editor_error_number, MAX_NUMBER)
         FieldError.TotalWithoutNumber -> stringResource(R.string.tag_editor_error_total)

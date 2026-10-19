@@ -43,6 +43,7 @@ private const val MULTI_LINE_MIN_LINES = 4
  * @param singleLine false for long text (lyrics): the field grows with its content.
  * @param numeric digits keyboard, for numbers and the year.
  * @param error message under the field; null when the value is fine.
+ * @param hint small note under the caption, for example that the value differs between files.
  */
 @Composable
 fun TagTextField(
@@ -53,9 +54,11 @@ fun TagTextField(
     singleLine: Boolean = true,
     numeric: Boolean = false,
     error: String? = null,
+    hint: String? = null,
 ) {
     Column(modifier, verticalArrangement = Arrangement.spacedBy(MuzzzloDimens.SmallGap)) {
         FieldLabel(label)
+        if (hint != null) FieldHint(hint)
         FieldBox(
             value = value,
             onValueChange = onValueChange,
@@ -78,7 +81,8 @@ fun TagTextField(
  * Empty rows stay while the user types; dropping blank values is up to the caller.
  *
  * With [onSplit] a row whose value [canSplit] shows a split button; with [onMerge] every row except the last
- * shows a merge-with-next button. Both get the row index. Same size and style as the remove button.
+ * shows a merge-with-next button. Both get the row index. Same size and style as the remove button. [hint] is a
+ * small note under the caption.
  */
 @Composable
 fun ValueListField(
@@ -91,9 +95,11 @@ fun ValueListField(
     canSplit: (String) -> Boolean = { false },
     onSplit: ((Int) -> Unit)? = null,
     onMerge: ((Int) -> Unit)? = null,
+    hint: String? = null,
 ) {
     Column(modifier, verticalArrangement = Arrangement.spacedBy(MuzzzloDimens.SmallGap)) {
         FieldLabel(label)
+        if (hint != null) FieldHint(hint)
         values.forEachIndexed { index, value ->
             Row(
                 horizontalArrangement = Arrangement.spacedBy(MuzzzloDimens.ItemGap),
@@ -134,6 +140,11 @@ fun ValueListField(
         }
         ActionRow(icon = addIcon, text = addLabel, onClick = { onValuesChange(values + "") })
     }
+}
+
+@Composable
+private fun FieldHint(text: String) {
+    Text(text, style = MaterialTheme.typography.bodySmall, color = MuzzzloColors.TextSecondary)
 }
 
 @Composable

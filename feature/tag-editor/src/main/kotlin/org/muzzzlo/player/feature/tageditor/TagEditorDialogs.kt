@@ -23,9 +23,12 @@ internal fun ConfirmWriteDialog(
     coverRemoved: Boolean,
     onWrite: () -> Unit,
     onDismiss: () -> Unit,
+    title: String = stringResource(R.string.tag_editor_confirm_title),
+    text: String = stringResource(R.string.tag_editor_confirm_text),
+    showBefore: Boolean = true,
 ) {
-    MuzzzloDialog(title = stringResource(R.string.tag_editor_confirm_title), onDismiss = onDismiss) {
-        DialogText(stringResource(R.string.tag_editor_confirm_text))
+    MuzzzloDialog(title = title, onDismiss = onDismiss) {
+        DialogText(text)
         changes.forEach { change ->
             Column {
                 Text(
@@ -34,7 +37,7 @@ internal fun ConfirmWriteDialog(
                     color = MuzzzloColors.TextSecondary,
                 )
                 Text(
-                    text = changeText(change, coverRemoved),
+                    text = changeText(change, coverRemoved, showBefore),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MuzzzloColors.TextPrimary,
                 )
@@ -110,6 +113,7 @@ private fun fieldLabel(field: TagField): String =
 private fun changeText(
     change: TagChange,
     coverRemoved: Boolean,
+    showBefore: Boolean,
 ): String =
     when (change.field) {
         TagField.Cover ->
@@ -119,11 +123,15 @@ private fun changeText(
         TagField.Lyrics -> stringResource(R.string.tag_editor_change_lyrics)
         else -> {
             val empty = stringResource(R.string.tag_editor_change_empty)
-            stringResource(
-                R.string.tag_editor_change_value,
-                change.before.ifEmpty { empty },
-                change.after.ifEmpty { empty },
-            )
+            if (!showBefore) {
+                change.after.ifEmpty { empty }
+            } else {
+                stringResource(
+                    R.string.tag_editor_change_value,
+                    change.before.ifEmpty { empty },
+                    change.after.ifEmpty { empty },
+                )
+            }
         }
     }
 
@@ -138,7 +146,7 @@ private fun problemText(problem: WriteProblem): String {
 }
 
 @Composable
-private fun writeResultText(
+internal fun writeResultText(
     result: TagWriteResult,
     formatBytes: (Long) -> String,
 ): String =
@@ -160,3 +168,27 @@ private fun writeResultText(
         TagWriteResult.NeedsPermission,
         -> stringResource(R.string.tag_editor_problem_write)
     }
+
+/** What went wrong with an album write and what became of the files written before it. */
+@Composable
+internal fun AlbumFailedDialog(
+    failure: AlbumWriteFailure,
+    onDismiss: () -> Unit,
+) {
+    val context = LocalContext.current
+    MuzzzloDialog(title = stringResource(R.string.batch_editor_failed_title), onDismiss = onDismiss) {
+        val reason =
+            failure.result?.let { result -> writeResultText(result) { Formatter.formatShortFileSize(context, it) } }
+        if (failure.failedTitle != null && reason != null) {
+            DialogText(stringResource(R.string.batch_editor_failed_track, failure.failedTitle, reason))
+        } else {
+            DialogText(stringResource(R.string.tag_editor_problem_permission))
+        }
+        if (failure.restored) {
+            DialogText(stringResource(R.string.batch_editor_restored))
+        } else {
+            DialogText(stringResource(R.string.batch_editor_not_restored, failure.notRestored.joinToString(", ")))
+        }
+        PillButton(stringResource(R.string.tag_editor_ok), onClick = onDismiss, wide = true)
+    }
+}

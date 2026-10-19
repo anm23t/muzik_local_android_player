@@ -59,4 +59,15 @@
     <string name="tag_editor_problem_file_changed">The file changed while the tags were being saved. Nothing was written; try again.</string>
     <string name="tag_editor_problem_restored">Replacing the file failed. The original was restored.</string>
     <string name="tag_editor_problem_not_restored">Replacing the file failed. A backup is kept, and the file will be restored the next time the app starts.</string>
+    <string name="batch_editor_title">Edit album tags</string>
+    <string name="batch_editor_tracks">%1$d tracks</string>
+    <string name="batch_editor_skipped">%1$d tracks cannot be read and are left alone.</string>
+    <string name="batch_editor_mixed">Different in each track. Type a value to set it for all.</string>
+    <string name="batch_editor_saving">Saving %1$d of %2$d…</string>
+    <string name="batch_editor_confirm_title">Write to %1$d files?</string>
+    <string name="batch_editor_confirm_text">The changes go into every file of the album. If one file fails, the files already written get their old tags back.</string>
+    <string name="batch_editor_failed_title">Album not saved</string>
+    <string name="batch_editor_failed_track">“%1$s” could not be saved. %2$s</string>
+    <string name="batch_editor_restored">The files written before it were restored, so the album is as it was.</string>
+    <string name="batch_editor_not_restored">These files could not be restored: %1$s. Open them in the track editor to check their tags.</string>
 </resources>

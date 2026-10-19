@@ -55,8 +55,8 @@ class TagEditorViewModelTest {
             tags = repository,
             library = FakeLibrary(track),
             pictures = pictures,
-            permissions = { uri ->
-                permissionUris += uri
+            permissions = { uris ->
+                permissionUris += uris
                 permissionRequest
             },
             savedState = SavedStateHandle(mapOf(TRACK_ID_ARG to TRACK_ID)),

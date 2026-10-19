@@ -28,6 +28,7 @@
     <string name="albums_sort_track_count">By number of songs</string>
     <string name="albums_sort_date_added">By date added</string>
     <string name="album_play">Play</string>
+    <string name="album_edit_tags">Edit album tags</string>
 
     <string name="list_sort">Sort</string>
     <string name="list_sort_title">Sort</string>

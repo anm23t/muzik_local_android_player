@@ -216,7 +216,7 @@ class TagEditorViewModel
 
         private suspend fun askPermission() {
             val uri = state.value.trackUri
-            when (val request = uri?.let { permissions.requestFor(it) }) {
+            when (val request = uri?.let { permissions.requestFor(listOf(it)) }) {
                 null -> showDialog(EditorDialog.Problem(WriteProblem.PermissionDenied))
                 // The system has nothing to ask: try once more, a second refusal is reported.
                 WritePermissionRequest.NotNeeded -> onPermissionResult(granted = true)

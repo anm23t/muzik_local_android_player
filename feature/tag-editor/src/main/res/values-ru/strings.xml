@@ -59,4 +59,15 @@
     <string name="tag_editor_problem_file_changed">Файл изменился во время сохранения. Ничего не записано, попробуйте ещё раз.</string>
     <string name="tag_editor_problem_restored">Не удалось заменить файл. Оригинал восстановлен.</string>
     <string name="tag_editor_problem_not_restored">Не удалось заменить файл. Резервная копия сохранена, файл восстановится при следующем запуске приложения.</string>
+    <string name="batch_editor_title">Теги альбома</string>
+    <string name="batch_editor_tracks">Треков: %1$d</string>
+    <string name="batch_editor_skipped">Треков, которые не удалось прочитать: %1$d. Они остаются как есть.</string>
+    <string name="batch_editor_mixed">У треков по-разному. Введите значение, чтобы задать его всем.</string>
+    <string name="batch_editor_saving">Запись %1$d из %2$d…</string>
+    <string name="batch_editor_confirm_title">Записать в файлы (%1$d)?</string>
+    <string name="batch_editor_confirm_text">Изменения попадут в каждый файл альбома. Если один файл не запишется, уже записанным вернутся прежние теги.</string>
+    <string name="batch_editor_failed_title">Альбом не сохранён</string>
+    <string name="batch_editor_failed_track">«%1$s» не удалось сохранить. %2$s</string>
+    <string name="batch_editor_restored">Файлы, записанные до него, восстановлены, альбом как был.</string>
+    <string name="batch_editor_not_restored">Эти файлы не удалось восстановить: %1$s. Откройте их в редакторе трека и проверьте теги.</string>
 </resources>

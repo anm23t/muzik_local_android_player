@@ -30,6 +30,7 @@
     <string name="albums_sort_track_count">По количеству песен</string>
     <string name="albums_sort_date_added">По дате добавления</string>
     <string name="album_play">Играть</string>
+    <string name="album_edit_tags">Теги альбома</string>
 
     <string name="list_sort">Сортировка</string>
     <string name="list_sort_title">Сортировка</string>
