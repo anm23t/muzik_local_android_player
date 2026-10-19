@@ -5,6 +5,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
@@ -21,6 +22,9 @@ import org.muzzzlo.player.core.model.ArtistEdit
 import org.muzzzlo.player.core.model.ArtistEditToken
 import org.muzzzlo.player.core.model.ArtistProfileRepository
 import org.muzzzlo.player.core.model.AudioFormat
+import org.muzzzlo.player.core.model.CompoundNames
+import org.muzzzlo.player.core.model.CompoundRepository
+import org.muzzzlo.player.core.model.CompoundRule
 import org.muzzzlo.player.core.model.EmbeddedPicture
 import org.muzzzlo.player.core.model.FileTags
 import org.muzzzlo.player.core.model.LibraryRepository
@@ -50,11 +54,12 @@ class ArtistProfileViewModelTest {
     @AfterEach
     fun tearDown() = Dispatchers.resetMain()
 
-    private fun viewModel() =
+    private fun viewModel(compounds: CompoundNames = CompoundNames.None) =
         ArtistProfileViewModel(
             tags = repository,
             library = library,
             profiles = profiles,
+            compoundRepository = FakeCompounds(compounds),
             permissions = { uris ->
                 permissionRequests += uris
                 permissionAnswer
@@ -181,6 +186,51 @@ class ArtistProfileViewModelTest {
     }
 
     private fun track(id: Long) = Track(id, "content://media/$id", "T$id", emptyList(), null, null, 1_000, null)
+
+    @Test
+    fun `a compound name in the file is not cut at its comma when another artist is renamed`() {
+        val tyler = CompoundNames { setOf(listOf("tyler", "the creator")) }
+        val file = TrackTags(title = "T", artists = listOf("Tyler, The Creator, Kanye West"))
+        repository.extra[1L] = file
+        profiles.name = "Kanye West"
+        profiles.ids = listOf(1L)
+
+        val viewModel = viewModel(tyler)
+        viewModel.onValuesChange(listOf("Ye"))
+        viewModel.save()
+
+        assertEquals(listOf("Tyler, The Creator", "Ye"), repository.writes.single().second.artists)
+    }
+
+    @Test
+    fun `without the compound rule the same file is cut at every comma`() {
+        val file = TrackTags(title = "T", artists = listOf("Tyler, The Creator, Kanye West"))
+        repository.extra[1L] = file
+        profiles.name = "Kanye West"
+        profiles.ids = listOf(1L)
+
+        val viewModel = viewModel()
+        viewModel.onValuesChange(listOf("Ye"))
+        viewModel.save()
+
+        assertEquals(listOf("Tyler", "The Creator", "Ye"), repository.writes.single().second.artists)
+    }
+
+    private class FakeCompounds(private val names: CompoundNames) : CompoundRepository {
+        override fun observeRules(): Flow<List<CompoundRule>> = flowOf(emptyList())
+
+        override suspend fun compoundNames() = names
+
+        override suspend fun syncBuiltIn() = Unit
+
+        override suspend fun remember(name: String) = 0
+
+        override suspend fun remove(id: Long) = 0
+
+        override suspend fun countAffectedBy(id: Long) = 0
+
+        override suspend fun enable(id: Long) = 0
+    }
 
     private class FakeProfiles : ArtistProfileRepository {
         var name: String? = "Kanye West & JAY-Z"

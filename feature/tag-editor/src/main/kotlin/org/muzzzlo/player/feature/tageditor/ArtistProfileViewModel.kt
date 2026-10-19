@@ -13,6 +13,8 @@ import org.muzzzlo.player.core.model.ArtistEdit
 import org.muzzzlo.player.core.model.ArtistEditToken
 import org.muzzzlo.player.core.model.ArtistProfileRepository
 import org.muzzzlo.player.core.model.ArtistSplitter
+import org.muzzzlo.player.core.model.CompoundNames
+import org.muzzzlo.player.core.model.CompoundRepository
 import org.muzzzlo.player.core.model.LibraryRepository
 import org.muzzzlo.player.core.model.NameNormalizer
 import org.muzzzlo.player.core.model.TagEdit
@@ -94,6 +96,7 @@ class ArtistProfileViewModel
         private val tags: TrackTagRepository,
         private val library: LibraryRepository,
         private val profiles: ArtistProfileRepository,
+        private val compoundRepository: CompoundRepository,
         private val permissions: WritePermissions,
         savedState: SavedStateHandle,
     ) : ViewModel() {
@@ -105,12 +108,15 @@ class ArtistProfileViewModel
         private var token: ArtistEditToken? = null
         private var pending: Pending? = null
         private var askedAt = -1
+        private var compounds: CompoundNames = CompoundNames.None
 
         init {
             viewModelScope.launch { load() }
         }
 
         private suspend fun load() {
+            // Files hold the artists as one string: "Tyler, The Creator" must not be cut at its comma.
+            compounds = compoundRepository.compoundNames()
             val name = profiles.artistName(artistId)
             if (name == null) {
                 mutableState.update { it.copy(loaded = true, notFound = true) }
@@ -198,8 +204,8 @@ class ArtistProfileViewModel
             edit: ArtistEdit,
         ): TagEdit {
             val base = TagEdit.from(current)
-            val artists = ArtistSplitter.split(current.artists)
-            val albumArtists = ArtistSplitter.split(current.albumArtists)
+            val artists = ArtistSplitter.split(current.artists, compounds)
+            val albumArtists = ArtistSplitter.split(current.albumArtists, compounds)
             return base.copy(
                 artists = if (edit.changes(artists)) edit.applyTo(artists) else current.artists,
                 albumArtists = if (edit.changes(albumArtists)) edit.applyTo(albumArtists) else current.albumArtists,
