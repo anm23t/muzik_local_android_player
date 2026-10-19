@@ -30,4 +30,5 @@ ff -f lavfi -i "color=c=blue:s=8x8" -frames:v 1 -fflags +bitexact cover_other.pn
 
 "$PY" -I "$HERE/tag_fixtures.py" "$OUT"
 "$PY" -I "$HERE/extra_fixtures.py" "$OUT"
+"$PY" -I "$HERE/replaygain_fixtures.py" "$OUT"
 ls -l "$OUT"

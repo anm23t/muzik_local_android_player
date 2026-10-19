@@ -38,6 +38,7 @@ internal class TagLibTagReader
                         id3v2Version = native.id3v2Version,
                         tags = PropertyMapper.toTrackTags(native.properties, native.pictureCount),
                         audio = native.audio,
+                        replayGain = ReplayGainTags.read(native.properties),
                     ),
                 )
             }

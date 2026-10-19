@@ -9,9 +9,11 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
+import org.junit.jupiter.params.provider.ValueSource
 import org.muzzzlo.player.core.model.AudioFormat
 import org.muzzzlo.player.core.model.EmbeddedPicture
 import org.muzzzlo.player.core.model.FileTags
+import org.muzzzlo.player.core.model.ReplayGainInfo
 import org.muzzzlo.player.core.model.TagReadResult
 import org.muzzzlo.player.core.model.TagSource
 import org.muzzzlo.player.core.model.TrackTags
@@ -79,6 +81,28 @@ class TagLibTagReaderTest {
             val cover = reader.readCover(TagSource.FilePath(fixture(reference.fileName).path))
 
             assertEquals(EmbeddedPicture(frontCoverBytes(), "image/png", reference.coverType), cover)
+        }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["replaygain_v24.mp3", "replaygain.flac", "replaygain.m4a", "replaygain.opus"])
+    fun `reads ReplayGain values in every format`(name: String) =
+        runTest {
+            val fileTags = readSuccess(TagSource.FilePath(fixture(name).path))
+
+            assertEquals(ReplayGainInfo(-6.5f, 0.912345f, -7.25f, 0.987654f), fileTags.replayGain, name)
+            assertEquals(TrackTags(), fileTags.tags, name)
+        }
+
+    @Test
+    fun `reads the track gain of files with other tags and none from untagged files`() =
+        runTest {
+            for (name in listOf("extra_v23.mp3", "extra_v24.mp3", "extra.flac", "extra.ogg")) {
+                val fileTags = readSuccess(TagSource.FilePath(fixture(name).path))
+                assertEquals(ReplayGainInfo(trackGainDb = -6.5f), fileTags.replayGain, name)
+            }
+            for (name in listOf("untagged.mp3", "untagged.flac", "flac.flac")) {
+                assertEquals(ReplayGainInfo.NONE, readSuccess(TagSource.FilePath(fixture(name).path)).replayGain, name)
+            }
         }
 
     @Test
