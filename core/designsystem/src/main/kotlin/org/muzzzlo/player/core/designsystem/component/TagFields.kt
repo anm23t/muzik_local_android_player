@@ -82,7 +82,8 @@ fun TagTextField(
  *
  * With [onSplit] a row whose value [canSplit] shows a split button; with [onMerge] every row except the last
  * shows a merge-with-next button. Both get the row index. Same size and style as the remove button. [hint] is a
- * small note under the caption.
+ * small note under the caption. With [onMove] every row shows up and down arrows (the first row cannot go up,
+ * the last cannot go down); it gets the row index and the direction, -1 up or 1 down.
  */
 @Composable
 fun ValueListField(
@@ -95,6 +96,7 @@ fun ValueListField(
     canSplit: (String) -> Boolean = { false },
     onSplit: ((Int) -> Unit)? = null,
     onMerge: ((Int) -> Unit)? = null,
+    onMove: ((Int, Int) -> Unit)? = null,
     hint: String? = null,
 ) {
     Column(modifier, verticalArrangement = Arrangement.spacedBy(MuzzzloDimens.SmallGap)) {
@@ -114,6 +116,22 @@ fun ValueListField(
                     highlighted = false,
                     modifier = Modifier.weight(1f),
                 )
+                if (onMove != null) {
+                    RoundIconButton(
+                        icon = R.drawable.ic_arrow_up_wide_narrow,
+                        contentDescription = stringResource(R.string.designsystem_move_value_up, value),
+                        onClick = { onMove(index, -1) },
+                        size = RoundIconButtonSize.Small,
+                        enabled = index > 0,
+                    )
+                    RoundIconButton(
+                        icon = R.drawable.ic_arrow_down_wide_narrow,
+                        contentDescription = stringResource(R.string.designsystem_move_value_down, value),
+                        onClick = { onMove(index, 1) },
+                        size = RoundIconButtonSize.Small,
+                        enabled = index < values.lastIndex,
+                    )
+                }
                 if (onSplit != null && canSplit(value)) {
                     RoundIconButton(
                         icon = R.drawable.ic_split,

@@ -4,6 +4,8 @@
     <string name="designsystem_close">Close</string>
     <string name="designsystem_remove_value">Remove %1$s</string>
     <string name="designsystem_split_value">Split %1$s</string>
+    <string name="designsystem_move_value_up">Move %1$s up</string>
+    <string name="designsystem_move_value_down">Move %1$s down</string>
     <string name="designsystem_merge_value">Merge %1$s with the next value</string>
     <string name="designsystem_now_playing">Now playing</string>
     <string name="designsystem_play">Play</string>
