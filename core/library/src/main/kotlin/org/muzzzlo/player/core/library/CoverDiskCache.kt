@@ -41,16 +41,16 @@ internal class CoverDiskCache(
         return file
     }
 
-    /** Deletes the files used the longest ago until the folder fits the limit. */
+    /**
+     * Deletes the files used the longest ago until the folder fits the limit. Times and sizes are read once before
+     * sorting: a hit in another thread may change a file's time meanwhile, and a sort over a changing key fails.
+     */
     private fun trim(keep: File) {
-        val files = folder.listFiles { f -> f.isFile && f.name.endsWith(EXTENSION) }.orEmpty()
-        var total = files.sumOf { it.length() }
-        for (file in files.sortedBy { it.lastModified() }) {
-            if (total <= limitBytes) return
-            if (file == keep) continue
-            val size = file.length()
-            if (file.delete()) total -= size
-        }
+        val entries =
+            folder.listFiles { f -> f.isFile && f.name.endsWith(EXTENSION) }
+                .orEmpty()
+                .map { CachedCover(it.name, it.lastModified(), it.length()) }
+        for (name in coversToDelete(entries, limitBytes, keep.name)) File(folder, name).delete()
     }
 
     private fun fileFor(key: String) = File(folder, "$key$EXTENSION")
@@ -59,6 +59,33 @@ internal class CoverDiskCache(
         const val EXTENSION = ".jpg"
         const val PART = ".part"
     }
+}
+
+/** A cover file as [coversToDelete] sees it: its name, time of last use and size, read once. */
+internal data class CachedCover(
+    val name: String,
+    val lastUsedMs: Long,
+    val sizeBytes: Long,
+)
+
+/**
+ * Names of the covers to delete so the rest fits [limitBytes]: the ones used the longest ago first, [keep] never
+ * (even when it alone is over the limit). Covers used at the same time go in name order, so the result is stable.
+ */
+internal fun coversToDelete(
+    covers: List<CachedCover>,
+    limitBytes: Long,
+    keep: String,
+): List<String> {
+    var total = covers.sumOf { it.sizeBytes }
+    val deleted = mutableListOf<String>()
+    val candidates = covers.filter { it.name != keep }.sortedWith(compareBy({ it.lastUsedMs }, { it.name }))
+    for (cover in candidates) {
+        if (total <= limitBytes) break
+        deleted += cover.name
+        total -= cover.sizeBytes
+    }
+    return deleted
 }
 
 /**
