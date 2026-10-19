@@ -10,7 +10,9 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
+import org.muzzzlo.player.core.model.ArtistSplitter
 import org.muzzzlo.player.core.model.AudioFormat
+import org.muzzzlo.player.core.model.CompoundNames
 import org.muzzzlo.player.core.model.CoverEdit
 import org.muzzzlo.player.core.model.EmbeddedPicture
 import org.muzzzlo.player.core.model.TagEdit
@@ -70,6 +72,19 @@ class SafeTagWriterTest {
             assertEquals(expectedTags(joinArtists = version == 3, hasCover = fixture.pictureCount > 0), fileTags.tags)
             assertEquals(version, fileTags.id3v2Version)
             assertNoTransactionsLeft()
+        }
+
+    @ParameterizedTest
+    @EnumSource(Fixture::class)
+    fun `split artists come back unchanged after a write and a read`(fixture: Fixture) =
+        runTest {
+            val artists = listOf("Tyler, The Creator", "Kanye West", "Simon & Garfunkel")
+            val compounds = CompoundNames { setOf(listOf("tyler", "the creator")) }
+            val file = copyOf(fixture.fileName)
+
+            assertEquals(TagWriteResult.Success, writer().writeTags(target(file), TagEdit(artists = artists)))
+
+            assertEquals(artists, ArtistSplitter.split(readSuccess(file).tags.artists, compounds))
         }
 
     @ParameterizedTest

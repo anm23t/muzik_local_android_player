@@ -1,10 +1,9 @@
-package org.muzzzlo.player.core.tags
+package org.muzzzlo.player.core.model
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
-import org.muzzzlo.player.core.model.CompoundNames
 import java.util.stream.Stream
 
 class ArtistSplitterTest {

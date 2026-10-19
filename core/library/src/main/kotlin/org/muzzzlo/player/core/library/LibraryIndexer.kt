@@ -65,8 +65,7 @@ class LibraryIndexer
             metadata: TrackMetadata,
             existingId: Long?,
         ) {
-            val artists = metadata.artistTagValues
-            val artistIds = artists.map { dao.artistId(it, NameNormalizer.key(it)) }
+            val artistIds = metadata.artists.map { dao.artistId(it, NameNormalizer.key(it)) }
             val albumId =
                 metadata.album?.let { album ->
                     val albumArtistIds = metadata.albumArtistValues.map { dao.artistId(it, NameNormalizer.key(it)) }
@@ -85,7 +84,7 @@ class LibraryIndexer
                     relativePath = file.relativePath,
                     title = metadata.title,
                     titleKey = NameNormalizer.key(metadata.title),
-                    artistTagValues = jsonArray(artists),
+                    artistTagValues = jsonArray(metadata.artistTagValues),
                     albumId = albumId,
                     trackNumber = metadata.trackNumber,
                     discNumber = metadata.discNumber,

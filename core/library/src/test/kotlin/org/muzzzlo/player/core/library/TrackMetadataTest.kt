@@ -51,6 +51,7 @@ class TrackMetadataTest {
             TrackMetadata(
                 title = "Song",
                 artistTagValues = listOf("Alpha", "Beta"),
+                artists = listOf("Alpha", "Beta"),
                 albumArtistValues = listOf("Alpha", "Beta"),
                 album = "Album",
                 year = 2024,
@@ -72,6 +73,17 @@ class TrackMetadataTest {
         val tags = TrackTags(artists = listOf("Kanye West", "Pusha T"), albumArtists = listOf("Kanye West"))
 
         assertEquals(listOf("Kanye West"), trackMetadata(mediaStore, success(tags, null)).albumArtistValues)
+    }
+
+    @Test
+    fun `artist values are split and the raw values stay`() {
+        val tags = TrackTags(artists = listOf("Alpha; Beta, Gamma"), albumArtists = listOf("Delta, Epsilon"))
+
+        val metadata = trackMetadata(mediaStore, success(tags, null))
+
+        assertEquals(listOf("Alpha; Beta, Gamma"), metadata.artistTagValues)
+        assertEquals(listOf("Alpha", "Beta, Gamma"), metadata.artists)
+        assertEquals(listOf("Delta", "Epsilon"), metadata.albumArtistValues)
     }
 
     @Test
@@ -152,7 +164,8 @@ class TrackMetadataTest {
         TrackMetadata(
             title = "file-name",
             artistTagValues = listOf("Alpha; Beta"),
-            albumArtistValues = listOf("Alpha; Beta"),
+            artists = listOf("Alpha", "Beta"),
+            albumArtistValues = listOf("Alpha", "Beta"),
             album = "MediaStore Album",
             year = 1999,
             trackNumber = 5,

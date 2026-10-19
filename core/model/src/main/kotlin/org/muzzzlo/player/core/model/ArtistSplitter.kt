@@ -1,7 +1,4 @@
-package org.muzzzlo.player.core.tags
-
-import org.muzzzlo.player.core.model.CompoundNames
-import org.muzzzlo.player.core.model.NameNormalizer
+package org.muzzzlo.player.core.model
 
 /**
  * Turns the raw artist values of a file into separate artist names (ARCHITECTURE.md, section 4).

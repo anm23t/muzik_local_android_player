@@ -1,20 +1,24 @@
 package org.muzzzlo.player.core.library
 
+import org.muzzzlo.player.core.model.ArtistSplitter
 import org.muzzzlo.player.core.model.AudioFormat
+import org.muzzzlo.player.core.model.CompoundNames
 import org.muzzzlo.player.core.model.TagReadResult
 
 /**
  * What the indexer writes for one file: tags from the file itself when they could be read,
  * MediaStore values otherwise.
  *
- * @property artistTagValues raw values of the artist tag; each one becomes an artist until splitting arrives (0.4.1).
- * @property albumArtistValues artists the album is credited to: the album artist tag, or the track artists when the
- * file has none (DESIGN.md, section 3: the album artist comes from its own tag).
+ * @property artistTagValues raw values of the artist tag as the file holds them (`track.artist_tag_values`).
+ * @property artists the track artists: [artistTagValues] split by [ArtistSplitter] (ARCHITECTURE.md, section 4).
+ * @property albumArtistValues artists the album is credited to: the album artist tag split the same way, or the
+ * track artists when the file has none (DESIGN.md, section 3: the album artist comes from its own tag).
  * @property isDamaged the file crashed the native tag reader and is quarantined.
  */
 internal data class TrackMetadata(
     val title: String,
     val artistTagValues: List<String>,
+    val artists: List<String>,
     val albumArtistValues: List<String>,
     val album: String?,
     val year: Int?,
@@ -46,7 +50,8 @@ internal fun trackMetadata(
             TrackMetadata(
                 title = tags.title ?: file.title,
                 artistTagValues = tags.artists,
-                albumArtistValues = albumArtists(tags.albumArtists, tags.artists),
+                artists = splitArtists(tags.artists),
+                albumArtistValues = albumArtists(splitArtists(tags.albumArtists), splitArtists(tags.artists)),
                 album = tags.album,
                 year = tags.year,
                 trackNumber = tags.trackNumber,
@@ -69,7 +74,8 @@ private fun mediaStoreMetadata(
 ) = TrackMetadata(
     title = file.title,
     artistTagValues = artistNames(file.artist),
-    albumArtistValues = artistNames(file.artist),
+    artists = splitArtists(artistNames(file.artist)),
+    albumArtistValues = splitArtists(artistNames(file.artist)),
     album = cleanAlbum(file.album),
     year = file.year,
     trackNumber = file.trackNumber,
@@ -81,6 +87,9 @@ private fun mediaStoreMetadata(
     hasLyrics = false,
     isDamaged = isDamaged,
 )
+
+/** Splits raw artist tag values into names. Compound names (0.4.6) are not known to the scanner yet. */
+private fun splitArtists(values: List<String>): List<String> = ArtistSplitter.split(values, CompoundNames.None)
 
 /** The album artist tag without blank values; the track artists stand in when nothing is left. */
 internal fun albumArtists(
