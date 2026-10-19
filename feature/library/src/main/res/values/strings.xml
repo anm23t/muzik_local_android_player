@@ -53,5 +53,14 @@
     <string name="artist_photo_choose">Choose photo</string>
     <string name="artist_photo_remove">Remove photo</string>
 
+    <string name="artists_check">Check</string>
+    <string name="check_title">Check artists</string>
+    <string name="check_loading">Looking for doubled artists…</string>
+    <string name="check_empty">No doubled artists found.</string>
+    <string name="check_done">All groups are checked.</string>
+    <string name="check_hint">These artists look like the same one. Pick the spelling to keep: the others are merged into it and remembered, so a rescan does not bring them back. Tags in your files stay as they are.</string>
+    <string name="check_merge">Merge into the chosen one</string>
+    <string name="check_skip">Skip</string>
+
     <string name="tracks_title">All songs</string>
 </resources>

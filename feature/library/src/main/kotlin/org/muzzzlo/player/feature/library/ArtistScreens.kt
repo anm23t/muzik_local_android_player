@@ -52,12 +52,14 @@ import org.muzzzlo.player.core.designsystem.R as DesignR
 /**
  * Artist list (23:403): the same screen as the album list with artist rows and their photos.
  *
+ * @param onCheck opens the check of doubled artists.
  * @param miniPlayer the mini player of `feature:player`, passed in by the app.
  */
 @Composable
 fun ArtistListScreen(
     onBack: () -> Unit,
     onOpenArtist: (Long) -> Unit,
+    onCheck: () -> Unit,
     miniPlayer: @Composable () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: ArtistListViewModel = hiltViewModel(),
@@ -73,6 +75,10 @@ fun ArtistListScreen(
         isEmpty = state.isLoaded && state.artists.isEmpty(),
         miniPlayer = miniPlayer,
         modifier = modifier,
+        headerAction = {
+            PillButton(text = stringResource(R.string.artists_check), onClick = onCheck)
+            Spacer(Modifier.width(MuzzzloDimens.ItemGap))
+        },
     ) {
         items(state.artists, key = { it.id }) { artist ->
             ArtistRow(

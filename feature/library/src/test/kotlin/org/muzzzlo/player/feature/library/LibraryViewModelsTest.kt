@@ -24,6 +24,7 @@ import org.junit.jupiter.params.provider.EnumSource
 import org.muzzzlo.player.core.designsystem.component.TrackAction
 import org.muzzzlo.player.core.model.Album
 import org.muzzzlo.player.core.model.Artist
+import org.muzzzlo.player.core.model.ArtistCheckRepository
 import org.muzzzlo.player.core.model.LibraryRepository
 import org.muzzzlo.player.core.model.PlayerState
 import org.muzzzlo.player.core.model.Track
@@ -220,6 +221,54 @@ class LibraryViewModelsTest {
 
     private fun <T> TestScope.subscribe(state: StateFlow<T>) {
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { state.collect {} }
+    }
+
+    @Test
+    fun `the check finds doubled artists and merges the group into the chosen spelling`() =
+        runTest {
+            val doubled =
+                FakeLibrary(emptyList(), emptyList(), listOf(Artist(1, "Beyoncé", 2), Artist(2, "Beyonce", 5), bob))
+            val check = FakeCheck()
+            val viewModel = ArtistCheckViewModel(doubled, check)
+            subscribe(viewModel.state)
+
+            val group = viewModel.state.value.groups.single()
+            assertEquals(2L, group.keepId)
+
+            viewModel.onKeepChosen(0, 1)
+            viewModel.onApply(0)
+
+            assertEquals(listOf(1L to listOf(2L)), check.merges)
+            assertEquals(emptyList<CheckGroup>(), viewModel.state.value.groups)
+            assertEquals(1, viewModel.state.value.appliedCount)
+        }
+
+    @Test
+    fun `skipping a group merges nothing and a clean library has no groups`() =
+        runTest {
+            val doubled = FakeLibrary(emptyList(), emptyList(), listOf(Artist(1, "Pink", 1), Artist(2, "P!nk", 1)))
+            val check = FakeCheck()
+            val viewModel = ArtistCheckViewModel(doubled, check)
+            subscribe(viewModel.state)
+            viewModel.onSkip(0)
+            assertEquals(emptyList<CheckGroup>(), viewModel.state.value.groups)
+            assertEquals(emptyList<Pair<Long, List<Long>>>(), check.merges)
+
+            val clean = ArtistCheckViewModel(library, check)
+            subscribe(clean.state)
+            assertEquals(true, clean.state.value.isLoaded)
+            assertEquals(emptyList<CheckGroup>(), clean.state.value.groups)
+        }
+
+    private class FakeCheck : ArtistCheckRepository {
+        val merges = mutableListOf<Pair<Long, List<Long>>>()
+
+        override suspend fun merge(
+            keepId: Long,
+            variantIds: List<Long>,
+        ) {
+            merges += keepId to variantIds
+        }
     }
 
     private class FakeLibrary(

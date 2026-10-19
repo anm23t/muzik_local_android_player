@@ -57,5 +57,14 @@
     <string name="artist_photo_choose">Выбрать фото</string>
     <string name="artist_photo_remove">Убрать фото</string>
 
+    <string name="artists_check">Проверка</string>
+    <string name="check_title">Проверка исполнителей</string>
+    <string name="check_loading">Ищу двойников…</string>
+    <string name="check_empty">Двойников среди исполнителей нет.</string>
+    <string name="check_done">Все группы проверены.</string>
+    <string name="check_hint">Похоже, это один и тот же исполнитель. Выберите написание, которое остаётся: остальные объединяются с ним и запоминаются, поэтому повторное сканирование их не вернёт. Теги в файлах не меняются.</string>
+    <string name="check_merge">Объединить с выбранным</string>
+    <string name="check_skip">Пропустить</string>
+
     <string name="tracks_title">Все песни</string>
 </resources>

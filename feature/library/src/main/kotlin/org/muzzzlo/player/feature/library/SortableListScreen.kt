@@ -2,6 +2,7 @@ package org.muzzzlo.player.feature.library
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -41,6 +42,7 @@ internal fun <F> SortableListScreen(
     isEmpty: Boolean,
     miniPlayer: @Composable () -> Unit,
     modifier: Modifier = Modifier,
+    headerAction: @Composable RowScope.() -> Unit = {},
     rows: LazyListScope.() -> Unit,
 ) where F : Enum<F>, F : SortField {
     var sortOpen by rememberSaveable { mutableStateOf(false) }
@@ -57,6 +59,7 @@ internal fun <F> SortableListScreen(
 
     ScreenFrame(modifier) {
         ScreenHeader(onBack = onBack) {
+            headerAction()
             PillButton(
                 text = stringResource(R.string.list_sort),
                 onClick = { sortOpen = true },

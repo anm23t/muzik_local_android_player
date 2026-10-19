@@ -18,6 +18,7 @@ import org.muzzzlo.player.feature.library.ARTIST_ID_ARG
 import org.muzzzlo.player.feature.library.ARTIST_NAME_ARG
 import org.muzzzlo.player.feature.library.AlbumListScreen
 import org.muzzzlo.player.feature.library.AlbumScreen
+import org.muzzzlo.player.feature.library.ArtistCheckScreen
 import org.muzzzlo.player.feature.library.ArtistListScreen
 import org.muzzzlo.player.feature.library.ArtistScreen
 import org.muzzzlo.player.feature.library.HomeScreen
@@ -38,6 +39,7 @@ private const val ROUTE_ALBUMS = "albums"
 private const val ROUTE_ALBUM = "album/{$ALBUM_ID_ARG}"
 private const val ROUTE_TRACKS = "tracks?$ARTIST_ID_ARG={$ARTIST_ID_ARG}"
 private const val ROUTE_ARTISTS = "artists"
+private const val ROUTE_ARTIST_CHECK = "artistCheck"
 private const val ROUTE_ARTIST = "artist?$ARTIST_ID_ARG={$ARTIST_ID_ARG}&$ARTIST_NAME_ARG={$ARTIST_NAME_ARG}"
 private const val ROUTE_PLAYER = "player"
 private const val ROUTE_QUEUE = "queue"
@@ -112,8 +114,12 @@ fun MuzzzloNavHost() {
                 ArtistListScreen(
                     onBack = { navController.popBackStack() },
                     onOpenArtist = { navController.navigate(artistRoute(it)) },
+                    onCheck = { navController.navigate(ROUTE_ARTIST_CHECK) },
                     miniPlayer = miniPlayer,
                 )
+            }
+            composable(ROUTE_ARTIST_CHECK) {
+                ArtistCheckScreen(onBack = { navController.popBackStack() })
             }
             composable(ROUTE_ARTIST, arguments = artistArguments) {
                 ArtistScreen(
