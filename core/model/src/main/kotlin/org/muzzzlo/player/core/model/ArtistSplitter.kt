@@ -11,7 +11,7 @@ object ArtistSplitter {
     /**
      * @param values values of the artist field in file order.
      * @param compounds names with a comma inside, used only for the comma rule.
-     * @return artist names in order, trimmed, without empty parts and without repeats (compared by [NameNormalizer.key]).
+     * @return artist names in order, trimmed, without empty parts and repeats (compared by [NameNormalizer.key]).
      */
     fun split(
         values: List<String>,

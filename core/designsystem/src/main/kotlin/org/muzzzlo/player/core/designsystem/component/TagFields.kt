@@ -76,6 +76,9 @@ fun TagTextField(
  * section 7.
  *
  * Empty rows stay while the user types; dropping blank values is up to the caller.
+ *
+ * With [onSplit] a row whose value [canSplit] shows a split button; with [onMerge] every row except the last
+ * shows a merge-with-next button. Both get the row index. Same size and style as the remove button.
  */
 @Composable
 fun ValueListField(
@@ -85,6 +88,9 @@ fun ValueListField(
     addLabel: String,
     modifier: Modifier = Modifier,
     @DrawableRes addIcon: Int = R.drawable.ic_plus,
+    canSplit: (String) -> Boolean = { false },
+    onSplit: ((Int) -> Unit)? = null,
+    onMerge: ((Int) -> Unit)? = null,
 ) {
     Column(modifier, verticalArrangement = Arrangement.spacedBy(MuzzzloDimens.SmallGap)) {
         FieldLabel(label)
@@ -102,6 +108,22 @@ fun ValueListField(
                     highlighted = false,
                     modifier = Modifier.weight(1f),
                 )
+                if (onSplit != null && canSplit(value)) {
+                    RoundIconButton(
+                        icon = R.drawable.ic_split,
+                        contentDescription = stringResource(R.string.designsystem_split_value, value),
+                        onClick = { onSplit(index) },
+                        size = RoundIconButtonSize.Small,
+                    )
+                }
+                if (onMerge != null && index < values.lastIndex) {
+                    RoundIconButton(
+                        icon = R.drawable.ic_merge,
+                        contentDescription = stringResource(R.string.designsystem_merge_value, value),
+                        onClick = { onMerge(index) },
+                        size = RoundIconButtonSize.Small,
+                    )
+                }
                 RoundIconButton(
                     icon = R.drawable.ic_close,
                     contentDescription = stringResource(R.string.designsystem_remove_value, value),

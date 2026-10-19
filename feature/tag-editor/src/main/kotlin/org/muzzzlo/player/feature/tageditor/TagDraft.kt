@@ -1,5 +1,6 @@
 package org.muzzzlo.player.feature.tageditor
 
+import org.muzzzlo.player.core.model.ArtistSplitter
 import org.muzzzlo.player.core.model.CoverEdit
 import org.muzzzlo.player.core.model.TagEdit
 import org.muzzzlo.player.core.model.TrackTags
@@ -92,6 +93,29 @@ data class TagDraft(
                 lyrics = tags.lyrics.orEmpty(),
             )
     }
+}
+
+/** Separator of the parts of a name glued by [mergeWithNext]; the same comma the splitter cuts by. */
+private const val MERGE_SEPARATOR = ", "
+
+/** The artist names [value] splits into by the usual rules (`;`, else `,`); one name when it cannot be split. */
+internal fun splitParts(value: String): List<String> = ArtistSplitter.split(listOf(value))
+
+/** True when [splitAt] would change the list: the value holds `;` or `,` between two names. */
+internal fun canSplit(value: String): Boolean = splitParts(value).size > 1
+
+/** Replaces the value at [index] with the names it splits into; the list stays as it is when it cannot be split. */
+internal fun List<String>.splitAt(index: Int): List<String> {
+    val parts = getOrNull(index)?.let(::splitParts).orEmpty()
+    if (parts.size < 2) return this
+    return take(index) + parts + drop(index + 1)
+}
+
+/** Joins the value at [index] with the next one into one name `A, B`; a blank side is dropped. */
+internal fun List<String>.mergeWithNext(index: Int): List<String> {
+    if (index !in 0 until lastIndex) return this
+    val merged = listOfNotNull(this[index].cleaned(), this[index + 1].cleaned()).joinToString(MERGE_SEPARATOR)
+    return take(index) + merged + drop(index + 2)
 }
 
 internal fun String.cleaned(): String? = trim().ifEmpty { null }

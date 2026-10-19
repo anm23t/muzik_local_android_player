@@ -10,7 +10,7 @@ class ArtistSplitterTest {
     @ParameterizedTest(name = "{0}")
     @MethodSource("cases")
     fun split(
-        name: String,
+        @Suppress("UNUSED_PARAMETER") name: String,
         values: List<String>,
         expected: List<String>,
     ) {
@@ -20,7 +20,7 @@ class ArtistSplitterTest {
     @ParameterizedTest(name = "no compounds: {0}")
     @MethodSource("plainCases")
     fun splitWithoutCompounds(
-        name: String,
+        @Suppress("UNUSED_PARAMETER") name: String,
         values: List<String>,
         expected: List<String>,
     ) {
