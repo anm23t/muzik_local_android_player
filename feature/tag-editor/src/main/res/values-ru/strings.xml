@@ -70,4 +70,26 @@
     <string name="batch_editor_failed_track">«%1$s» не удалось сохранить. %2$s</string>
     <string name="batch_editor_restored">Файлы, записанные до него, восстановлены, альбом как был.</string>
     <string name="batch_editor_not_restored">Эти файлы не удалось восстановить: %1$s. Откройте их в редакторе трека и проверьте теги.</string>
+    <string name="profile_title">Профиль исполнителя</string>
+    <string name="profile_not_found">Этого исполнителя больше нет в библиотеке.</string>
+    <string name="profile_field_names">Имя</string>
+    <string name="profile_names_hint">Измените имя, чтобы переименовать исполнителя. Введите имя другого исполнителя, чтобы объединить их. Добавьте имя, чтобы разделить исполнителя на нескольких.</string>
+    <string name="profile_add_name">Добавить имя</string>
+    <string name="profile_merge_note">«%1$s» уже есть: его треки объединятся с этими.</string>
+    <string name="profile_confirm_change">«%1$s» станет: %2$s.</string>
+    <string name="profile_confirm_text">Новые имена запишутся в теги исполнителя этих файлов. Если один файл не запишется, уже записанные вернутся к прежним тегам.</string>
+    <string name="profile_failed_title">Исполнитель не сохранён</string>
+    <string name="profile_restored">Файлы, записанные до ошибки, возвращены к прежним тегам, исполнитель остался как был.</string>
+    <plurals name="profile_tracks">
+        <item quantity="one">Изменится %1$d файл</item>
+        <item quantity="few">Изменится %1$d файла</item>
+        <item quantity="many">Изменится %1$d файлов</item>
+        <item quantity="other">Изменится %1$d файла</item>
+    </plurals>
+    <plurals name="profile_confirm_title">
+        <item quantity="one">Записать в %1$d файл?</item>
+        <item quantity="few">Записать в %1$d файла?</item>
+        <item quantity="many">Записать в %1$d файлов?</item>
+        <item quantity="other">Записать в %1$d файла?</item>
+    </plurals>
 </resources>

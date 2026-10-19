@@ -26,8 +26,10 @@ import org.muzzzlo.player.feature.library.TracksScreen
 import org.muzzzlo.player.feature.player.MiniPlayer
 import org.muzzzlo.player.feature.player.PlayerScreen
 import org.muzzzlo.player.feature.player.QueueScreen
+import org.muzzzlo.player.feature.tageditor.ArtistProfileScreen
 import org.muzzzlo.player.feature.tageditor.BATCH_ALBUM_ID_ARG
 import org.muzzzlo.player.feature.tageditor.BatchTagEditorScreen
+import org.muzzzlo.player.feature.tageditor.PROFILE_ARTIST_ID_ARG
 import org.muzzzlo.player.feature.tageditor.TRACK_ID_ARG
 import org.muzzzlo.player.feature.tageditor.TagEditorScreen
 
@@ -41,12 +43,15 @@ private const val ROUTE_PLAYER = "player"
 private const val ROUTE_QUEUE = "queue"
 private const val ROUTE_TAG_EDITOR = "tagEditor/{$TRACK_ID_ARG}"
 private const val ROUTE_BATCH_TAG_EDITOR = "tagEditorAlbum/{$BATCH_ALBUM_ID_ARG}"
+private const val ROUTE_ARTIST_PROFILE = "artistProfile/{$PROFILE_ARTIST_ID_ARG}"
 
 private fun albumRoute(albumId: Long) = "album/$albumId"
 
 private fun tagEditorRoute(trackId: Long) = "tagEditor/$trackId"
 
 private fun batchTagEditorRoute(albumId: Long) = "tagEditorAlbum/$albumId"
+
+private fun artistProfileRoute(artistId: Long) = "artistProfile/$artistId"
 
 private fun tracksRoute(artistId: Long = NO_ARTIST) = "tracks?$ARTIST_ID_ARG=$artistId"
 
@@ -116,6 +121,7 @@ fun MuzzzloNavHost() {
                     onHome = { navController.goHome() },
                     onOpenAlbum = { navController.navigate(albumRoute(it)) },
                     onOpenSongs = { navController.navigate(tracksRoute(it)) },
+                    onEditArtist = { navController.navigate(artistProfileRoute(it)) },
                     miniPlayer = miniPlayer,
                 )
             }
@@ -160,6 +166,20 @@ fun MuzzzloNavHost() {
                 arguments = listOf(navArgument(BATCH_ALBUM_ID_ARG) { type = NavType.LongType }),
             ) {
                 BatchTagEditorScreen(onClose = { navController.popBackStack() })
+            }
+            composable(
+                ROUTE_ARTIST_PROFILE,
+                arguments = listOf(navArgument(PROFILE_ARTIST_ID_ARG) { type = NavType.LongType }),
+            ) {
+                ArtistProfileScreen(
+                    onClose = { navController.popBackStack() },
+                    // The old artist card is gone after a rename or merge: replace it with the new one.
+                    onSaved = { artistId ->
+                        navController.popBackStack()
+                        navController.popBackStack()
+                        artistId?.let { navController.navigate(artistRoute(it)) }
+                    },
+                )
             }
         }
     }

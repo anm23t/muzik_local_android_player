@@ -49,6 +49,7 @@
     <string name="artist_albums">Albums</string>
     <string name="artist_all_songs">All songs</string>
     <string name="artist_photo_change">Change photo</string>
+    <string name="artist_edit_profile">Edit artist</string>
     <string name="artist_photo_choose">Choose photo</string>
     <string name="artist_photo_remove">Remove photo</string>
 

@@ -70,4 +70,22 @@
     <string name="batch_editor_failed_track">“%1$s” could not be saved. %2$s</string>
     <string name="batch_editor_restored">The files written before it were restored, so the album is as it was.</string>
     <string name="batch_editor_not_restored">These files could not be restored: %1$s. Open them in the track editor to check their tags.</string>
+    <string name="profile_title">Artist profile</string>
+    <string name="profile_not_found">This artist is gone from the library.</string>
+    <string name="profile_field_names">Name</string>
+    <string name="profile_names_hint">Change the name to rename the artist. Type the name of another artist to merge them. Add a name to split the artist in two.</string>
+    <string name="profile_add_name">Add a name</string>
+    <string name="profile_merge_note">“%1$s” already exists: its tracks will be combined with these.</string>
+    <string name="profile_confirm_change">“%1$s” becomes %2$s.</string>
+    <string name="profile_confirm_text">The new names go into the artist tags of these files. If one file fails, the files already written get their old tags back.</string>
+    <string name="profile_failed_title">Artist not saved</string>
+    <string name="profile_restored">The files written before it were restored, so the artist is as it was.</string>
+    <plurals name="profile_tracks">
+        <item quantity="one">%1$d file will change</item>
+        <item quantity="other">%1$d files will change</item>
+    </plurals>
+    <plurals name="profile_confirm_title">
+        <item quantity="one">Write to %1$d file?</item>
+        <item quantity="other">Write to %1$d files?</item>
+    </plurals>
 </resources>

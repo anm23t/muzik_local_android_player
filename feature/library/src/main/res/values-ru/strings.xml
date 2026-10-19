@@ -53,6 +53,7 @@
     <string name="artist_albums">Альбомы</string>
     <string name="artist_all_songs">Все песни</string>
     <string name="artist_photo_change">Сменить фото</string>
+    <string name="artist_edit_profile">Профиль исполнителя</string>
     <string name="artist_photo_choose">Выбрать фото</string>
     <string name="artist_photo_remove">Убрать фото</string>
 

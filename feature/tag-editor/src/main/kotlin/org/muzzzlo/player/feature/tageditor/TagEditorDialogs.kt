@@ -174,9 +174,11 @@ internal fun writeResultText(
 internal fun AlbumFailedDialog(
     failure: AlbumWriteFailure,
     onDismiss: () -> Unit,
+    title: String = stringResource(R.string.batch_editor_failed_title),
+    restoredText: String = stringResource(R.string.batch_editor_restored),
 ) {
     val context = LocalContext.current
-    MuzzzloDialog(title = stringResource(R.string.batch_editor_failed_title), onDismiss = onDismiss) {
+    MuzzzloDialog(title = title, onDismiss = onDismiss) {
         val reason =
             failure.result?.let { result -> writeResultText(result) { Formatter.formatShortFileSize(context, it) } }
         if (failure.failedTitle != null && reason != null) {
@@ -185,7 +187,7 @@ internal fun AlbumFailedDialog(
             DialogText(stringResource(R.string.tag_editor_problem_permission))
         }
         if (failure.restored) {
-            DialogText(stringResource(R.string.batch_editor_restored))
+            DialogText(restoredText)
         } else {
             DialogText(stringResource(R.string.batch_editor_not_restored, failure.notRestored.joinToString(", ")))
         }

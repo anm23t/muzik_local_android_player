@@ -8,6 +8,7 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -39,6 +40,7 @@ import org.muzzzlo.player.core.designsystem.component.CoverTile
 import org.muzzzlo.player.core.designsystem.component.MuzzzloDialog
 import org.muzzzlo.player.core.designsystem.component.OutlinedPanel
 import org.muzzzlo.player.core.designsystem.component.PillButton
+import org.muzzzlo.player.core.designsystem.component.RoundIconButton
 import org.muzzzlo.player.core.designsystem.component.ScreenFrame
 import org.muzzzlo.player.core.designsystem.component.SectionTitle
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloColors
@@ -101,6 +103,7 @@ private val ArtistSortField.label: Int
  * photo picks a new one. Play counts and the top songs wait for statistics (0.6) and show an empty state.
  *
  * @param onOpenSongs opens the list of all songs of the artist ("All Songs").
+ * @param onEditArtist opens the profile editor (rename, merge, split) of the artist with this id.
  * @param miniPlayer the mini player of `feature:player`, passed in by the app.
  */
 @Composable
@@ -109,6 +112,7 @@ fun ArtistScreen(
     onHome: () -> Unit,
     onOpenAlbum: (Long) -> Unit,
     onOpenSongs: (Long) -> Unit,
+    onEditArtist: (Long) -> Unit,
     miniPlayer: @Composable () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: ArtistViewModel = hiltViewModel(),
@@ -122,8 +126,18 @@ fun ArtistScreen(
     val pickPhoto = { picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }
 
     ScreenFrame(modifier, outlined = false) {
-        ScreenHeader(onBack = onBack) { HomeButton(onHome) }
         val artist = state.artist
+        ScreenHeader(onBack = onBack) {
+            if (artist != null) {
+                RoundIconButton(
+                    icon = DesignR.drawable.ic_pencil,
+                    contentDescription = stringResource(R.string.artist_edit_profile),
+                    onClick = { onEditArtist(artist.id) },
+                )
+                Spacer(Modifier.width(MuzzzloDimens.ItemGap))
+            }
+            HomeButton(onHome)
+        }
         if (artist == null) {
             if (state.isLoaded) Notice(stringResource(R.string.artist_not_found), Modifier.weight(1f))
             return@ScreenFrame
