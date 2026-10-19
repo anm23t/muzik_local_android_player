@@ -23,6 +23,7 @@ enum class AppLanguage(val tag: String?) {
  * @property gapless the encoder delay and padding of MP3, M4A and similar files are cut off, so albums play without
  *   a pause between tracks; off for files where this causes clicks or cut-off sound.
  * @property replayGain loudness levelling by ReplayGain tags.
+ * @property crossfade overlap of the end of a track with the start of the next one.
  */
 data class AppSettings(
     val excludedFolders: Set<String> = emptySet(),
@@ -33,6 +34,7 @@ data class AppSettings(
     val dynamicAccent: Boolean = true,
     val gapless: Boolean = true,
     val replayGain: ReplayGainSettings = ReplayGainSettings(),
+    val crossfade: CrossfadeSettings = CrossfadeSettings(),
 ) {
     companion object {
         const val DEFAULT_MIN_TRACK_SECONDS = 30

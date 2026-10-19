@@ -11,6 +11,8 @@ data class Track(
     val albumTitle: String?,
     val durationMs: Long,
     val trackNumber: Int?,
+    /** Disc number from the tags; null when the file has none (a single-disc album). */
+    val discNumber: Int? = null,
     /** ReplayGain values from the file's tags; [ReplayGainInfo.NONE] when it has none. */
     val replayGain: ReplayGainInfo = ReplayGainInfo.NONE,
 ) {
