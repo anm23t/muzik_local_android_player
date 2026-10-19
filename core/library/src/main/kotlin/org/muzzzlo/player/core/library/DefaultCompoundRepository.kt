@@ -63,6 +63,19 @@ internal class DefaultCompoundRepository
                 }.coerceAtLeast(0)
             }
 
+        override suspend fun countAffectedBy(id: Long): Int =
+            withContext(dispatchers.io) {
+                val rule = dao.compoundRules().firstOrNull { it.id == id } ?: return@withContext 0
+                val enabled = dao.enabledCompoundKeys()
+                val before = CompoundRules.compoundNames(enabled)
+                val after =
+                    CompoundRules.compoundNames(
+                        if (rule.enabled) enabled - rule.matchKey else enabled + rule.matchKey,
+                    )
+                val raw = dao.trackArtistTagValues().associate { it.id to JsonLite.strings(it.artistTagValues) }
+                CompoundRecalculation.changedTracks(raw, before, after).size
+            }
+
         override suspend fun enable(id: Long): Int =
             withContext(dispatchers.io) {
                 changeRules {

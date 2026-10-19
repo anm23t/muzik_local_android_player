@@ -26,6 +26,12 @@ interface CompoundRepository {
     /** Removes a rule of the user, or switches a built-in one off. Returns the number of tracks that changed. */
     suspend fun remove(id: Long): Int
 
+    /**
+     * How many tracks would change their artists if the rule [id] were removed or switched off (it is on), or
+     * switched on (it is off). Nothing is written; 0 for an unknown id.
+     */
+    suspend fun countAffectedBy(id: Long): Int
+
     /** Switches a built-in rule on again. Returns the number of tracks that changed. */
     suspend fun enable(id: Long): Int
 }

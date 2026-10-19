@@ -49,4 +49,16 @@ class CompoundRecalculationTest {
         assertEquals(emptyList<RecutTrack>(), changed(mapOf(1L to listOf("Tyler, The Creator")), tyler, tyler))
         assertEquals(emptyList<RecutTrack>(), changed(emptyMap(), none, tyler))
     }
+
+    @Test
+    fun `switching off the longer rule leaves the shorter one gluing what it can`() {
+        val both = CompoundRules.compoundNames(listOf("crosby|stills & nash", "crosby|stills|nash & young"))
+        val shortOnly = CompoundRules.compoundNames(listOf("crosby|stills & nash"))
+        val raw = mapOf(1L to listOf("Crosby, Stills, Nash & Young"), 2L to listOf("Crosby, Stills & Nash"))
+
+        assertEquals(
+            listOf(RecutTrack(1, listOf("Crosby", "Stills", "Nash & Young"))),
+            changed(raw, both, shortOnly),
+        )
+    }
 }
