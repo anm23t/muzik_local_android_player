@@ -97,6 +97,10 @@ data class TrackEntity(
     @ColumnInfo(name = "album_id") val albumId: Long? = null,
     @ColumnInfo(name = "track_number") val trackNumber: Int? = null,
     @ColumnInfo(name = "disc_number") val discNumber: Int? = null,
+    /** Number of tracks on the disc from the tags (schema 6), decides the "Singles" section. */
+    @ColumnInfo(name = "track_total") val trackTotal: Int? = null,
+    /** Number of discs from the tags (schema 6). */
+    @ColumnInfo(name = "disc_total") val discTotal: Int? = null,
     val year: Int? = null,
     @ColumnInfo(name = "duration_ms") val durationMs: Long,
     val format: String? = null,
@@ -129,6 +133,8 @@ data class TrackScanFields(
     @ColumnInfo(name = "album_id") val albumId: Long?,
     @ColumnInfo(name = "track_number") val trackNumber: Int?,
     @ColumnInfo(name = "disc_number") val discNumber: Int?,
+    @ColumnInfo(name = "track_total") val trackTotal: Int?,
+    @ColumnInfo(name = "disc_total") val discTotal: Int?,
     val year: Int?,
     @ColumnInfo(name = "duration_ms") val durationMs: Long,
     val format: String?,
@@ -154,6 +160,8 @@ data class TrackScanFields(
             albumId = albumId,
             trackNumber = trackNumber,
             discNumber = discNumber,
+            trackTotal = trackTotal,
+            discTotal = discTotal,
             year = year,
             durationMs = durationMs,
             format = format,

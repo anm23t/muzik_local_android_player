@@ -22,7 +22,7 @@ import org.muzzzlo.player.core.database.entity.TrackEntity
         TrackEntity::class,
         TrackArtistEntity::class,
     ],
-    version = 5,
+    version = 6,
     exportSchema = true,
 )
 abstract class MuzzzloDatabase : RoomDatabase() {

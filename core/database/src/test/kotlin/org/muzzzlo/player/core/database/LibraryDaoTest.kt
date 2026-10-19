@@ -391,6 +391,8 @@ class LibraryDaoTest {
                     albumId = null,
                     trackNumber = 3,
                     discNumber = null,
+                    trackTotal = 10,
+                    discTotal = null,
                     year = 2001,
                     durationMs = 2000,
                     format = "FLAC",
@@ -409,6 +411,7 @@ class LibraryDaoTest {
             assertTrue(updated.isFavorite)
             assertEquals("New", updated.title)
             assertEquals(2L, updated.dateModified)
+            assertEquals(10, updated.trackTotal)
             assertFalse(updated.isMissing)
         }
 

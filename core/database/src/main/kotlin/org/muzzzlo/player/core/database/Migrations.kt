@@ -57,3 +57,16 @@ val MIGRATION_4_5 =
             )
         }
     }
+
+/**
+ * Version 6: `track.track_total` and `track.disc_total` for the artist card sections (task 0.4.11). Clearing
+ * `date_modified` makes the next scan read every file again, so the new columns get filled.
+ */
+val MIGRATION_5_6 =
+    object : Migration(5, 6) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE track ADD COLUMN track_total INTEGER")
+            db.execSQL("ALTER TABLE track ADD COLUMN disc_total INTEGER")
+            db.execSQL("UPDATE track SET date_modified = NULL")
+        }
+    }

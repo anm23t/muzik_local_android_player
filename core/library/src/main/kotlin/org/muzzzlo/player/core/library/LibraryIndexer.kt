@@ -96,6 +96,8 @@ class LibraryIndexer
                     albumId = albumId,
                     trackNumber = metadata.trackNumber,
                     discNumber = metadata.discNumber,
+                    trackTotal = metadata.trackTotal,
+                    discTotal = metadata.discTotal,
                     year = metadata.year,
                     durationMs = metadata.durationMs,
                     format = metadata.format,

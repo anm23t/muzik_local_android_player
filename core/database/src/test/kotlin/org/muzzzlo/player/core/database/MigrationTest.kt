@@ -97,6 +97,31 @@ class MigrationTest {
         }
     }
 
+    @Test
+    fun `5 to 6 adds track and disc totals and clears date_modified`() {
+        helper.createDatabase(DB_NAME, 5).use { db ->
+            db.execSQL(
+                "INSERT INTO track (id, media_store_id, uri, title, title_key, artist_tag_values, duration_ms, " +
+                    "date_modified, has_cover, has_lyrics, is_missing, is_damaged, rating_tenths, is_favorite) " +
+                    "VALUES (1, 10, 'content://media/10', 'Song', 'song', '[\"A\"]', 1000, 500, " +
+                    "0, 0, 0, 0, 67, 1)",
+            )
+        }
+
+        helper.runMigrationsAndValidate(DB_NAME, 6, true, MIGRATION_5_6).use { db ->
+            db.query("SELECT title, track_total, disc_total, date_modified, rating_tenths, is_favorite FROM track")
+                .use { cursor ->
+                    cursor.moveToFirst()
+                    assertEquals("Song", cursor.getString(0))
+                    assertTrue(cursor.isNull(1))
+                    assertTrue(cursor.isNull(2))
+                    assertTrue(cursor.isNull(3))
+                    assertEquals(67, cursor.getInt(4))
+                    assertEquals(1, cursor.getInt(5))
+                }
+        }
+    }
+
     private companion object {
         const val DB_NAME = "migration-test.db"
     }
