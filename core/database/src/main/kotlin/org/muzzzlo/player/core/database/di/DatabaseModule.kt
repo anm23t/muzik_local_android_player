@@ -10,6 +10,7 @@ import dagger.hilt.components.SingletonComponent
 import org.muzzzlo.player.core.database.MIGRATION_1_2
 import org.muzzzlo.player.core.database.MIGRATION_2_3
 import org.muzzzlo.player.core.database.MIGRATION_3_4
+import org.muzzzlo.player.core.database.MIGRATION_4_5
 import org.muzzzlo.player.core.database.MuzzzloDatabase
 import org.muzzzlo.player.core.database.dao.LibraryDao
 import javax.inject.Singleton
@@ -23,7 +24,7 @@ object DatabaseModule {
         @ApplicationContext context: Context,
     ): MuzzzloDatabase =
         Room.databaseBuilder(context, MuzzzloDatabase::class.java, MuzzzloDatabase.NAME)
-            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
             .build()
 
     @Provides

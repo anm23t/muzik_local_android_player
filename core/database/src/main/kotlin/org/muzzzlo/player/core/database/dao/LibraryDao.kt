@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.Flow
 import org.muzzzlo.player.core.database.entity.AlbumArtistEntity
 import org.muzzzlo.player.core.database.entity.AlbumEntity
 import org.muzzzlo.player.core.database.entity.ArtistAliasEntity
+import org.muzzzlo.player.core.database.entity.ArtistCompoundEntity
 import org.muzzzlo.player.core.database.entity.ArtistEntity
 import org.muzzzlo.player.core.database.entity.TrackArtistEntity
 import org.muzzzlo.player.core.database.entity.TrackEntity
@@ -63,6 +64,12 @@ data class TrackArtistName(
 data class AlbumArtistName(
     @ColumnInfo(name = "album_id") val albumId: Long,
     val name: String,
+)
+
+/** Track id with the raw value of its artist tag (JSON array of strings). */
+data class TrackTagValues(
+    val id: Long,
+    @ColumnInfo(name = "artist_tag_values") val artistTagValues: String,
 )
 
 /** Album id and title pair. */
@@ -328,4 +335,46 @@ interface LibraryDao {
         }
         deleteArtistIfOrphan(from)
     }
+
+    @Query("SELECT * FROM artist_compound ORDER BY display_name COLLATE NOCASE")
+    fun observeCompoundRules(): Flow<List<ArtistCompoundEntity>>
+
+    @Query("SELECT * FROM artist_compound ORDER BY display_name COLLATE NOCASE")
+    suspend fun compoundRules(): List<ArtistCompoundEntity>
+
+    @Query("SELECT match_key FROM artist_compound WHERE enabled = 1")
+    suspend fun enabledCompoundKeys(): List<String>
+
+    /** Ignored when the match key or the built-in id is already there. Returns -1 then. */
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertCompoundRule(rule: ArtistCompoundEntity): Long
+
+    @Query("DELETE FROM artist_compound WHERE id = :id")
+    suspend fun deleteCompoundRule(id: Long)
+
+    @Query("UPDATE artist_compound SET enabled = :enabled WHERE id = :id")
+    suspend fun setCompoundRuleEnabled(
+        id: Long,
+        enabled: Boolean,
+    )
+
+    @Query("SELECT builtin_id FROM artist_compound WHERE builtin_id IS NOT NULL")
+    suspend fun knownBuiltinIds(): List<String>
+
+    /** Raw artist tag values of every present track, to cut them again after the compound names changed. */
+    @Query("SELECT id, artist_tag_values FROM track WHERE is_missing = 0")
+    suspend fun trackArtistTagValues(): List<TrackTagValues>
+
+    /** Makes the next scan read these files again (album artists are not stored raw, only the file knows them). */
+    @Query("UPDATE track SET date_modified = NULL WHERE id IN (:ids)")
+    suspend fun forgetDateModified(ids: List<Long>)
+
+    /** Deletes artists nothing refers to: no track, no album, no photo and no alias. */
+    @Query(
+        "DELETE FROM artist WHERE photo_uri IS NULL " +
+            "AND NOT EXISTS (SELECT 1 FROM track_artist WHERE artist_id = artist.id) " +
+            "AND NOT EXISTS (SELECT 1 FROM album_artist WHERE artist_id = artist.id) " +
+            "AND NOT EXISTS (SELECT 1 FROM artist_alias WHERE artist_id = artist.id)",
+    )
+    suspend fun deleteOrphanArtists()
 }

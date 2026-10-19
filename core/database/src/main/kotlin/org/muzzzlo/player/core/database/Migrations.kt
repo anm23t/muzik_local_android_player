@@ -37,3 +37,23 @@ val MIGRATION_3_4 =
             db.execSQL("CREATE INDEX IF NOT EXISTS `index_artist_alias_artist_id` ON `artist_alias` (`artist_id`)")
         }
     }
+
+/** Version 5: `artist_compound`, artist names with a comma inside (task 0.4.6). */
+val MIGRATION_4_5 =
+    object : Migration(4, 5) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                "CREATE TABLE IF NOT EXISTS `artist_compound` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                    "`display_name` TEXT NOT NULL, `match_key` TEXT NOT NULL, `builtin_id` TEXT, " +
+                    "`enabled` INTEGER NOT NULL DEFAULT 1, `created_at` INTEGER NOT NULL)",
+            )
+            db.execSQL(
+                "CREATE UNIQUE INDEX IF NOT EXISTS `index_artist_compound_match_key` " +
+                    "ON `artist_compound` (`match_key`)",
+            )
+            db.execSQL(
+                "CREATE UNIQUE INDEX IF NOT EXISTS `index_artist_compound_builtin_id` " +
+                    "ON `artist_compound` (`builtin_id`)",
+            )
+        }
+    }

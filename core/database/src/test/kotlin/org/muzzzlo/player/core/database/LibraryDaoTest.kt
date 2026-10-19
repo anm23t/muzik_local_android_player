@@ -16,6 +16,7 @@ import org.muzzzlo.player.core.database.dao.LibraryDao
 import org.muzzzlo.player.core.database.entity.AlbumArtistEntity
 import org.muzzzlo.player.core.database.entity.AlbumEntity
 import org.muzzzlo.player.core.database.entity.ArtistAliasEntity
+import org.muzzzlo.player.core.database.entity.ArtistCompoundEntity
 import org.muzzzlo.player.core.database.entity.TrackArtistEntity
 import org.muzzzlo.player.core.database.entity.TrackEntity
 import org.muzzzlo.player.core.database.entity.TrackScanFields
@@ -162,6 +163,62 @@ class LibraryDaoTest {
 
             dao.mergeArtists(old, keep)
             assertEquals("keep.jpg", dao.artistPhotoPath(keep))
+        }
+
+    private fun rule(
+        name: String,
+        key: String,
+        builtinId: String? = null,
+    ) = ArtistCompoundEntity(displayName = name, matchKey = key, builtinId = builtinId, createdAt = 1)
+
+    @Test
+    fun `compound rules are unique by key and by built-in id and can be switched off`() =
+        runBlocking {
+            assertTrue(dao.insertCompoundRule(rule("Tyler, The Creator", "tyler|the creator", "tyler")) > 0)
+            assertEquals(-1L, dao.insertCompoundRule(rule("tyler, the creator", "tyler|the creator")))
+            assertEquals(-1L, dao.insertCompoundRule(rule("Other", "other|name", "tyler")))
+            val own = dao.insertCompoundRule(rule("Blood, Sweat & Tears", "blood|sweat & tears"))
+
+            val builtin = dao.compoundRules().first { it.builtinId == "tyler" }
+            dao.setCompoundRuleEnabled(builtin.id, false)
+            assertEquals(listOf("blood|sweat & tears"), dao.enabledCompoundKeys())
+            assertEquals(listOf("tyler"), dao.knownBuiltinIds())
+
+            dao.deleteCompoundRule(own)
+            assertEquals(1, dao.compoundRules().size)
+        }
+
+    @Test
+    fun `orphan sweep keeps artists with tracks albums photos or aliases`() =
+        runBlocking {
+            val gone = dao.artistId("Gone", "gone")
+            val withTrack = dao.artistId("Track", "track")
+            val withAlbum = dao.artistId("Album", "album")
+            val withPhoto = dao.artistId("Photo", "photo")
+            val withAlias = dao.artistId("Alias", "alias")
+            dao.insertTrackArtists(listOf(TrackArtistEntity(dao.insertTrack(track("u1", "S")), withTrack, 0)))
+            dao.insertAlbumArtists(
+                listOf(AlbumArtistEntity(dao.insertAlbum(AlbumEntity(title = "A", titleKey = "a")), withAlbum, 0)),
+            )
+            dao.setArtistPhotoPath(withPhoto, "p.jpg")
+            dao.insertAlias(ArtistAliasEntity(aliasKey = "al", aliasDisplay = "Al", artistId = withAlias))
+
+            dao.deleteOrphanArtists()
+
+            assertEquals(null, dao.artistName(gone))
+            listOf(withTrack, withAlbum, withPhoto, withAlias).forEach { assertTrue(dao.artistName(it) != null) }
+        }
+
+    @Test
+    fun `raw tag values come back for present tracks and a forgotten date forces a new read`() =
+        runBlocking {
+            val id = dao.insertTrack(track("u1", "S").copy(artistTagValues = "[\"A, B\"]", dateModified = 5))
+            val missing = dao.insertTrack(track("u2", "M"))
+            dao.setMissing(listOf(missing), true)
+
+            assertEquals(listOf(id to "[\"A, B\"]"), dao.trackArtistTagValues().map { it.id to it.artistTagValues })
+            dao.forgetDateModified(listOf(id))
+            assertEquals(null, dao.trackStamps().first { it.id == id }.dateModified)
         }
 
     @Test

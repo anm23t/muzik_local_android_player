@@ -74,6 +74,29 @@ class MigrationTest {
         }
     }
 
+    @Test
+    fun `4 to 5 adds artist_compound and keeps aliases`() {
+        helper.createDatabase(DB_NAME, 4).use { db ->
+            db.execSQL("INSERT INTO artist (id, name, name_key) VALUES (1, 'Jay-Z', 'jay-z')")
+            db.execSQL("INSERT INTO artist_alias (alias_key, alias_display, artist_id) VALUES ('jay z', 'Jay Z', 1)")
+        }
+
+        helper.runMigrationsAndValidate(DB_NAME, 5, true, MIGRATION_4_5).use { db ->
+            db.execSQL(
+                "INSERT INTO artist_compound (display_name, match_key, builtin_id, created_at) " +
+                    "VALUES ('Tyler, The Creator', 'tyler|the creator', 'tyler-the-creator', 1)",
+            )
+            db.query("SELECT enabled FROM artist_compound").use {
+                it.moveToFirst()
+                assertEquals(1, it.getInt(0))
+            }
+            db.query("SELECT alias_display FROM artist_alias").use {
+                it.moveToFirst()
+                assertEquals("Jay Z", it.getString(0))
+            }
+        }
+    }
+
     private companion object {
         const val DB_NAME = "migration-test.db"
     }

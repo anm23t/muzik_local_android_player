@@ -28,6 +28,26 @@ data class ArtistAliasEntity(
     @ColumnInfo(name = "artist_id") val artistId: Long,
 )
 
+/**
+ * An artist name with a comma inside, such as `Tyler, The Creator` (ARCHITECTURE.md, section 4).
+ *
+ * @property matchKey normalised fragments in order joined by `|`, for example `tyler|the creator`.
+ * @property builtinId stable id of an entry of the built-in list, null for rules of the user.
+ * @property enabled a built-in rule the user switched off stays here with 0 so an update does not bring it back.
+ */
+@Entity(
+    tableName = "artist_compound",
+    indices = [Index(value = ["match_key"], unique = true), Index(value = ["builtin_id"], unique = true)],
+)
+data class ArtistCompoundEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    @ColumnInfo(name = "display_name") val displayName: String,
+    @ColumnInfo(name = "match_key") val matchKey: String,
+    @ColumnInfo(name = "builtin_id") val builtinId: String? = null,
+    @ColumnInfo(defaultValue = "1") val enabled: Boolean = true,
+    @ColumnInfo(name = "created_at") val createdAt: Long,
+)
+
 @Entity(tableName = "album", indices = [Index("title_key")])
 data class AlbumEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
