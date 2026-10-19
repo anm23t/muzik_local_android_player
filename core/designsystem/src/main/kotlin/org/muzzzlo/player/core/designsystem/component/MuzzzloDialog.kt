@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
@@ -99,19 +100,26 @@ fun MuzzzloDialog(
     }
 }
 
-/** Option of a single choice list, as in the sort dialog (15:117 selected, 15:124 not). */
+/**
+ * Option of a single choice list, as in the sort dialog (15:117 selected, 15:124 not).
+ *
+ * @param secondary optional second line under [text]; with it the text wraps to [maxLines] lines instead of
+ * being cut and the row grows (not in the mockup, DESIGN.md, section 7).
+ */
 @Composable
 fun RadioOptionRow(
     text: String,
     selected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    secondary: String? = null,
+    maxLines: Int = 1,
 ) {
     val accent = MuzzzloTheme.accent
     Row(
         modifier
             .fillMaxWidth()
-            .height(MuzzzloDimens.DialogRowHeight)
+            .heightIn(min = MuzzzloDimens.DialogRowHeight)
             .clip(MuzzzloDimens.RowShape)
             .background(if (selected) accent.container else MuzzzloColors.SurfaceElevated)
             .selectable(selected = selected, role = Role.RadioButton, onClick = onClick)
@@ -119,17 +127,26 @@ fun RadioOptionRow(
         horizontalArrangement = Arrangement.spacedBy(MuzzzloDimens.ContentGap),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(
-            text = text,
-            modifier = Modifier.weight(1f),
-            style =
-                MaterialTheme.typography.bodyLarge.let {
-                    if (selected) it.copy(fontWeight = FontWeight.SemiBold) else it
-                },
-            color = MuzzzloColors.TextPrimary,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
+        Column(Modifier.weight(1f).padding(vertical = MuzzzloDimens.TinyGap)) {
+            Text(
+                text = text,
+                style =
+                    MaterialTheme.typography.bodyLarge.let {
+                        if (selected) it.copy(fontWeight = FontWeight.SemiBold) else it
+                    },
+                color = MuzzzloColors.TextPrimary,
+                maxLines = maxLines,
+                overflow = TextOverflow.Ellipsis,
+            )
+            if (secondary != null) {
+                Text(
+                    text = secondary,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MuzzzloColors.TextSecondary,
+                    maxLines = 1,
+                )
+            }
+        }
         RadioMark(selected)
     }
 }
