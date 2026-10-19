@@ -131,6 +131,8 @@ PK: (`track_id`, `artist_id`). Индекс по `artist_id` для страни
 - Топ исполнителей за период: `listen_event` (counted = 1) JOIN `track_artist` по `track_id`, группировка по `artist_id`. Для событий без `track_id` используется `artists_snapshot`.
 - Карта активности по часам и дням недели: группировка `started_at` с учётом часового пояса пользователя.
 - Дубликаты: группировка по (`title_key`, набор `artist_id`, округлённый `duration_ms`).
+- Последние альбомы для «Continue listening» (0.6.5): `listen_event` JOIN `track` по `track_id`, `album_id IS NOT NULL`, группировка по `album_id`, сортировка по `MAX(started_at)` по убыванию, `LIMIT 5`. Новых таблиц и миграции не нужно.
+- Фото исполнителей альбома (0.4.8): `album_artist` JOIN `artist` по `artist_id`, порядок по `position`, поле `artist.photo_uri`.
 
 ## Правила миграций
 
