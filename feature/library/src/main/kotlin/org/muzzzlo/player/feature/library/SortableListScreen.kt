@@ -30,6 +30,7 @@ import org.muzzzlo.player.core.designsystem.R as DesignR
  *
  * @param fields sort options in display order, [label] gives their text.
  * @param isEmpty the list is loaded and has nothing to show.
+ * @param selectionBar shown under the title in the choice mode (the artist list), null elsewhere.
  */
 @Composable
 internal fun <F> SortableListScreen(
@@ -43,6 +44,7 @@ internal fun <F> SortableListScreen(
     miniPlayer: @Composable () -> Unit,
     modifier: Modifier = Modifier,
     headerAction: @Composable RowScope.() -> Unit = {},
+    selectionBar: (@Composable () -> Unit)? = null,
     rows: LazyListScope.() -> Unit,
 ) where F : Enum<F>, F : SortField {
     var sortOpen by rememberSaveable { mutableStateOf(false) }
@@ -67,6 +69,7 @@ internal fun <F> SortableListScreen(
             )
         }
         SectionTitle(stringResource(title))
+        selectionBar?.invoke()
         ContentWithMiniPlayer(miniPlayer) {
             if (isEmpty) {
                 Notice(stringResource(R.string.library_empty))

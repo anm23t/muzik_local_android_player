@@ -66,5 +66,18 @@
     <string name="check_merge">Объединить с выбранным</string>
     <string name="check_skip">Пропустить</string>
 
+    <string name="artists_select">Выбрать исполнителей</string>
+    <string name="artists_select_cancel">Отменить выбор</string>
+    <string name="artists_remember">Как один исполнитель</string>
+    <string name="remember_title">Запомнить как одного исполнителя</string>
+    <string name="remember_hint">Теги с этими именами через запятую будут читаться как один исполнитель. Файлы не меняются.</string>
+    <string name="remember_move_up">Выше</string>
+    <string name="remember_move_down">Ниже</string>
+    <string name="remember_name">Имя</string>
+    <string name="remember_save">Сохранить</string>
+    <string name="remember_too_short">Напишите имя с запятыми между частями, например «Tyler, The Creator».</string>
+    <string name="remember_not_parts">Имя должно состоять из выбранных исполнителей в этом порядке через запятую.</string>
+    <string name="remember_duplicate">Такое имя уже запомнено.</string>
+
     <string name="tracks_title">Все песни</string>
 </resources>

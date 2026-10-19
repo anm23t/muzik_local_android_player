@@ -21,6 +21,9 @@ import kotlinx.coroutines.launch
 import org.muzzzlo.player.core.designsystem.component.TrackAction
 import org.muzzzlo.player.core.model.Album
 import org.muzzzlo.player.core.model.Artist
+import org.muzzzlo.player.core.model.CompoundNameProblem
+import org.muzzzlo.player.core.model.CompoundRepository
+import org.muzzzlo.player.core.model.CompoundRules
 import org.muzzzlo.player.core.model.LibraryRepository
 import org.muzzzlo.player.core.model.PlayerController
 import org.muzzzlo.player.core.model.Track
@@ -120,11 +123,35 @@ class AlbumListViewModel
         fun onSortChosen(field: AlbumSortField) = sort.choose(field)
     }
 
-/** What the artist list renders: artists already in the chosen order. */
+/**
+ * The "Remember as one artist" dialog (no mockup, DESIGN.md, section 7).
+ *
+ * @property parts the selected artists in the order the name will be written.
+ * @property name the compound name as typed, starts as the parts joined by a comma.
+ * @property problem why [name] cannot be saved yet; null while it is fine or nothing was tried.
+ * @property duplicate the name is already a rule.
+ */
+data class RememberState(
+    val parts: List<String>,
+    val name: String,
+    val problem: CompoundNameProblem? = null,
+    val duplicate: Boolean = false,
+    val isSaving: Boolean = false,
+)
+
+/**
+ * What the artist list renders: artists already in the chosen order.
+ *
+ * @property selecting the multiple choice mode is on, a tap ticks a row instead of opening the artist.
+ * @property selectedIds ticked artists in the order they were ticked.
+ */
 data class ArtistListUiState(
     val artists: List<Artist> = emptyList(),
     val sort: ArtistSort = DefaultArtistSort,
     val isLoaded: Boolean = false,
+    val selecting: Boolean = false,
+    val selectedIds: List<Long> = emptyList(),
+    val remember: RememberState? = null,
 )
 
 /** Artist list (23:403): the same screen as the album list with other rows (DESIGN.md, section 3). */
@@ -133,17 +160,88 @@ class ArtistListViewModel
     @Inject
     constructor(
         library: LibraryRepository,
+        private val compounds: CompoundRepository,
         savedState: SavedStateHandle,
     ) : ViewModel() {
         private val sort = SavedSort(savedState, "artistSort", ArtistSortField.entries, DefaultArtistSort)
+        private val selection = MutableStateFlow(Selection())
+        private val artists = library.observeArtists().stateIn(this, emptyList())
 
         val state: StateFlow<ArtistListUiState> =
-            combine(library.observeArtists(), sort.sort) { artists, sort ->
-                ArtistListUiState(artists.sortedBy(sort), sort, isLoaded = true)
+            combine(artists, sort.sort, selection) { artists, sort, selection ->
+                ArtistListUiState(
+                    artists = artists.sortedBy(sort),
+                    sort = sort,
+                    isLoaded = true,
+                    selecting = selection.selecting,
+                    selectedIds = selection.ids,
+                    remember = selection.remember,
+                )
             }.stateIn(this, ArtistListUiState())
 
         /** A sort option was tapped: the list follows at once, a second tap flips the direction. */
         fun onSortChosen(field: ArtistSortField) = sort.choose(field)
+
+        /** The choice mode button: turns the mode on, or off with the ticks cleared. */
+        fun onSelectionToggled() = selection.update { if (it.selecting) Selection() else Selection(selecting = true) }
+
+        /** A row was tapped in the choice mode: ticks it, or unticks it. */
+        fun onArtistTicked(artistId: Long) =
+            selection.update { it.copy(ids = if (artistId in it.ids) it.ids - artistId else it.ids + artistId) }
+
+        /** "Remember as one artist": opens the dialog for two or more ticked artists. */
+        fun onRememberClicked() {
+            val names = selection.value.ids.mapNotNull { id -> artists.value.firstOrNull { it.id == id }?.name }
+            if (names.size < 2) return
+            selection.update { it.copy(remember = RememberState(names, CompoundRules.suggestedName(names))) }
+        }
+
+        /** Moves the part at [index] one place up ([delta] = -1) or down (1); the name follows the new order. */
+        fun onPartMoved(
+            index: Int,
+            delta: Int,
+        ) = updateRemember { dialog ->
+            val target = index + delta
+            if (index !in dialog.parts.indices || target !in dialog.parts.indices) return@updateRemember dialog
+            val parts = dialog.parts.toMutableList().apply { add(target, removeAt(index)) }
+            RememberState(parts, CompoundRules.suggestedName(parts))
+        }
+
+        fun onNameChanged(name: String) = updateRemember { it.copy(name = name, problem = null, duplicate = false) }
+
+        fun onRememberDismissed() = selection.update { it.copy(remember = null) }
+
+        /** Saves the name as a compound rule when it is the ticked artists in order; leaves the choice mode. */
+        fun onRememberConfirmed() {
+            val dialog = selection.value.remember ?: return
+            if (dialog.isSaving) return
+            val problem = CompoundRules.problemWith(dialog.name, dialog.parts)
+            if (problem != null) {
+                updateRemember { it.copy(problem = problem) }
+                return
+            }
+            updateRemember { it.copy(isSaving = true) }
+            viewModelScope.launch {
+                try {
+                    if (compounds.remember(dialog.name.trim()) < 0) {
+                        updateRemember { it.copy(duplicate = true) }
+                    } else {
+                        selection.value = Selection()
+                    }
+                } finally {
+                    updateRemember { it.copy(isSaving = false) }
+                }
+            }
+        }
+
+        private fun updateRemember(change: (RememberState) -> RememberState) =
+            selection.update { state -> state.remember?.let { state.copy(remember = change(it)) } ?: state }
+
+        private data class Selection(
+            val selecting: Boolean = false,
+            val ids: List<Long> = emptyList(),
+            val remember: RememberState? = null,
+        )
     }
 
 /**

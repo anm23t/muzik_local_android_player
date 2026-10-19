@@ -62,5 +62,18 @@
     <string name="check_merge">Merge into the chosen one</string>
     <string name="check_skip">Skip</string>
 
+    <string name="artists_select">Select artists</string>
+    <string name="artists_select_cancel">Cancel selection</string>
+    <string name="artists_remember">Remember as one artist</string>
+    <string name="remember_title">Remember as one artist</string>
+    <string name="remember_hint">Tags that hold these names with commas will be read as one artist. Files stay as they are.</string>
+    <string name="remember_move_up">Move up</string>
+    <string name="remember_move_down">Move down</string>
+    <string name="remember_name">Name</string>
+    <string name="remember_save">Save</string>
+    <string name="remember_too_short">Write the name with commas between its parts, like “Tyler, The Creator”.</string>
+    <string name="remember_not_parts">The name must be the selected artists in this order, separated by commas.</string>
+    <string name="remember_duplicate">This name is already remembered.</string>
+
     <string name="tracks_title">All songs</string>
 </resources>

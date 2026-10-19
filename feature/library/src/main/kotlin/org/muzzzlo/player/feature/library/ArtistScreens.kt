@@ -43,10 +43,12 @@ import org.muzzzlo.player.core.designsystem.component.PillButton
 import org.muzzzlo.player.core.designsystem.component.RoundIconButton
 import org.muzzzlo.player.core.designsystem.component.ScreenFrame
 import org.muzzzlo.player.core.designsystem.component.SectionTitle
+import org.muzzzlo.player.core.designsystem.component.TagTextField
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloColors
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloDimens
 import org.muzzzlo.player.core.model.Album
 import org.muzzzlo.player.core.model.Artist
+import org.muzzzlo.player.core.model.CompoundNameProblem
 import org.muzzzlo.player.core.designsystem.R as DesignR
 
 /**
@@ -76,14 +78,39 @@ fun ArtistListScreen(
         miniPlayer = miniPlayer,
         modifier = modifier,
         headerAction = {
-            PillButton(text = stringResource(R.string.artists_check), onClick = onCheck)
+            if (!state.selecting) {
+                PillButton(text = stringResource(R.string.artists_check), onClick = onCheck)
+                Spacer(Modifier.width(MuzzzloDimens.ItemGap))
+            }
+            RoundIconButton(
+                icon = if (state.selecting) DesignR.drawable.ic_close else DesignR.drawable.ic_merge,
+                contentDescription =
+                    stringResource(if (state.selecting) R.string.artists_select_cancel else R.string.artists_select),
+                onClick = viewModel::onSelectionToggled,
+            )
             Spacer(Modifier.width(MuzzzloDimens.ItemGap))
         },
+        selectionBar =
+            if (state.selecting) {
+                @Composable {
+                    PillButton(
+                        text = stringResource(R.string.artists_remember),
+                        onClick = viewModel::onRememberClicked,
+                        wide = true,
+                        enabled = state.selectedIds.size >= 2,
+                    )
+                }
+            } else {
+                null
+            },
     ) {
         items(state.artists, key = { it.id }) { artist ->
             ArtistRow(
                 name = artist.name,
-                onClick = { onOpenArtist(artist.id) },
+                onClick = {
+                    if (state.selecting) viewModel.onArtistTicked(artist.id) else onOpenArtist(artist.id)
+                },
+                selected = artist.id in state.selectedIds,
                 photo =
                     artist.photoPath?.let { path ->
                         @Composable {
@@ -93,6 +120,83 @@ fun ArtistListScreen(
                     },
             )
         }
+    }
+    state.remember?.let { dialog ->
+        RememberDialog(
+            dialog = dialog,
+            onMove = viewModel::onPartMoved,
+            onNameChange = viewModel::onNameChanged,
+            onConfirm = viewModel::onRememberConfirmed,
+            onDismiss = viewModel::onRememberDismissed,
+        )
+    }
+}
+
+/**
+ * "Remember as one artist" (no mockup, DESIGN.md, section 7): the ticked artists in a list with up and down
+ * buttons for the order, the name as it will be written, and "Save".
+ */
+@Composable
+private fun RememberDialog(
+    dialog: RememberState,
+    onMove: (Int, Int) -> Unit,
+    onNameChange: (String) -> Unit,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    MuzzzloDialog(title = stringResource(R.string.remember_title), onDismiss = onDismiss) {
+        Text(
+            text = stringResource(R.string.remember_hint),
+            style = MaterialTheme.typography.bodySmall,
+            color = MuzzzloColors.TextSecondary,
+        )
+        dialog.parts.forEachIndexed { index, part ->
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(MuzzzloDimens.ItemGap),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = part,
+                    modifier = Modifier.weight(1f),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MuzzzloColors.TextPrimary,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                RoundIconButton(
+                    icon = DesignR.drawable.ic_arrow_up_wide_narrow,
+                    contentDescription = stringResource(R.string.remember_move_up),
+                    onClick = { onMove(index, -1) },
+                )
+                RoundIconButton(
+                    icon = DesignR.drawable.ic_arrow_down_wide_narrow,
+                    contentDescription = stringResource(R.string.remember_move_down),
+                    onClick = { onMove(index, 1) },
+                )
+            }
+        }
+        TagTextField(
+            label = stringResource(R.string.remember_name),
+            value = dialog.name,
+            onValueChange = onNameChange,
+            error =
+                when {
+                    dialog.duplicate -> stringResource(R.string.remember_duplicate)
+                    dialog.problem == CompoundNameProblem.TooShort -> stringResource(R.string.remember_too_short)
+                    dialog.problem == CompoundNameProblem.NotSelectedParts ->
+                        stringResource(
+                            R.string.remember_not_parts,
+                        )
+                    else -> null
+                },
+        )
+        PillButton(
+            text = stringResource(R.string.remember_save),
+            onClick = onConfirm,
+            wide = true,
+            enabled = !dialog.isSaving,
+        )
     }
 }
 

@@ -25,6 +25,10 @@ import org.muzzzlo.player.core.designsystem.component.TrackAction
 import org.muzzzlo.player.core.model.Album
 import org.muzzzlo.player.core.model.Artist
 import org.muzzzlo.player.core.model.ArtistCheckRepository
+import org.muzzzlo.player.core.model.CompoundNameProblem
+import org.muzzzlo.player.core.model.CompoundNames
+import org.muzzzlo.player.core.model.CompoundRepository
+import org.muzzzlo.player.core.model.CompoundRule
 import org.muzzzlo.player.core.model.LibraryRepository
 import org.muzzzlo.player.core.model.PlayerState
 import org.muzzzlo.player.core.model.Track
@@ -138,7 +142,7 @@ class LibraryViewModelsTest {
     @Test
     fun `the artist list follows the chosen sort`() =
         runTest {
-            val viewModel = ArtistListViewModel(library, SavedStateHandle())
+            val viewModel = ArtistListViewModel(library, FakeCompounds(), SavedStateHandle())
             subscribe(viewModel.state)
             assertEquals(listOf(anna, bob), viewModel.state.value.artists)
 
@@ -259,6 +263,112 @@ class LibraryViewModelsTest {
             assertEquals(true, clean.state.value.isLoaded)
             assertEquals(emptyList<CheckGroup>(), clean.state.value.groups)
         }
+
+    @Test
+    fun `ticked artists keep their order and unticking removes one`() =
+        runTest {
+            val viewModel = ArtistListViewModel(library, FakeCompounds(), SavedStateHandle())
+            subscribe(viewModel.state)
+
+            viewModel.onSelectionToggled()
+            viewModel.onArtistTicked(bob.id)
+            viewModel.onArtistTicked(anna.id)
+            assertEquals(listOf(bob.id, anna.id), viewModel.state.value.selectedIds)
+
+            viewModel.onArtistTicked(bob.id)
+            assertEquals(listOf(anna.id), viewModel.state.value.selectedIds)
+
+            viewModel.onSelectionToggled()
+            assertEquals(false, viewModel.state.value.selecting)
+            assertEquals(emptyList<Long>(), viewModel.state.value.selectedIds)
+        }
+
+    @Test
+    fun `the remember dialog needs two artists and suggests their names in the ticked order`() =
+        runTest {
+            val viewModel = ArtistListViewModel(library, FakeCompounds(), SavedStateHandle())
+            subscribe(viewModel.state)
+            viewModel.onSelectionToggled()
+            viewModel.onArtistTicked(bob.id)
+
+            viewModel.onRememberClicked()
+            assertNull(viewModel.state.value.remember)
+
+            viewModel.onArtistTicked(anna.id)
+            viewModel.onRememberClicked()
+            assertEquals(listOf("B", "A"), viewModel.state.value.remember?.parts)
+            assertEquals("B, A", viewModel.state.value.remember?.name)
+
+            viewModel.onPartMoved(0, 1)
+            assertEquals(listOf("A", "B"), viewModel.state.value.remember?.parts)
+            assertEquals("A, B", viewModel.state.value.remember?.name)
+
+            viewModel.onPartMoved(0, -1)
+            assertEquals(listOf("A", "B"), viewModel.state.value.remember?.parts)
+        }
+
+    @Test
+    fun `a wrong name is refused and a right one is saved and ends the choice mode`() =
+        runTest {
+            val compounds = FakeCompounds()
+            val viewModel = ArtistListViewModel(library, compounds, SavedStateHandle())
+            subscribe(viewModel.state)
+            viewModel.onSelectionToggled()
+            viewModel.onArtistTicked(anna.id)
+            viewModel.onArtistTicked(bob.id)
+            viewModel.onRememberClicked()
+
+            viewModel.onNameChanged("A B")
+            viewModel.onRememberConfirmed()
+            assertEquals(CompoundNameProblem.TooShort, viewModel.state.value.remember?.problem)
+
+            viewModel.onNameChanged("B, A")
+            viewModel.onRememberConfirmed()
+            assertEquals(CompoundNameProblem.NotSelectedParts, viewModel.state.value.remember?.problem)
+            assertEquals(emptyList<String>(), compounds.remembered)
+
+            viewModel.onNameChanged("A, B")
+            viewModel.onRememberConfirmed()
+            assertEquals(listOf("A, B"), compounds.remembered)
+            assertNull(viewModel.state.value.remember)
+            assertEquals(false, viewModel.state.value.selecting)
+        }
+
+    @Test
+    fun `a name that is already a rule is reported and keeps the dialog open`() =
+        runTest {
+            val compounds = FakeCompounds(result = -1)
+            val viewModel = ArtistListViewModel(library, compounds, SavedStateHandle())
+            subscribe(viewModel.state)
+            viewModel.onSelectionToggled()
+            viewModel.onArtistTicked(anna.id)
+            viewModel.onArtistTicked(bob.id)
+            viewModel.onRememberClicked()
+
+            viewModel.onRememberConfirmed()
+
+            assertEquals(true, viewModel.state.value.remember?.duplicate)
+            assertEquals(true, viewModel.state.value.selecting)
+        }
+
+    private class FakeCompounds(private val result: Int = 0) : CompoundRepository {
+        val remembered = mutableListOf<String>()
+
+        override fun observeRules(): Flow<List<CompoundRule>> = MutableStateFlow(emptyList())
+
+        override suspend fun compoundNames() = CompoundNames.None
+
+        override suspend fun syncBuiltIn() = Unit
+
+        override suspend fun remember(name: String): Int {
+            if (result >= 0) remembered += name
+            return result
+        }
+
+        override suspend fun remove(id: Long) = 0
+
+        override suspend fun enable(id: Long) = 0
+    }
 
     private class FakeCheck : ArtistCheckRepository {
         val merges = mutableListOf<Pair<Long, List<Long>>>()
