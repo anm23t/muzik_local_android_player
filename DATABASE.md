@@ -37,7 +37,7 @@
 | cover_hash | TEXT | Не используется: ключ кэша обложек считается из `uri`, размера, `date_modified` трека и размера миниатюры (`ARCHITECTURE.md`, раздел 3) |
 | accent_color | INTEGER | Вычисленный акцентный цвет по обложке (ARGB). `NULL`: ещё не посчитан или сброшен после смены файла; `0`: посчитан, подходящего цвета нет (нет обложки, серая, почти чёрная или белая), используется красный по умолчанию (`docs/decisions/010-accent-extraction.md`) |
 
-Индекс по `title_key`. Альбом определяется тройкой (`title_key`, `year`, набор исполнителей альбома). Исполнители альбома берутся из тега «Исполнитель альбома» (`ALBUMARTIST`, `TPE2`, `aART`), а если его нет, из исполнителей трека. Версия 3 схемы ничего не меняет в таблицах, она обнуляет `track.date_modified`, чтобы все файлы перечитались с новым правилом (задача 0.3.5a). Версия 6 добавляет `track.track_total` и `track.disc_total` и так же обнуляет `track.date_modified`, чтобы они заполнились (задача 0.4.11).
+Индекс по `title_key`. Альбом определяется тройкой (`title_key`, `year`, набор исполнителей альбома). Исполнители альбома берутся из тега «Исполнитель альбома» (`ALBUMARTIST`, `TPE2`, `aART`), а если его нет, из исполнителей трека. Версия 3 схемы ничего не меняет в таблицах, она обнуляет `track.date_modified`, чтобы все файлы перечитались с новым правилом (задача 0.3.5a). Версия 6 добавляет `track.track_total` и `track.disc_total` и так же обнуляет `track.date_modified`, чтобы они заполнились (задача 0.4.11). Версия 7 добавляет столбцы ReplayGain (`track.rg_*`) и тоже обнуляет `track.date_modified` (задача 0.5.3).
 
 ### album_artist
 | Поле | Тип | Описание |
@@ -76,6 +76,10 @@ PK: (`album_id`, `artist_id`).
 | is_damaged | INTEGER NOT NULL DEFAULT 0 | Файл уронил нативное чтение тегов и в карантине (`NativeCallGuard`): теги взяты из MediaStore. Версия схемы 2 |
 | rating_tenths | INTEGER | Оценка 0-100 (шкала 0.0-10.0 с шагом 0.1, например 67 = 6.7), NULL = не оценён. Только в БД, в файлы не пишется |
 | is_favorite | INTEGER NOT NULL DEFAULT 0 | |
+| rg_track_gain | REAL | ReplayGain трека в дБ (`REPLAYGAIN_TRACK_GAIN`, в Opus `R128_TRACK_GAIN` + 5 дБ), NULL = нет тега. Версия схемы 7, задача 0.5.3 |
+| rg_track_peak | REAL | Пик трека (`REPLAYGAIN_TRACK_PEAK`, 1.0 = полная шкала) |
+| rg_album_gain | REAL | ReplayGain альбома в дБ (`REPLAYGAIN_ALBUM_GAIN`, в Opus `R128_ALBUM_GAIN` + 5 дБ) |
+| rg_album_peak | REAL | Пик альбома (`REPLAYGAIN_ALBUM_PEAK`) |
 
 Индексы: по `album_id`, `title_key`, `date_modified`.
 

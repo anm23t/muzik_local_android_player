@@ -15,6 +15,7 @@ import org.muzzzlo.player.core.model.ArtistRef
 import org.muzzzlo.player.core.model.DispatcherProvider
 import org.muzzzlo.player.core.model.LibraryRepository
 import org.muzzzlo.player.core.model.NameNormalizer
+import org.muzzzlo.player.core.model.ReplayGainInfo
 import org.muzzzlo.player.core.model.SettingsRepository
 import org.muzzzlo.player.core.model.Track
 import javax.inject.Inject
@@ -123,6 +124,7 @@ internal class DefaultLibraryRepository
                     albumTitle = it.albumId?.let(albumTitles::get),
                     durationMs = it.durationMs,
                     trackNumber = it.trackNumber,
+                    replayGain = ReplayGainInfo(it.rgTrackGain, it.rgTrackPeak, it.rgAlbumGain, it.rgAlbumPeak),
                 )
             }
 

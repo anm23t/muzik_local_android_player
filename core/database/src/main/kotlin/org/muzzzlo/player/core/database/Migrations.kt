@@ -70,3 +70,18 @@ val MIGRATION_5_6 =
             db.execSQL("UPDATE track SET date_modified = NULL")
         }
     }
+
+/**
+ * Version 7: ReplayGain values of a track (task 0.5.3). Clearing `date_modified` makes the next scan read every file
+ * again, so the new columns get filled.
+ */
+val MIGRATION_6_7 =
+    object : Migration(6, 7) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE track ADD COLUMN rg_track_gain REAL")
+            db.execSQL("ALTER TABLE track ADD COLUMN rg_track_peak REAL")
+            db.execSQL("ALTER TABLE track ADD COLUMN rg_album_gain REAL")
+            db.execSQL("ALTER TABLE track ADD COLUMN rg_album_peak REAL")
+            db.execSQL("UPDATE track SET date_modified = NULL")
+        }
+    }

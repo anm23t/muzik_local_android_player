@@ -3,6 +3,7 @@ package org.muzzzlo.player.core.library
 import org.muzzzlo.player.core.model.ArtistSplitter
 import org.muzzzlo.player.core.model.AudioFormat
 import org.muzzzlo.player.core.model.CompoundNames
+import org.muzzzlo.player.core.model.ReplayGainInfo
 import org.muzzzlo.player.core.model.TagReadResult
 
 /**
@@ -14,6 +15,7 @@ import org.muzzzlo.player.core.model.TagReadResult
  * @property albumArtistValues artists the album is credited to: the album artist tag split the same way, or the
  * track artists when the file has none (DESIGN.md, section 3: the album artist comes from its own tag).
  * @property isDamaged the file crashed the native tag reader and is quarantined.
+ * @property replayGain ReplayGain values from the tags; none when the tags could not be read.
  */
 internal data class TrackMetadata(
     val title: String,
@@ -32,6 +34,7 @@ internal data class TrackMetadata(
     val hasCover: Boolean,
     val hasLyrics: Boolean,
     val isDamaged: Boolean,
+    val replayGain: ReplayGainInfo = ReplayGainInfo.NONE,
 )
 
 /**
@@ -71,6 +74,7 @@ internal fun trackMetadata(
                 hasCover = tags.hasCover,
                 hasLyrics = tags.lyrics != null,
                 isDamaged = false,
+                replayGain = result.fileTags.replayGain,
             )
         }
         TagReadResult.Unreadable -> mediaStoreMetadata(file, isDamaged = false, compounds)

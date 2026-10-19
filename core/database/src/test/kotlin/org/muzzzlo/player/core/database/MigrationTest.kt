@@ -122,6 +122,33 @@ class MigrationTest {
         }
     }
 
+    @Test
+    fun `6 to 7 adds ReplayGain columns and clears date_modified`() {
+        helper.createDatabase(DB_NAME, 6).use { db ->
+            db.execSQL(
+                "INSERT INTO track (id, media_store_id, uri, title, title_key, artist_tag_values, duration_ms, " +
+                    "track_total, date_modified, has_cover, has_lyrics, is_missing, is_damaged, rating_tenths, " +
+                    "is_favorite) VALUES (1, 10, 'content://media/10', 'Song', 'song', '[\"A\"]', 1000, 12, 500, " +
+                    "0, 0, 0, 0, 67, 1)",
+            )
+        }
+
+        helper.runMigrationsAndValidate(DB_NAME, 7, true, MIGRATION_6_7).use { db ->
+            db.query(
+                "SELECT title, track_total, date_modified, rating_tenths, is_favorite, " +
+                    "rg_track_gain, rg_track_peak, rg_album_gain, rg_album_peak FROM track",
+            ).use { cursor ->
+                cursor.moveToFirst()
+                assertEquals("Song", cursor.getString(0))
+                assertEquals(12, cursor.getInt(1))
+                assertTrue(cursor.isNull(2))
+                assertEquals(67, cursor.getInt(3))
+                assertEquals(1, cursor.getInt(4))
+                (5..8).forEach { assertTrue(cursor.isNull(it)) }
+            }
+        }
+    }
+
     private companion object {
         const val DB_NAME = "migration-test.db"
     }

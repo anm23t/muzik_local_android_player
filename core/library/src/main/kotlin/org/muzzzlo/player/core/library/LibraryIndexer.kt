@@ -108,6 +108,10 @@ class LibraryIndexer
                     hasCover = metadata.hasCover,
                     hasLyrics = metadata.hasLyrics,
                     isDamaged = metadata.isDamaged,
+                    rgTrackGain = metadata.replayGain.trackGainDb,
+                    rgTrackPeak = metadata.replayGain.trackPeak,
+                    rgAlbumGain = metadata.replayGain.albumGainDb,
+                    rgAlbumPeak = metadata.replayGain.albumPeak,
                 )
             val trackId =
                 if (existingId == null) {

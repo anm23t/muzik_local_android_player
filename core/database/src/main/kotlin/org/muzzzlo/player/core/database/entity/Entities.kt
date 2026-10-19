@@ -116,6 +116,11 @@ data class TrackEntity(
     /** Rating 0-100 (tenths of a point, 67 = 6.7); null when not rated. Stored only in the database. */
     @ColumnInfo(name = "rating_tenths") val ratingTenths: Int? = null,
     @ColumnInfo(name = "is_favorite", defaultValue = "0") val isFavorite: Boolean = false,
+    /** ReplayGain values from the tags (schema 7), decibels and linear peaks; null when the file has none. */
+    @ColumnInfo(name = "rg_track_gain") val rgTrackGain: Float? = null,
+    @ColumnInfo(name = "rg_track_peak") val rgTrackPeak: Float? = null,
+    @ColumnInfo(name = "rg_album_gain") val rgAlbumGain: Float? = null,
+    @ColumnInfo(name = "rg_album_peak") val rgAlbumPeak: Float? = null,
 )
 
 /**
@@ -147,6 +152,10 @@ data class TrackScanFields(
     /** A scanned file is present, so an update also brings a reappeared track back. */
     @ColumnInfo(name = "is_missing") val isMissing: Boolean = false,
     @ColumnInfo(name = "is_damaged") val isDamaged: Boolean,
+    @ColumnInfo(name = "rg_track_gain") val rgTrackGain: Float? = null,
+    @ColumnInfo(name = "rg_track_peak") val rgTrackPeak: Float? = null,
+    @ColumnInfo(name = "rg_album_gain") val rgAlbumGain: Float? = null,
+    @ColumnInfo(name = "rg_album_peak") val rgAlbumPeak: Float? = null,
 ) {
     /** A new track row with these fields and default user data. */
     fun toNewEntity() =
@@ -173,6 +182,10 @@ data class TrackScanFields(
             hasLyrics = hasLyrics,
             isMissing = isMissing,
             isDamaged = isDamaged,
+            rgTrackGain = rgTrackGain,
+            rgTrackPeak = rgTrackPeak,
+            rgAlbumGain = rgAlbumGain,
+            rgAlbumPeak = rgAlbumPeak,
         )
 }
 

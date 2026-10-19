@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test
 import org.muzzzlo.player.core.model.AudioFormat
 import org.muzzzlo.player.core.model.AudioInfo
 import org.muzzzlo.player.core.model.FileTags
+import org.muzzzlo.player.core.model.ReplayGainInfo
 import org.muzzzlo.player.core.model.TagReadResult
 import org.muzzzlo.player.core.model.TrackTags
 
@@ -157,6 +158,16 @@ class TrackMetadataTest {
             val result = TagReadResult.Success(FileTags(format, null, TrackTags(), null))
             assertEquals(column, trackMetadata(mediaStore, result).format)
         }
+    }
+
+    @Test
+    fun `ReplayGain values come from the file and are empty for MediaStore rows`() {
+        val info = ReplayGainInfo(trackGainDb = -6.5f, trackPeak = 0.9f, albumGainDb = -7f, albumPeak = 1.01f)
+        val read = FileTags(AudioFormat.FLAC, id3v2Version = null, tags = TrackTags(), audio = null, replayGain = info)
+
+        assertEquals(info, trackMetadata(mediaStore, TagReadResult.Success(read)).replayGain)
+        assertEquals(ReplayGainInfo.NONE, trackMetadata(mediaStore, TagReadResult.Unreadable).replayGain)
+        assertEquals(ReplayGainInfo.NONE, trackMetadata(mediaStore, TagReadResult.Quarantined).replayGain)
     }
 
     private fun success(
