@@ -112,6 +112,7 @@ fun SettingsScreen(
                 onCheckedChange = viewModel::onDynamicAccentChanged,
                 secondary = stringResource(R.string.settings_dynamic_accent_hint),
             )
+            AppFooter()
         }
     }
     when (state.dialog) {

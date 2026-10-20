@@ -118,4 +118,7 @@
     <string name="settings_auto_backup_folder">Папка для копий</string>
     <string name="settings_auto_backup_no_folder">Не выбрана</string>
     <string name="settings_auto_backup_now">Сделать копию сейчас</string>
+
+    <string name="settings_footer_version">WUZZZIK %1$s</string>
+    <string name="settings_footer_developer">Разработчик: anm23t</string>
 </resources>

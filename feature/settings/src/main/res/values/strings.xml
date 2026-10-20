@@ -114,4 +114,7 @@
     <string name="settings_auto_backup_folder">Backup folder</string>
     <string name="settings_auto_backup_no_folder">Not chosen</string>
     <string name="settings_auto_backup_now">Back up now</string>
+
+    <string name="settings_footer_version">WUZZZIK %1$s</string>
+    <string name="settings_footer_developer">Developer: anm23t</string>
 </resources>

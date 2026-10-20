@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -14,12 +16,30 @@ android {
         applicationId = "org.muzzzlo.player"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.2.0"
+        versionCode = 2
+        versionName = "1.0-start"
+    }
+
+    // The release key stays with the owner: keystore.properties (git-ignored) points at it. Without the file
+    // the release build is left unsigned, so CI and contributors build without any secrets.
+    val keystoreProperties =
+        Properties().apply {
+            rootProject.file("keystore.properties").takeIf { it.exists() }?.inputStream()?.use(::load)
+        }
+    if (!keystoreProperties.isEmpty) {
+        signingConfigs {
+            create("release") {
+                storeFile = rootProject.file(keystoreProperties.getProperty("storeFile"))
+                storePassword = keystoreProperties.getProperty("storePassword")
+                keyAlias = keystoreProperties.getProperty("keyAlias")
+                keyPassword = keystoreProperties.getProperty("keyPassword")
+            }
+        }
     }
 
     buildTypes {
         release {
+            signingConfigs.findByName("release")?.let { signingConfig = it }
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
