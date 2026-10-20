@@ -203,3 +203,22 @@ data class TrackArtistEntity(
     @ColumnInfo(name = "artist_id") val artistId: Long,
     val position: Int,
 )
+
+/** One listen (DATABASE.md, `listen_event`); survives the track through the snapshot columns. */
+@Entity(
+    tableName = "listen_event",
+    foreignKeys = [ForeignKey(TrackEntity::class, ["id"], ["track_id"], onDelete = ForeignKey.SET_NULL)],
+    indices = [Index("started_at"), Index("track_id")],
+)
+data class ListenEventEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    @ColumnInfo(name = "track_id") val trackId: Long?,
+    @ColumnInfo(name = "started_at") val startedAt: Long,
+    @ColumnInfo(name = "played_ms") val playedMs: Long,
+    @ColumnInfo(name = "duration_ms") val durationMs: Long,
+    val counted: Boolean,
+    val skipped: Boolean,
+    @ColumnInfo(name = "title_snapshot") val titleSnapshot: String,
+    /** JSON array of artist names. */
+    @ColumnInfo(name = "artists_snapshot") val artistsSnapshot: String,
+)

@@ -149,6 +149,34 @@ class MigrationTest {
         }
     }
 
+    @Test
+    fun `7 to 8 adds listen_event that keeps its rows when the track goes`() {
+        helper.createDatabase(DB_NAME, 7).use { db ->
+            db.execSQL(
+                "INSERT INTO track (id, media_store_id, uri, title, title_key, artist_tag_values, duration_ms, " +
+                    "date_modified, has_cover, has_lyrics, is_missing, is_damaged, rating_tenths, is_favorite) " +
+                    "VALUES (1, 10, 'content://media/10', 'Song', 'song', '[\"A\"]', 1000, 500, " +
+                    "0, 0, 0, 0, 67, 1)",
+            )
+        }
+
+        helper.runMigrationsAndValidate(DB_NAME, 8, true, MIGRATION_7_8).use { db ->
+            db.execSQL("PRAGMA foreign_keys = ON")
+            db.execSQL(
+                "INSERT INTO listen_event (track_id, started_at, played_ms, duration_ms, counted, skipped, " +
+                    "title_snapshot, artists_snapshot) VALUES (1, 100, 900, 1000, 1, 0, 'Song', '[\"A\"]')",
+            )
+            db.execSQL("DELETE FROM track WHERE id = 1")
+            db.query("SELECT track_id, title_snapshot, artists_snapshot, counted FROM listen_event").use { cursor ->
+                cursor.moveToFirst()
+                assertTrue(cursor.isNull(0))
+                assertEquals("Song", cursor.getString(1))
+                assertEquals("[\"A\"]", cursor.getString(2))
+                assertEquals(1, cursor.getInt(3))
+            }
+        }
+    }
+
     private companion object {
         const val DB_NAME = "migration-test.db"
     }

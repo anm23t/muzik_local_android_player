@@ -3,15 +3,17 @@ package org.muzzzlo.player.core.database
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import org.muzzzlo.player.core.database.dao.LibraryDao
+import org.muzzzlo.player.core.database.dao.ListenEventDao
 import org.muzzzlo.player.core.database.entity.AlbumArtistEntity
 import org.muzzzlo.player.core.database.entity.AlbumEntity
 import org.muzzzlo.player.core.database.entity.ArtistAliasEntity
 import org.muzzzlo.player.core.database.entity.ArtistCompoundEntity
 import org.muzzzlo.player.core.database.entity.ArtistEntity
+import org.muzzzlo.player.core.database.entity.ListenEventEntity
 import org.muzzzlo.player.core.database.entity.TrackArtistEntity
 import org.muzzzlo.player.core.database.entity.TrackEntity
 
-/** Library cache. Schema is described in DATABASE.md. */
+/** Library cache and the listen events of the statistics. Schema is described in DATABASE.md. */
 @Database(
     entities = [
         ArtistEntity::class,
@@ -21,12 +23,15 @@ import org.muzzzlo.player.core.database.entity.TrackEntity
         AlbumArtistEntity::class,
         TrackEntity::class,
         TrackArtistEntity::class,
+        ListenEventEntity::class,
     ],
-    version = 7,
+    version = 8,
     exportSchema = true,
 )
 abstract class MuzzzloDatabase : RoomDatabase() {
     abstract fun libraryDao(): LibraryDao
+
+    abstract fun listenEventDao(): ListenEventDao
 
     companion object {
         const val NAME = "muzzzlo.db"

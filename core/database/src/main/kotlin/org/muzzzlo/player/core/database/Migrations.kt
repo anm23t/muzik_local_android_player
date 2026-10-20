@@ -85,3 +85,19 @@ val MIGRATION_6_7 =
             db.execSQL("UPDATE track SET date_modified = NULL")
         }
     }
+
+/** Version 8: `listen_event`, the listens of the statistics (task 0.6.1). */
+val MIGRATION_7_8 =
+    object : Migration(7, 8) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                "CREATE TABLE IF NOT EXISTS `listen_event` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                    "`track_id` INTEGER, `started_at` INTEGER NOT NULL, `played_ms` INTEGER NOT NULL, " +
+                    "`duration_ms` INTEGER NOT NULL, `counted` INTEGER NOT NULL, `skipped` INTEGER NOT NULL, " +
+                    "`title_snapshot` TEXT NOT NULL, `artists_snapshot` TEXT NOT NULL, " +
+                    "FOREIGN KEY(`track_id`) REFERENCES `track`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL )",
+            )
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_listen_event_started_at` ON `listen_event` (`started_at`)")
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_listen_event_track_id` ON `listen_event` (`track_id`)")
+        }
+    }
