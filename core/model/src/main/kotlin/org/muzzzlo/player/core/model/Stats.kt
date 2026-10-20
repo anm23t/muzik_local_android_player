@@ -62,6 +62,12 @@ interface StatsRepository {
         limit: Int = DEFAULT_TOP_LIMIT,
     ): Flow<List<TopArtist>>
 
+    /**
+     * Ids of the albums of the latest listens (counted or skipped), the most recent first, at most [limit].
+     * Listens of deleted tracks and of tracks without an album do not count.
+     */
+    fun recentAlbumIds(limit: Int = DEFAULT_TOP_LIMIT): Flow<List<Long>>
+
     companion object {
         const val DEFAULT_TOP_LIMIT = 5
     }

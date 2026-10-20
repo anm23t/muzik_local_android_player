@@ -6,11 +6,15 @@ import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -91,7 +95,7 @@ fun HomeScreen(
                     Modifier.weight(1f),
                 )
             !state.hasMusic -> Notice(stringResource(R.string.library_empty), Modifier.weight(1f))
-            else -> ContinueListening(state.continueAlbum, onOpenAlbum)
+            else -> ContinueListening(state.continueAlbums, onOpenAlbum)
         }
         Spacer(Modifier.weight(1f))
         miniPlayer()
@@ -124,20 +128,26 @@ private fun HomeHeader(onOpenSettings: () -> Unit) {
 
 @Composable
 private fun ContinueListening(
-    album: Album?,
+    albums: List<Album>,
     onOpenAlbum: (Long) -> Unit,
 ) {
-    if (album == null) return
+    if (albums.isEmpty()) return
     Column(verticalArrangement = Arrangement.spacedBy(MuzzzloDimens.ContentGap)) {
         SectionTitle(stringResource(R.string.home_continue_listening), maxLines = 2)
-        Row(horizontalArrangement = Arrangement.spacedBy(MuzzzloDimens.SectionGap)) {
-            CoverTile(
-                title = album.title,
-                onClick = { onOpenAlbum(album.id) },
-                modifier = Modifier.weight(1f),
-                cover = { CoverImage(CoverSource.Album(album.id), it, MuzzzloDimens.TileShape) },
-            )
-            repeat(TILES_PER_ROW - 1) { Spacer(Modifier.weight(1f)) }
+        BoxWithConstraints(Modifier.fillMaxWidth()) {
+            // Three tiles fill the width (28:620), the others wait behind the edge.
+            val gap = MuzzzloDimens.SectionGap
+            val tileWidth = (maxWidth - gap * (TILES_PER_ROW - 1)) / TILES_PER_ROW
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(gap)) {
+                items(albums, key = { it.id }) { album ->
+                    CoverTile(
+                        title = album.title,
+                        onClick = { onOpenAlbum(album.id) },
+                        modifier = Modifier.width(tileWidth),
+                        cover = { CoverImage(CoverSource.Album(album.id), it, MuzzzloDimens.TileShape) },
+                    )
+                }
+            }
         }
     }
 }

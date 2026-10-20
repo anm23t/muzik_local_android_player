@@ -197,4 +197,44 @@ class ListenEventDaoStatsTest {
             val rows = dao.observeOrphanArtistPlays(all.first, all.second).first()
             assertEquals(listOf("[\"A\",\"B\"]"), rows.map { it.artistsSnapshot })
         }
+
+    @Test
+    fun recentAlbumsGoByTheLatestListenAndSkipsCount() =
+        runBlocking {
+            val one = library.insertAlbum(AlbumEntity(title = "One", titleKey = "one"))
+            val two = library.insertAlbum(AlbumEntity(title = "Two", titleKey = "two"))
+            val three = library.insertAlbum(AlbumEntity(title = "Three", titleKey = "three"))
+            val a = track("a", one)
+            val b = track("b", two)
+            val c = track("c", three)
+            listen(a, 10)
+            listen(b, 20, counted = false, skipped = true)
+            listen(c, 30)
+            listen(a, 40)
+            assertEquals(listOf(one, three, two), dao.observeRecentAlbumIds(5).first())
+        }
+
+    @Test
+    fun recentAlbumsRespectTheLimit() =
+        runBlocking {
+            val albums = (1..4).map { library.insertAlbum(AlbumEntity(title = "A$it", titleKey = "a$it")) }
+            albums.forEachIndexed { i, album -> listen(track("t$i", album), i + 1L) }
+            assertEquals(albums.reversed().take(2), dao.observeRecentAlbumIds(2).first())
+        }
+
+    @Test
+    fun recentAlbumsLeaveOutTracksWithoutAlbumAndDeletedTracks() =
+        runBlocking {
+            val album = library.insertAlbum(AlbumEntity(title = "One", titleKey = "one"))
+            listen(track("loose", null), 5)
+            listen(null, 6)
+            listen(track("a", album), 1)
+            assertEquals(listOf(album), dao.observeRecentAlbumIds(5).first())
+        }
+
+    @Test
+    fun noListensGiveNoAlbums() =
+        runBlocking {
+            assertEquals(emptyList<Long>(), dao.observeRecentAlbumIds(5).first())
+        }
 }

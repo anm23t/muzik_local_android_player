@@ -92,6 +92,23 @@ interface ListenEventDao {
         to: Long,
     ): Flow<List<ArtistPlaysRow>>
 
+    /**
+     * Albums of the latest listens, counted or skipped, the most recent first. Listens of tracks that are gone and
+     * tracks without an album are left out.
+     */
+    @Query(
+        """
+        SELECT t.album_id
+        FROM listen_event e
+        JOIN track t ON t.id = e.track_id
+        WHERE t.album_id IS NOT NULL
+        GROUP BY t.album_id
+        ORDER BY MAX(e.started_at) DESC, MAX(e.id) DESC
+        LIMIT :limit
+        """,
+    )
+    fun observeRecentAlbumIds(limit: Int): Flow<List<Long>>
+
     /** Counted listens of tracks that are gone: only the snapshot of their artists is left. */
     @Query(
         """

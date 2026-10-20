@@ -118,6 +118,8 @@ class ListenWriterTest {
             from: Long,
             to: Long,
         ) = emptyFlow<List<OrphanPlayRow>>()
+
+        override fun observeRecentAlbumIds(limit: Int) = emptyFlow<List<Long>>()
     }
 
     private companion object {

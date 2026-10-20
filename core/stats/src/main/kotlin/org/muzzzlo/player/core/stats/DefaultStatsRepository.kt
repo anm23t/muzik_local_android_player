@@ -62,4 +62,6 @@ internal class DefaultStatsRepository
                 dao.observeOrphanArtistPlays(range.fromMs, range.toMs),
             ) { linked, orphans -> mergeTopArtists(linked, orphans, limit) }
         }
+
+        override fun recentAlbumIds(limit: Int): Flow<List<Long>> = dao.observeRecentAlbumIds(limit)
     }

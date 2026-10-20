@@ -26,8 +26,10 @@ import org.muzzzlo.player.core.model.ArtistDiscography
 import org.muzzzlo.player.core.model.CompoundNameProblem
 import org.muzzzlo.player.core.model.CompoundRepository
 import org.muzzzlo.player.core.model.CompoundRules
+import org.muzzzlo.player.core.model.ContinueListening
 import org.muzzzlo.player.core.model.LibraryRepository
 import org.muzzzlo.player.core.model.PlayerController
+import org.muzzzlo.player.core.model.StatsRepository
 import org.muzzzlo.player.core.model.Track
 import javax.inject.Inject
 
@@ -55,11 +57,11 @@ private fun PlayerController.currentTrackId(): Flow<Long?> = state.map { it.curr
 /**
  * What the home screen renders.
  *
- * @property continueAlbum album of the track in the restored queue, the one tile of "Continue listening".
- * Null hides the section. Recommendations from statistics arrive in 0.6.
+ * @property continueAlbums tiles of "Continue listening": up to five albums of the latest listens
+ * ([ContinueListening]), the album of the restored queue while there is no history. Empty hides the section.
  */
 data class HomeUiState(
-    val continueAlbum: Album? = null,
+    val continueAlbums: List<Album> = emptyList(),
     val hasMusic: Boolean = true,
     val isScanning: Boolean = false,
 )
@@ -70,6 +72,7 @@ class HomeViewModel
     @Inject
     constructor(
         private val library: LibraryRepository,
+        stats: StatsRepository,
         player: PlayerController,
     ) : ViewModel() {
         private val scanning = MutableStateFlow(false)
@@ -80,9 +83,11 @@ class HomeViewModel
                 library.observeAlbums(),
                 library.observeTracks().map { it.isNotEmpty() }.distinctUntilChanged(),
                 currentAlbumId,
+                stats.recentAlbumIds(ContinueListening.MAX_TILES),
                 scanning,
-            ) { albums, hasMusic, albumId, isScanning ->
-                HomeUiState(albums.firstOrNull { it.id == albumId }, hasMusic, isScanning)
+            ) { albums, hasMusic, albumId, recent, isScanning ->
+                val queueAlbum = albums.firstOrNull { it.id == albumId }
+                HomeUiState(ContinueListening.albums(recent, albums, queueAlbum), hasMusic, isScanning)
             }.stateIn(this, HomeUiState())
 
         /** Called once the audio permission is granted. Rescanning from the screen moves to the settings in 0.5.1. */
