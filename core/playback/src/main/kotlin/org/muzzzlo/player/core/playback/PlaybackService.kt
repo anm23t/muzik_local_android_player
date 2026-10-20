@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import org.muzzzlo.player.core.model.ListenRecorder
 import org.muzzzlo.player.core.model.PlaybackBehaviorSettings
 import org.muzzzlo.player.core.model.SettingsRepository
 import javax.inject.Inject
@@ -34,8 +35,11 @@ import javax.inject.Inject
 class PlaybackService : MediaSessionService() {
     @Inject lateinit var settings: SettingsRepository
 
+    @Inject lateinit var listenRecorder: ListenRecorder
+
     private var session: MediaSession? = null
     private var headsetResumer: HeadsetResumer? = null
+    private var listenTracker: ListenTracker? = null
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     override fun onCreate() {
@@ -64,6 +68,7 @@ class PlaybackService : MediaSessionService() {
         val resumer = HeadsetResumer(this, player, Handler(Looper.getMainLooper()))
         resumer.start()
         headsetResumer = resumer
+        listenTracker = ListenTracker(player, listenRecorder).also(ListenTracker::start)
         applyBehavior(initial.playbackBehavior, player, renderers, resumer)
         scope.launch(Dispatchers.Main) {
             settings.settings.map { it.playbackBehavior }.distinctUntilChanged().collect {
@@ -125,6 +130,8 @@ class PlaybackService : MediaSessionService() {
     }
 
     override fun onDestroy() {
+        listenTracker?.stop()
+        listenTracker = null
         headsetResumer?.stop()
         headsetResumer = null
         session?.run {

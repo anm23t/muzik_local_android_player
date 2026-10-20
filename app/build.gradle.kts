@@ -42,6 +42,7 @@ dependencies {
     implementation(project(":core:library"))
     implementation(project(":core:playback"))
     implementation(project(":core:tags"))
+    implementation(project(":core:stats"))
     implementation(project(":core:designsystem"))
     implementation(project(":feature:library"))
     implementation(project(":feature:player"))
