@@ -87,20 +87,14 @@ class HomeViewModel
                 library.observeTracks().map { it.isNotEmpty() }.distinctUntilChanged(),
                 currentAlbumId,
                 stats.recentAlbumIds(ContinueListening.MAX_TILES),
-                scanning,
-                scanFailed,
-            ) { values ->
-                @Suppress("UNCHECKED_CAST")
-                val albums = values[0] as List<Album>
-
-                @Suppress("UNCHECKED_CAST")
-                val recent = values[3] as List<Long>
-                val queueAlbum = albums.firstOrNull { it.id == values[2] }
+                combine(scanning, scanFailed) { isScanning, failed -> isScanning to failed },
+            ) { albums, hasMusic, currentId, recent, scan ->
+                val queueAlbum = albums.firstOrNull { it.id == currentId }
                 HomeUiState(
                     ContinueListening.albums(recent, albums, queueAlbum),
-                    hasMusic = values[1] as Boolean,
-                    isScanning = values[4] as Boolean,
-                    scanFailed = values[5] as Boolean,
+                    hasMusic = hasMusic,
+                    isScanning = scan.first,
+                    scanFailed = scan.second,
                 )
             }.stateIn(this, HomeUiState())
 
@@ -111,13 +105,10 @@ class HomeViewModel
                 scanning.update { true }
                 scanFailed.update { false }
                 try {
-                    library.scan()
-                } catch (e: CancellationException) {
-                    throw e
-                } catch (
-                    @Suppress("TooGenericExceptionCaught") e: Exception,
-                ) {
-                    scanFailed.update { true }
+                    runCatching { library.scan() }.onFailure {
+                        if (it is CancellationException) throw it
+                        scanFailed.update { true }
+                    }
                 } finally {
                     scanning.update { false }
                 }
@@ -330,7 +321,8 @@ class ArtistViewModel
     }
 
 /**
- * What the album card renders. [album] is null while loading and after the album disappeared ([isLoaded] tells them apart).
+ * What the album card renders. [album] is null while loading and after the album disappeared ([isLoaded] tells
+ * them apart).
  *
  * @property artistPhotos photo path of each of `album.artists`, in the same order; null where the artist has no photo.
  */
