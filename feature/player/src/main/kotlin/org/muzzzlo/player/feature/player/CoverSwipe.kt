@@ -19,6 +19,7 @@ internal fun rememberCoverSwipe(
             scope = scope,
             canPrevious = { state().hasPrevious },
             canNext = { state().hasNext },
+            trackKey = { state().currentTrack?.id },
             onSkip = { if (it == SwipeSkip.NEXT) viewModel.onNext() else viewModel.onPrevious() },
         )
     }

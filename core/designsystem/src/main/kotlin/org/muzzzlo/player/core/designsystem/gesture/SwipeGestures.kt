@@ -10,6 +10,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.input.pointer.pointerInput
@@ -17,7 +18,9 @@ import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.input.pointer.util.VelocityTracker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.math.abs
 import androidx.compose.animation.core.animate as animateFloat
 
@@ -87,13 +90,15 @@ fun Modifier.swipeGestures(
 /**
  * Horizontal position of a cover that follows the finger and switches tracks (1.0.5). Feed it from
  * [swipeGestures] through [axis]; read [offsetPx] to move the cover. When a swipe counts, the cover
- * flies out, [onSkip] is called, and the cover comes in from the other side.
+ * flies out, [onSkip] is called, and once [trackKey] shows the new track the cover comes in from the
+ * other side, so the old picture is never seen coming back.
  */
 @Stable
 class CoverSwipeState(
     private val scope: CoroutineScope,
     private val canPrevious: () -> Boolean,
     private val canNext: () -> Boolean,
+    private val trackKey: () -> Any?,
     private val onSkip: (SwipeSkip) -> Unit,
 ) {
     var offsetPx by mutableFloatStateOf(0f)
@@ -125,8 +130,10 @@ class CoverSwipeState(
                     settle(0f)
                 } else {
                     val outside = if (result == SwipeSkip.NEXT) -widthPx else widthPx
+                    val before = trackKey()
                     settle(outside)
                     onSkip(result)
+                    withTimeoutOrNull(TRACK_WAIT_MS) { snapshotFlow(trackKey).first { it != before } }
                     offsetPx = -outside
                     settle(0f)
                 }
@@ -141,5 +148,6 @@ class CoverSwipeState(
 
     private companion object {
         const val SETTLE_MS = 160
+        const val TRACK_WAIT_MS = 500L
     }
 }
