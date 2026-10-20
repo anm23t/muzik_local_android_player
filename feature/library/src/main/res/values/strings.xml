@@ -4,6 +4,10 @@
     <string name="library_scanning">Scanning your music…</string>
     <string name="library_permission_rationale">Allow access to audio files to build your music library.</string>
     <string name="library_permission_grant">Allow access</string>
+    <string name="library_permission_blocked">Access to audio files is turned off. Turn it on in the app settings to build your music library.</string>
+    <string name="library_permission_settings">Open settings</string>
+    <string name="library_scan_failed">Could not scan your music.</string>
+    <string name="library_scan_retry">Try again</string>
     <string name="library_back">Back</string>
     <string name="library_home">Home</string>
     <string name="unknown_artist">Unknown artist</string>
@@ -39,6 +43,7 @@
     <string name="artists_sort_track_count">By number of songs</string>
     <string name="artists_sort_date_added">By date added</string>
     <string name="artist_not_found">This artist is not in the library</string>
+    <string name="album_not_found">This album is not in the library</string>
     <plurals name="artist_song_count">
         <item quantity="one">%d song</item>
         <item quantity="other">%d songs</item>

@@ -4,6 +4,10 @@
     <string name="library_scanning">Ищем музыку…</string>
     <string name="library_permission_rationale">Разрешите доступ к аудиофайлам, чтобы собрать библиотеку.</string>
     <string name="library_permission_grant">Разрешить доступ</string>
+    <string name="library_permission_blocked">Доступ к аудиофайлам выключен. Включите его в настройках приложения, чтобы собрать библиотеку.</string>
+    <string name="library_permission_settings">Открыть настройки</string>
+    <string name="library_scan_failed">Не удалось просканировать музыку.</string>
+    <string name="library_scan_retry">Повторить</string>
     <string name="library_back">Назад</string>
     <string name="library_home">Главная</string>
     <string name="unknown_artist">Неизвестный исполнитель</string>
@@ -41,6 +45,7 @@
     <string name="artists_sort_track_count">По количеству песен</string>
     <string name="artists_sort_date_added">По дате добавления</string>
     <string name="artist_not_found">Этого исполнителя нет в библиотеке</string>
+    <string name="album_not_found">Этого альбома нет в библиотеке</string>
     <plurals name="artist_song_count">
         <item quantity="one">%d песня</item>
         <item quantity="few">%d песни</item>

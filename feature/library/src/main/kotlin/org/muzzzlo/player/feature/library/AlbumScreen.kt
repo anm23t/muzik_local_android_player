@@ -68,7 +68,11 @@ fun AlbumScreen(
 
     ScreenFrame(modifier) {
         ScreenHeader(onBack = onBack) { HomeButton(onHome) }
-        val album = state.album ?: return@ScreenFrame
+        val album = state.album
+        if (album == null) {
+            if (state.isLoaded) Notice(stringResource(R.string.album_not_found), Modifier.weight(1f))
+            return@ScreenFrame
+        }
         AlbumHeader(album, state.artistPhotos, onOpenArtist)
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Icon(

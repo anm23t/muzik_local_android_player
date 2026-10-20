@@ -191,6 +191,38 @@ class LibraryViewModelsTest {
         }
 
     @Test
+    fun `a failed scan is shown and the next attempt clears it`() =
+        runTest {
+            val failing =
+                FakeLibrary(
+                    listOf(first),
+                    listOf(album),
+                    emptyList(),
+                ).apply { scanError = IllegalStateException() }
+            val viewModel = HomeViewModel(failing, stats, player)
+            subscribe(viewModel.state)
+
+            viewModel.onScanRequested()
+            assertEquals(true, viewModel.state.value.scanFailed)
+            assertEquals(false, viewModel.state.value.isScanning)
+
+            failing.scanError = null
+            viewModel.onScanRequested()
+            assertEquals(false, viewModel.state.value.scanFailed)
+        }
+
+    @Test
+    fun `a missing album is told apart from a loading one`() =
+        runTest {
+            val viewModel = AlbumViewModel(library, player, SavedStateHandle(mapOf(ALBUM_ID_ARG to 999L)))
+            assertEquals(false, viewModel.state.value.isLoaded)
+            subscribe(viewModel.state)
+
+            assertEquals(null, viewModel.state.value.album)
+            assertEquals(true, viewModel.state.value.isLoaded)
+        }
+
+    @Test
     fun `the artist list follows the chosen sort`() =
         runTest {
             val viewModel = ArtistListViewModel(library, FakeCompounds(), SavedStateHandle())
@@ -520,7 +552,11 @@ class LibraryViewModelsTest {
 
         override suspend fun tracksByIds(ids: List<Long>): List<Track> = tracks.value.filter { it.id in ids }
 
-        override suspend fun scan() = Unit
+        var scanError: Exception? = null
+
+        override suspend fun scan() {
+            scanError?.let { throw it }
+        }
 
         companion object {
             const val BROKEN_PICTURE = "content://broken"

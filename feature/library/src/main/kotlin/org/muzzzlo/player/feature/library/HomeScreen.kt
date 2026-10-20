@@ -1,8 +1,14 @@
 package org.muzzzlo.player.feature.library
 
 import android.Manifest
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
+import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -29,6 +35,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.muzzzlo.player.core.designsystem.component.BottomNav
 import org.muzzzlo.player.core.designsystem.component.BottomNavItem
@@ -78,7 +85,17 @@ fun HomeScreen(
     var granted by rememberSaveable {
         mutableStateOf(context.checkSelfPermission(audioPermission) == PackageManager.PERMISSION_GRANTED)
     }
-    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted = it }
+    var denied by rememberSaveable { mutableStateOf(false) }
+    val launcher =
+        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
+            granted = it
+            denied = !it
+        }
+    // The permission can be given in the system settings while the app is in the background.
+    LifecycleResumeEffect(Unit) {
+        granted = context.checkSelfPermission(audioPermission) == PackageManager.PERMISSION_GRANTED
+        onPauseOrDispose {}
+    }
     LaunchedEffect(granted) { if (granted) viewModel.onScanRequested() }
 
     ScreenFrame(modifier, spacing = MuzzzloDimens.SectionGap, outlined = false) {
@@ -88,7 +105,17 @@ fun HomeScreen(
             PillButton(text = stringResource(R.string.home_all_songs), onClick = onOpenTracks)
         }
         when {
-            !granted -> PermissionRequest { launcher.launch(audioPermission) }
+            !granted ->
+                PermissionRequest(blocked = denied && !context.canAskAgain()) {
+                    if (denied && !context.canAskAgain()) {
+                        context.openAppSettings()
+                    } else {
+                        launcher.launch(
+                            audioPermission,
+                        )
+                    }
+                }
+            state.scanFailed && !state.hasMusic -> ScanFailed(viewModel::onScanRequested)
             state.isScanning && !state.hasMusic ->
                 Notice(
                     stringResource(R.string.library_scanning),
@@ -153,20 +180,65 @@ private fun ContinueListening(
 }
 
 @Composable
-private fun ColumnScope.PermissionRequest(onRequest: () -> Unit) {
+private fun ColumnScope.PermissionRequest(
+    blocked: Boolean,
+    onRequest: () -> Unit,
+) {
     Column(
         Modifier.weight(1f).fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(MuzzzloDimens.SectionGap, Alignment.CenterVertically),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
-            text = stringResource(R.string.library_permission_rationale),
+            text =
+                stringResource(
+                    if (blocked) R.string.library_permission_blocked else R.string.library_permission_rationale,
+                ),
             style = MaterialTheme.typography.bodyLarge,
             color = MuzzzloColors.TextSecondary,
         )
-        PillButton(text = stringResource(R.string.library_permission_grant), onClick = onRequest)
+        PillButton(
+            text =
+                stringResource(
+                    if (blocked) R.string.library_permission_settings else R.string.library_permission_grant,
+                ),
+            onClick = onRequest,
+        )
     }
 }
+
+@Composable
+private fun ColumnScope.ScanFailed(onRetry: () -> Unit) {
+    Column(
+        Modifier.weight(1f).fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(MuzzzloDimens.SectionGap, Alignment.CenterVertically),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            text = stringResource(R.string.library_scan_failed),
+            style = MaterialTheme.typography.bodyLarge,
+            color = MuzzzloColors.TextSecondary,
+        )
+        PillButton(text = stringResource(R.string.library_scan_retry), onClick = onRetry)
+    }
+}
+
+/** False when the system will not show the permission dialog any more ("don't ask again"). */
+private fun Context.canAskAgain(): Boolean =
+    (findActivity()?.shouldShowRequestPermissionRationale(audioPermission)) ?: true
+
+private fun Context.openAppSettings() =
+    startActivity(
+        Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", packageName, null))
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+    )
+
+private tailrec fun Context.findActivity(): Activity? =
+    when (this) {
+        is Activity -> this
+        is ContextWrapper -> baseContext.findActivity()
+        else -> null
+    }
 
 /** Artists, albums, playlists (1.1), statistics (0.6), as in 28:697. */
 @Composable

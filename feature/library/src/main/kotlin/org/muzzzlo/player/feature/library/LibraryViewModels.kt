@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -64,6 +65,7 @@ data class HomeUiState(
     val continueAlbums: List<Album> = emptyList(),
     val hasMusic: Boolean = true,
     val isScanning: Boolean = false,
+    val scanFailed: Boolean = false,
 )
 
 /** Home screen (28:620): scanning, the entry points of the library and "Continue listening". */
@@ -76,6 +78,7 @@ class HomeViewModel
         player: PlayerController,
     ) : ViewModel() {
         private val scanning = MutableStateFlow(false)
+        private val scanFailed = MutableStateFlow(false)
         private val currentAlbumId = player.state.map { it.currentTrack?.albumId }.distinctUntilChanged()
 
         val state: StateFlow<HomeUiState> =
@@ -85,9 +88,20 @@ class HomeViewModel
                 currentAlbumId,
                 stats.recentAlbumIds(ContinueListening.MAX_TILES),
                 scanning,
-            ) { albums, hasMusic, albumId, recent, isScanning ->
-                val queueAlbum = albums.firstOrNull { it.id == albumId }
-                HomeUiState(ContinueListening.albums(recent, albums, queueAlbum), hasMusic, isScanning)
+                scanFailed,
+            ) { values ->
+                @Suppress("UNCHECKED_CAST")
+                val albums = values[0] as List<Album>
+
+                @Suppress("UNCHECKED_CAST")
+                val recent = values[3] as List<Long>
+                val queueAlbum = albums.firstOrNull { it.id == values[2] }
+                HomeUiState(
+                    ContinueListening.albums(recent, albums, queueAlbum),
+                    hasMusic = values[1] as Boolean,
+                    isScanning = values[4] as Boolean,
+                    scanFailed = values[5] as Boolean,
+                )
             }.stateIn(this, HomeUiState())
 
         /** Called once the audio permission is granted. Rescanning from the screen moves to the settings in 0.5.1. */
@@ -95,8 +109,15 @@ class HomeViewModel
             if (scanning.value) return
             viewModelScope.launch {
                 scanning.update { true }
+                scanFailed.update { false }
                 try {
                     library.scan()
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (
+                    @Suppress("TooGenericExceptionCaught") e: Exception,
+                ) {
+                    scanFailed.update { true }
                 } finally {
                     scanning.update { false }
                 }
@@ -309,7 +330,7 @@ class ArtistViewModel
     }
 
 /**
- * What the album card renders. [album] is null while loading and after the album disappeared.
+ * What the album card renders. [album] is null while loading and after the album disappeared ([isLoaded] tells them apart).
  *
  * @property artistPhotos photo path of each of `album.artists`, in the same order; null where the artist has no photo.
  */
@@ -318,6 +339,7 @@ data class AlbumUiState(
     val tracks: List<Track> = emptyList(),
     val currentTrackId: Long? = null,
     val artistPhotos: List<String?> = emptyList(),
+    val isLoaded: Boolean = false,
 )
 
 /** Photo path of each name in [names] taken from the library's [artists] (null when the artist has none). */
@@ -347,7 +369,7 @@ class AlbumViewModel
                 player.currentTrackId(),
                 library.observeArtists(),
             ) { album, tracks, current, artists ->
-                AlbumUiState(album, tracks, current, photosOf(album?.artists.orEmpty(), artists))
+                AlbumUiState(album, tracks, current, photosOf(album?.artists.orEmpty(), artists), isLoaded = true)
             }.stateIn(this, AlbumUiState())
 
         /** The "Play" button: the whole album from the first track. */
