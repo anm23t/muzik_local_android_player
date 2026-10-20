@@ -19,3 +19,6 @@ sdkmanager "ndk;30.0.16248370" "cmake;3.31.6"
 
 [TagLib](https://taglib.org/) 2.3.2 (LGPL-2.1) with utfcpp (Boost Software License 1.0), as a git submodule in
 `core/tags/src/main/cpp/taglib`.
+
+The decoder of the [Apple Lossless Audio Codec](https://github.com/macosforge/alac) (Apache License 2.0), copied with
+one safety patch into `core/playback/src/main/cpp/alac` (see the README there).
