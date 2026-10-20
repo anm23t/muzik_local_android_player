@@ -18,7 +18,10 @@ class MediaStoreSource
         /** Every music file of the device. */
         fun query(): List<ScannedFile> = query(extraSelection = null, args = null)
 
-        /** Every folder with music (and the root, as an empty path) with its track count; filters of the settings do not apply. */
+        /**
+         * Every folder with music (and the root, as an empty path) with its track count;
+         * filters of the settings do not apply.
+         */
         fun folders(): List<LibraryFolder> {
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return emptyList()
             val counts = HashMap<String, Int>()

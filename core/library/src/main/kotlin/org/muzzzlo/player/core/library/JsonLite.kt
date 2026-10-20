@@ -39,8 +39,9 @@ internal object JsonLite {
                 'f' -> out.append('\u000C')
                 'u' ->
                     if (raw.length >= i + UNICODE_ESCAPE_LENGTH) {
-                        out.append(raw.substring(i + 2, i + UNICODE_ESCAPE_LENGTH).toInt(16).toChar())
-                        i += 4
+                        val hex = raw.substring(i + ESCAPE_PREFIX_LENGTH, i + UNICODE_ESCAPE_LENGTH)
+                        out.append(hex.toInt(HEX_RADIX).toChar())
+                        i += UNICODE_ESCAPE_LENGTH - ESCAPE_PREFIX_LENGTH
                     } else {
                         out.append(next)
                     }
@@ -52,4 +53,6 @@ internal object JsonLite {
     }
 
     private const val UNICODE_ESCAPE_LENGTH = 6
+    private const val ESCAPE_PREFIX_LENGTH = 2
+    private const val HEX_RADIX = 16
 }
