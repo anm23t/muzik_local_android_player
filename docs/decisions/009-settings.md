@@ -28,6 +28,12 @@ synced lyrics 1.5).
 Decision 9 in CLAUDE.md stays: the accent follows the cover by default. A switch in the interface settings turns it
 off, and then the accent is always the default red `#CD253E` and covers are not analysed. The theme stays dark only.
 
+## Sleep timer moves to 1.2
+
+The owner postponed the sleep timer (by time, or "finish the current track") from task 0.5.5 to version 1.2, after the
+1.0 release: there is no need for it yet, and it needs a dialog in the player that has no mockup. Task 0.5.5 keeps the
+audio focus, headset and silence settings.
+
 ## Deliberately not included
 
 Light theme (decision 8), playback speed and pitch, A-B repeat, network features before 2.0.
