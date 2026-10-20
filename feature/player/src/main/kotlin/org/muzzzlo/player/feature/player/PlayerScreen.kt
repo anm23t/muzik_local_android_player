@@ -18,6 +18,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -39,6 +40,8 @@ import org.muzzzlo.player.core.designsystem.component.RoundIconButtonSize
 import org.muzzzlo.player.core.designsystem.component.ScreenFrame
 import org.muzzzlo.player.core.designsystem.component.TrackAction
 import org.muzzzlo.player.core.designsystem.component.TrackActionsMenu
+import org.muzzzlo.player.core.designsystem.gesture.AxisSwipe
+import org.muzzzlo.player.core.designsystem.gesture.swipeGestures
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloColors
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloDimens
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloTheme
@@ -65,14 +68,26 @@ fun PlayerScreen(
     onOpenArtist: (Long) -> Unit,
     onHome: () -> Unit,
     onEditTags: (Long) -> Unit,
+    onSheetDrag: (Float) -> Unit,
+    onSheetRelease: (Float) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: PlayerViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val track = state.currentTrack
     var menuOpen by remember { mutableStateOf(false) }
+    val coverSwipe = rememberCoverSwipe(viewModel) { state }
+    val closeSwipe =
+        remember {
+            AxisSwipe(onDrag = { onSheetDrag(it) }, onEnd = {
+                    velocity,
+                    _,
+                ->
+                onSheetRelease(velocity)
+            })
+        }
 
-    ScreenFrame(modifier, spacing = MuzzzloDimens.SmallGap) {
+    ScreenFrame(modifier.swipeGestures(vertical = closeSwipe), spacing = MuzzzloDimens.SmallGap) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             RoundIconButton(
                 icon = DesignR.drawable.ic_chevron_left,
@@ -88,9 +103,15 @@ fun PlayerScreen(
             )
         }
         // The cover takes the space left by the fixed parts and keeps its proportions.
-        Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+        Box(
+            Modifier.weight(1f).fillMaxWidth().swipeGestures(horizontal = coverSwipe.axis),
+            contentAlignment = Alignment.Center,
+        ) {
             CoverCard(
-                Modifier.fillMaxWidth().aspectRatio(PLAYER_COVER_ASPECT, matchHeightConstraintsFirst = true),
+                Modifier
+                    .graphicsLayer { translationX = coverSwipe.offsetPx }
+                    .fillMaxWidth()
+                    .aspectRatio(PLAYER_COVER_ASPECT, matchHeightConstraintsFirst = true),
                 cover = { CoverImage(track?.let { CoverSource.Track(it.id) }, it, MuzzzloDimens.MiniPlayerShape) },
             )
         }
@@ -271,7 +292,8 @@ private fun playerNavItems(
 
 /**
  * Mini player (15:45) under the lists, hidden when nothing is loaded. A tap opens the player,
- * a long press opens the track menu.
+ * a long press opens the track menu, a swipe sideways switches the track and a swipe up pulls the
+ * player up ([onSheetDrag] and [onSheetRelease] drive it).
  */
 @Composable
 fun MiniPlayer(
@@ -279,10 +301,22 @@ fun MiniPlayer(
     onOpenQueue: () -> Unit,
     onEditTags: (Long) -> Unit,
     onOpenArtist: (Long) -> Unit,
+    onSheetDrag: (Float) -> Unit,
+    onSheetRelease: (Float) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: PlayerViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val coverSwipe = rememberCoverSwipe(viewModel) { state }
+    val openSwipe =
+        remember {
+            AxisSwipe(onDrag = { onSheetDrag(it) }, onEnd = {
+                    velocity,
+                    _,
+                ->
+                onSheetRelease(velocity)
+            })
+        }
     val track = state.currentTrack ?: return
     var menuOpen by remember { mutableStateOf(false) }
     if (menuOpen) {
@@ -312,6 +346,8 @@ fun MiniPlayer(
         modifier = modifier,
         onLongClick = { menuOpen = true },
         cover = { CoverImage(CoverSource.Track(track.id), it) },
+        gestures = Modifier.swipeGestures(horizontal = coverSwipe.axis, vertical = openSwipe),
+        coverOffsetPx = { coverSwipe.offsetPx },
     )
 }
 
