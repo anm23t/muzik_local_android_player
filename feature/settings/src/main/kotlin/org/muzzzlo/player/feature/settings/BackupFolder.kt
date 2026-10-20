@@ -35,13 +35,7 @@ class BackupFolder
             val created =
                 DocumentsContract.createDocument(resolver, parent, JSON, name)
                     ?: throw IOException("Cannot create $name")
-            try {
-                resolver.openOutputStream(created, "wt")?.use { it.write(text.toByteArray(Charsets.UTF_8)) }
-                    ?: throw IOException("Cannot open $name")
-            } catch (e: IOException) {
-                DocumentsContract.deleteDocument(resolver, created)
-                throw e
-            }
+            writeOrDelete(created, name, text)
             // The provider renames the new file ("name (1).json") when the name is taken: the old file of the same
             // day goes first and the new one gets the plain name back.
             val sameDay = children.filter { it.name == name }
@@ -49,6 +43,21 @@ class BackupFolder
                 runCatching { DocumentsContract.deleteDocument(resolver, it) }
             }
             if (sameDay.isNotEmpty()) runCatching { DocumentsContract.renameDocument(resolver, created, name) }
+        }
+
+        /** Writes [text] into [created]; a file that could not be written is deleted again. */
+        private fun writeOrDelete(
+            created: Uri,
+            name: String,
+            text: String,
+        ) {
+            try {
+                resolver.openOutputStream(created, "wt")?.use { it.write(text.toByteArray(Charsets.UTF_8)) }
+                    ?: throw IOException("Cannot open $name")
+            } catch (e: IOException) {
+                DocumentsContract.deleteDocument(resolver, created)
+                throw e
+            }
         }
 
         private fun staleCopies(children: List<Child>): List<Uri> {

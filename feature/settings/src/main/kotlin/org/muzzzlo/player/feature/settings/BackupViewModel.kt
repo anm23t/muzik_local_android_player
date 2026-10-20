@@ -104,20 +104,19 @@ class BackupViewModel
 
         fun onMessageDismissed() = local.update { it.copy(message = null) }
 
+        /** Known failures become a message, anything else (including cancellation) goes on up. */
+        private fun failureMessage(error: Throwable): BackupMessage =
+            when (error) {
+                is BackupFormatException -> BackupMessage.NotABackup
+                is IOException, is SecurityException -> BackupMessage.FileError
+                else -> throw error
+            }
+
         private fun launchTask(action: suspend () -> BackupMessage) {
             if (local.value.busy) return
             local.update { it.copy(busy = true) }
             viewModelScope.launch {
-                val message =
-                    try {
-                        action()
-                    } catch (e: BackupFormatException) {
-                        BackupMessage.NotABackup
-                    } catch (e: IOException) {
-                        BackupMessage.FileError
-                    } catch (e: SecurityException) {
-                        BackupMessage.FileError
-                    }
+                val message = runCatching { action() }.getOrElse(::failureMessage)
                 local.update { it.copy(busy = false, message = message) }
             }
         }

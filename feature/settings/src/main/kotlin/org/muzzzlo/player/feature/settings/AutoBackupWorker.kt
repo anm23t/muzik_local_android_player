@@ -50,16 +50,11 @@ class AutoBackupWorker(
         if (folder == null || !(settings.enabled || force)) return Result.success()
         val clock = deps.clock()
         val failed =
-            try {
+            runCatching {
                 val json = deps.backup().exportJson()
                 val name = AutoBackupFiles.nameFor(Instant.now(clock).atZone(ZoneId.systemDefault()).toLocalDate())
                 withContext(deps.dispatchers().io) { deps.folder().save(folder, name, json) }
-                false
-            } catch (e: java.io.IOException) {
-                true
-            } catch (e: SecurityException) {
-                true
-            }
+            }.exceptionOrNull()?.let { it is java.io.IOException || it is SecurityException || throw it } ?: false
         deps.autoBackup().recordResult(clock.millis(), failed)
         return Result.success()
     }
