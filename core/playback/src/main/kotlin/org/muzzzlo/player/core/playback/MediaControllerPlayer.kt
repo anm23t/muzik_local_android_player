@@ -2,6 +2,7 @@ package org.muzzzlo.player.core.playback
 
 import android.content.ComponentName
 import android.content.Context
+import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
@@ -55,6 +56,16 @@ internal class MediaControllerPlayer
                 ) {
                     publish(player, queueChanged = events.contains(Player.EVENT_TIMELINE_CHANGED))
                     if (restored && PERSISTED_EVENTS.any(events::contains)) save(player)
+                }
+
+                override fun onPlayerError(error: PlaybackException) {
+                    // A broken file must not stop the queue: move on to the next track.
+                    val player = controller ?: return
+                    if (player.hasNextMediaItem()) {
+                        player.seekToNextMediaItem()
+                        player.prepare()
+                        player.play()
+                    }
                 }
 
                 override fun onIsPlayingChanged(isPlaying: Boolean) {
@@ -206,6 +217,7 @@ internal class MediaControllerPlayer
                     currentIndex = if (current == null) -1 else player.currentMediaItemIndex,
                     shuffleEnabled = player.shuffleModeEnabled,
                     repeatMode = player.repeatMode.toRepeatMode(),
+                    problem = player.playerError?.let { PlaybackProblems.of(it.errorCode) },
                 )
         }
 

@@ -17,4 +17,7 @@
     <string name="queue_empty">The queue is empty</string>
     <string name="queue_remove">Remove from queue</string>
     <string name="queue_reorder">Drag to reorder</string>
+    <string name="player_problem_missing">This file is missing or cannot be opened</string>
+    <string name="player_problem_unsupported">This format is not supported on this device</string>
+    <string name="player_problem_other">This track cannot be played</string>
 </resources>

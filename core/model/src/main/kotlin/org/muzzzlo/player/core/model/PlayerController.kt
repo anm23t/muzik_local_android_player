@@ -5,6 +5,18 @@ import kotlinx.coroutines.flow.StateFlow
 /** What happens when the queue reaches its end or a track ends. */
 enum class RepeatMode { OFF, ALL, ONE }
 
+/** Why the current track does not play. */
+enum class PlaybackProblem {
+    /** The file is gone or cannot be opened. */
+    FILE_MISSING,
+
+    /** The device cannot decode the format. */
+    UNSUPPORTED,
+
+    /** Any other failure. */
+    OTHER,
+}
+
 /** Snapshot of the player that the UI renders. */
 data class PlayerState(
     val currentTrack: Track? = null,
@@ -19,6 +31,8 @@ data class PlayerState(
     val currentIndex: Int = -1,
     val shuffleEnabled: Boolean = false,
     val repeatMode: RepeatMode = RepeatMode.OFF,
+    /** Set while [currentTrack] failed to play; the player has already moved on when there is a next track. */
+    val problem: PlaybackProblem? = null,
 )
 
 /** Remote control of the playback service. Implemented in `core:playback`. */

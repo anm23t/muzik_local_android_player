@@ -42,6 +42,7 @@ import org.muzzzlo.player.core.designsystem.component.TrackActionsMenu
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloColors
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloDimens
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloTheme
+import org.muzzzlo.player.core.model.PlaybackProblem
 import org.muzzzlo.player.core.model.PlayerState
 import org.muzzzlo.player.core.model.RepeatMode
 import java.util.Locale
@@ -161,8 +162,24 @@ private fun TrackTitle(
             textAlign = TextAlign.Center,
             marquee = true,
         )
+        state.problem?.let { problem ->
+            Spacer(Modifier.height(MuzzzloDimens.SmallGap))
+            Text(
+                text = stringResource(problem.messageRes()),
+                style = MaterialTheme.typography.bodySmall,
+                color = MuzzzloTheme.accent.accent,
+                textAlign = TextAlign.Center,
+            )
+        }
     }
 }
+
+private fun PlaybackProblem.messageRes(): Int =
+    when (this) {
+        PlaybackProblem.FILE_MISSING -> R.string.player_problem_missing
+        PlaybackProblem.UNSUPPORTED -> R.string.player_problem_unsupported
+        PlaybackProblem.OTHER -> R.string.player_problem_other
+    }
 
 @Composable
 private fun Progress(
