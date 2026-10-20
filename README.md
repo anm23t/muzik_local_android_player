@@ -1,3 +1,5 @@
+<p align="center"><img src="docs/logo.png" alt="Muzzzlo logo" width="160"></p>
+
 # muzik_local_android_player
 
 Local music player for Android. GPLv3.
