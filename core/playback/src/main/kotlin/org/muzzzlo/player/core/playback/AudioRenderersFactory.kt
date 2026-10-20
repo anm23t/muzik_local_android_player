@@ -48,6 +48,8 @@ internal fun Format.withReplayGain(stream: ReplayGainStream): Format =
  *   tracks are its neighbours for [org.muzzzlo.player.core.model.ReplayGainMode.AUTO].
  * - silence: [silenceTrim] drops the silence at the start and the end of a track; the sink adds the dropped frames to
  *   its position ([TrimChain]).
+ * - ALAC: decoded by [AlacAudioRenderer] (bundled Apple decoder) instead of MediaCodec, with the same gapless and
+ *   ReplayGain handling.
  */
 @UnstableApi
 internal class AudioRenderersFactory(
@@ -111,6 +113,10 @@ internal class AudioRenderersFactory(
                 isGapless = { gapless },
                 isShuffled = { shuffle },
             )
+        // Renderers are asked in order, so ALAC goes to the bundled decoder before MediaCodec gets it.
+        val alacRenderer =
+            AlacAudioRenderer(eventHandler, eventListener, audioSink, isGapless = { gapless }, isShuffled = { shuffle })
+        out.add(index, alacRenderer)
     }
 }
 
