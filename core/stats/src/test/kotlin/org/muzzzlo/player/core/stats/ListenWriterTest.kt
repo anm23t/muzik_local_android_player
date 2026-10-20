@@ -1,12 +1,18 @@
 package org.muzzzlo.player.core.stats
 
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.muzzzlo.player.core.database.dao.ArtistPlaysRow
 import org.muzzzlo.player.core.database.dao.ListenEventDao
+import org.muzzzlo.player.core.database.dao.OrphanPlayRow
+import org.muzzzlo.player.core.database.dao.TopAlbumRow
+import org.muzzzlo.player.core.database.dao.TopTrackRow
+import org.muzzzlo.player.core.database.dao.TotalsRow
 import org.muzzzlo.player.core.database.entity.ListenEventEntity
 import org.muzzzlo.player.core.model.FinishedListen
 import org.muzzzlo.player.core.model.ListenEnd
@@ -85,6 +91,33 @@ class ListenWriterTest {
         }
 
         override suspend fun all(): List<ListenEventEntity> = rows.reversed()
+
+        override fun observeTotals(
+            from: Long,
+            to: Long,
+        ) = emptyFlow<TotalsRow>()
+
+        override fun observeTopTracks(
+            from: Long,
+            to: Long,
+            limit: Int,
+        ) = emptyFlow<List<TopTrackRow>>()
+
+        override fun observeTopAlbums(
+            from: Long,
+            to: Long,
+            limit: Int,
+        ) = emptyFlow<List<TopAlbumRow>>()
+
+        override fun observeArtistPlays(
+            from: Long,
+            to: Long,
+        ) = emptyFlow<List<ArtistPlaysRow>>()
+
+        override fun observeOrphanArtistPlays(
+            from: Long,
+            to: Long,
+        ) = emptyFlow<List<OrphanPlayRow>>()
     }
 
     private companion object {
