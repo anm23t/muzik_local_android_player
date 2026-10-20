@@ -50,7 +50,9 @@ class StatsPeriodTest {
         ) = LocalDateTime.of(y, m, d, h, 0)
 
         @JvmStatic
-        fun cases(): Stream<Arguments> =
+        fun cases(): Stream<Arguments> = Stream.concat(dayAndMonthCases(), yearAndWeekCases())
+
+        private fun dayAndMonthCases(): Stream<Arguments> =
             Stream.of(
                 Arguments.of(
                     "today midday",
@@ -124,6 +126,10 @@ class StatsPeriodTest {
                     at(2026, 12, 1),
                     at(2027, 1, 1),
                 ),
+            )
+
+        private fun yearAndWeekCases(): Stream<Arguments> =
+            Stream.of(
                 Arguments.of("year", StatsPeriod.Year, at(2024, 6, 1), UTC, at(2024, 1, 1), at(2025, 1, 1)),
                 Arguments.of(
                     "today in a zone",
