@@ -22,6 +22,7 @@ import org.muzzzlo.player.core.model.CrossfadeSettings
 import org.muzzzlo.player.core.model.PlaybackBehaviorSettings
 import org.muzzzlo.player.core.model.ReplayGainMode
 import org.muzzzlo.player.core.model.ReplayGainSettings
+import org.muzzzlo.player.core.model.StatsSettings
 import org.muzzzlo.player.core.model.TransientFocusAction
 import java.io.File
 
@@ -60,6 +61,8 @@ class DataStoreSettingsRepositoryTest {
             val behavior =
                 PlaybackBehaviorSettings(TransientFocusAction.PAUSE, resumeOnHeadset = true, skipSilence = true)
             repository.setPlaybackBehavior(behavior)
+            val stats = StatsSettings(thresholdPercent = 70, thresholdMinutes = 2, privateMode = true)
+            repository.setStats(stats)
 
             val expected =
                 AppSettings(
@@ -73,6 +76,7 @@ class DataStoreSettingsRepositoryTest {
                     replayGain = replayGain,
                     crossfade = CrossfadeSettings(seconds = 6, withinAlbum = true),
                     playbackBehavior = behavior,
+                    stats = stats,
                 )
             assertEquals(expected, repository.settings.first())
         }
@@ -122,6 +126,18 @@ class DataStoreSettingsRepositoryTest {
     }
 
     @ParameterizedTest
+    @CsvSource("5, 0, 10, 1", "95, 11, 90, 10", "44, 3, 40, 3")
+    fun `the listen threshold is clamped when saved`(
+        percent: Int,
+        minutes: Int,
+        expectedPercent: Int,
+        expectedMinutes: Int,
+    ) = runBlocking {
+        repository.setStats(StatsSettings(thresholdPercent = percent, thresholdMinutes = minutes))
+        assertEquals(StatsSettings(expectedPercent, expectedMinutes), repository.settings.first().stats)
+    }
+
+    @ParameterizedTest
     @CsvSource("2", "5", "0")
     fun `an unsupported ID3 version is refused`(version: Int) {
         assertThrows(
@@ -141,6 +157,8 @@ class DataStoreSettingsRepositoryTest {
                 it[DataStoreSettingsRepository.REPLAY_GAIN_UNTAGGED_DB] = Float.NaN
                 it[DataStoreSettingsRepository.CROSSFADE_SECONDS] = 40
                 it[DataStoreSettingsRepository.TRANSIENT_FOCUS] = "SHOUT"
+                it[DataStoreSettingsRepository.STATS_THRESHOLD_PERCENT] = 0
+                it[DataStoreSettingsRepository.STATS_THRESHOLD_MINUTES] = 600
             }
             val settings = repository.settings.first()
             assertEquals(4, settings.id3v2VersionForNewTags)
@@ -149,6 +167,7 @@ class DataStoreSettingsRepositoryTest {
             assertEquals(ReplayGainSettings(preampDb = 15f, untaggedGainDb = 0f), settings.replayGain)
             assertEquals(CrossfadeSettings(seconds = 12), settings.crossfade)
             assertEquals(TransientFocusAction.DUCK, settings.playbackBehavior.transientFocus)
+            assertEquals(StatsSettings(thresholdPercent = 10, thresholdMinutes = 10), settings.stats)
         }
 
     @Test

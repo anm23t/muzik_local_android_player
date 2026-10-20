@@ -33,6 +33,7 @@ import org.muzzzlo.player.core.model.LibraryRepository
 import org.muzzzlo.player.core.model.PlaybackBehaviorSettings
 import org.muzzzlo.player.core.model.ReplayGainSettings
 import org.muzzzlo.player.core.model.SettingsRepository
+import org.muzzzlo.player.core.model.StatsSettings
 import org.muzzzlo.player.core.model.TagEdit
 import org.muzzzlo.player.core.model.TagReadResult
 import org.muzzzlo.player.core.model.TagWriteResult
@@ -371,4 +372,6 @@ private class FakeSettings : SettingsRepository {
     override suspend fun setCrossfade(settings: CrossfadeSettings) = Unit
 
     override suspend fun setPlaybackBehavior(settings: PlaybackBehaviorSettings) = Unit
+
+    override suspend fun setStats(settings: StatsSettings) = Unit
 }

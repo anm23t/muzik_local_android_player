@@ -22,6 +22,7 @@ import org.muzzzlo.player.core.model.QuarantinedFile
 import org.muzzzlo.player.core.model.ReplayGainMode
 import org.muzzzlo.player.core.model.ReplayGainSettings
 import org.muzzzlo.player.core.model.SettingsRepository
+import org.muzzzlo.player.core.model.StatsSettings
 import org.muzzzlo.player.core.model.TransientFocusAction
 import java.lang.reflect.Proxy
 
@@ -126,6 +127,7 @@ class SettingsViewModelTest {
         val state = MutableStateFlow(AppSettings())
         val saved = mutableListOf<ReplayGainSettings>()
         val savedCrossfade = mutableListOf<CrossfadeSettings>()
+        val savedStats = mutableListOf<StatsSettings>()
         var saveOnly = true
         override val settings = state
 
@@ -141,6 +143,11 @@ class SettingsViewModelTest {
 
         override suspend fun setPlaybackBehavior(settings: PlaybackBehaviorSettings) {
             state.value = state.value.copy(playbackBehavior = settings)
+        }
+
+        override suspend fun setStats(settings: StatsSettings) {
+            savedStats += settings
+            if (saveOnly) state.value = state.value.copy(stats = settings.clamped())
         }
 
         override suspend fun setFolderIncluded(

@@ -19,6 +19,7 @@ import org.muzzzlo.player.core.model.PlaybackBehaviorSettings
 import org.muzzzlo.player.core.model.ReplayGainMode
 import org.muzzzlo.player.core.model.ReplayGainSettings
 import org.muzzzlo.player.core.model.SettingsRepository
+import org.muzzzlo.player.core.model.StatsSettings
 import org.muzzzlo.player.core.model.TransientFocusAction
 import javax.inject.Inject
 
@@ -100,6 +101,15 @@ class DataStoreSettingsRepository
             }
         }
 
+        override suspend fun setStats(settings: StatsSettings) {
+            val clamped = settings.clamped()
+            store.edit {
+                it[STATS_THRESHOLD_PERCENT] = clamped.thresholdPercent
+                it[STATS_THRESHOLD_MINUTES] = clamped.thresholdMinutes
+                it[STATS_PRIVATE_MODE] = clamped.privateMode
+            }
+        }
+
         internal companion object {
             val EXCLUDED_FOLDERS = stringSetPreferencesKey("excluded_folders")
             val MIN_TRACK_SECONDS = intPreferencesKey("min_track_seconds")
@@ -117,6 +127,9 @@ class DataStoreSettingsRepository
             val TRANSIENT_FOCUS = stringPreferencesKey("transient_focus")
             val RESUME_ON_HEADSET = booleanPreferencesKey("resume_on_headset")
             val SKIP_SILENCE = booleanPreferencesKey("skip_silence")
+            val STATS_THRESHOLD_PERCENT = intPreferencesKey("stats_threshold_percent")
+            val STATS_THRESHOLD_MINUTES = intPreferencesKey("stats_threshold_minutes")
+            val STATS_PRIVATE_MODE = booleanPreferencesKey("stats_private_mode")
 
             fun toSettings(preferences: Preferences): AppSettings {
                 val defaults = AppSettings()
@@ -140,6 +153,12 @@ class DataStoreSettingsRepository
                             withinAlbum = preferences[CROSSFADE_WITHIN_ALBUM] ?: defaults.crossfade.withinAlbum,
                         ).clamped(),
                     playbackBehavior = playbackBehaviorOf(preferences, defaults.playbackBehavior),
+                    stats =
+                        StatsSettings(
+                            thresholdPercent = preferences[STATS_THRESHOLD_PERCENT] ?: defaults.stats.thresholdPercent,
+                            thresholdMinutes = preferences[STATS_THRESHOLD_MINUTES] ?: defaults.stats.thresholdMinutes,
+                            privateMode = preferences[STATS_PRIVATE_MODE] ?: defaults.stats.privateMode,
+                        ).clamped(),
                 )
             }
 
