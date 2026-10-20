@@ -28,5 +28,6 @@ include(
     ":feature:library",
     ":feature:player",
     ":feature:settings",
+    ":feature:stats",
     ":feature:tag-editor",
 )
