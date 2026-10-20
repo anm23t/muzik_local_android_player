@@ -46,6 +46,8 @@ internal fun Format.withReplayGain(stream: ReplayGainStream): Format =
  * - ReplayGain: the renderer finds the queue item of each new stream and passes its ReplayGain values in the
  *   format to the sink, where [replayGain] applies them from the first sample of the track. [shuffle] tells which
  *   tracks are its neighbours for [org.muzzzlo.player.core.model.ReplayGainMode.AUTO].
+ * - silence: [silenceTrim] drops the silence at the start and the end of a track; the sink adds the dropped frames to
+ *   its position ([TrimChain]).
  */
 @UnstableApi
 internal class AudioRenderersFactory(
@@ -57,6 +59,9 @@ internal class AudioRenderersFactory(
 
     val replayGain = ReplayGainAudioProcessor(replayGainSettings)
 
+    /** Drops the silence at the start and the end of each track while enabled. */
+    val silenceTrim = SilenceTrimAudioProcessor()
+
     override fun buildAudioSink(
         context: Context,
         enableFloatOutput: Boolean,
@@ -66,9 +71,10 @@ internal class AudioRenderersFactory(
             DefaultAudioSink.Builder(context)
                 .setEnableFloatOutput(enableFloatOutput)
                 .setEnableAudioTrackPlaybackParams(enableAudioTrackPlaybackParams)
-                .setAudioProcessors(arrayOf(replayGain))
+                .setAudioProcessorChain(TrimChain(silenceTrim, replayGain))
                 .build(),
             replayGain,
+            silenceTrim,
         )
 
     override fun buildAudioRenderers(
@@ -108,11 +114,15 @@ internal class AudioRenderersFactory(
     }
 }
 
-/** Hands the ReplayGain values of the next track to [processor] when the renderer configures the sink for it. */
+/**
+ * Tells the processors where a track starts, when the renderer configures the sink for it: [processor] gets the
+ * ReplayGain values of the track, [silenceTrim] starts skipping the silence at its beginning.
+ */
 @UnstableApi
 private class ReplayGainAudioSink(
     sink: AudioSink,
     private val processor: ReplayGainAudioProcessor,
+    private val silenceTrim: SilenceTrimAudioProcessor,
 ) : ForwardingAudioSink(sink) {
     override fun configure(
         inputFormat: Format,
@@ -120,6 +130,7 @@ private class ReplayGainAudioSink(
         outputChannels: IntArray?,
     ) {
         processor.stream = inputFormat.customData as? ReplayGainStream ?: ReplayGainStream.NONE
+        silenceTrim.startOfTrack()
         super.configure(inputFormat, specifiedBufferSize, outputChannels)
     }
 }

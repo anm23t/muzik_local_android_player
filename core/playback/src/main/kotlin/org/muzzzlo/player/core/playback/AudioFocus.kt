@@ -5,6 +5,7 @@ import android.media.AudioAttributes
 import android.media.AudioFocusRequest
 import android.media.AudioManager
 import android.os.Handler
+import org.muzzzlo.player.core.model.TransientFocusAction
 
 /** What the player does when another app takes or gives back the audio focus. */
 internal enum class FocusChange {
@@ -30,6 +31,10 @@ internal fun focusChangeOf(change: Int): FocusChange? =
         AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> FocusChange.DUCK
         else -> null
     }
+
+/** What the player does for this change under the user's choice for short sounds: a duck may become a pause. */
+internal fun FocusChange.under(action: TransientFocusAction): FocusChange =
+    if (this == FocusChange.DUCK && action == TransientFocusAction.PAUSE) FocusChange.PAUSE else this
 
 /**
  * Audio focus of the whole player. The two decks of [CrossfadePlayer] run without their own focus handling,

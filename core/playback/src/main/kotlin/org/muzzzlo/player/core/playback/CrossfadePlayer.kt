@@ -15,6 +15,7 @@ import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import org.muzzzlo.player.core.model.Crossfade
 import org.muzzzlo.player.core.model.CrossfadeSettings
+import org.muzzzlo.player.core.model.TransientFocusAction
 
 /**
  * The player of the media session: two ExoPlayers ("decks") behind one [Player], so the end of a track can overlap
@@ -49,6 +50,9 @@ internal class CrossfadePlayer(
 
     /** The crossfade planned for the track on the active deck, with the messages that carry it out. */
     private var plan: Plan? = null
+
+    /** What a short sound of another app does to the playback; read when the sound starts. */
+    var transientFocus: TransientFocusAction = TransientFocusAction.DUCK
 
     /** The overlap in progress. */
     private var fade: Fade? = null
@@ -204,8 +208,8 @@ internal class CrossfadePlayer(
         return done()
     }
 
-    private fun onFocusChange(change: FocusChange) {
-        when (change) {
+    private fun onFocusChange(received: FocusChange) {
+        when (received.under(transientFocus)) {
             FocusChange.GAIN -> {
                 duck = 1f
                 focusPaused = false

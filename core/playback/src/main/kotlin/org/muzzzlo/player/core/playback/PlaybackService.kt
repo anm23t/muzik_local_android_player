@@ -1,6 +1,7 @@
 package org.muzzzlo.player.core.playback
 
 import android.content.Intent
+import android.os.Handler
 import android.os.Looper
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
@@ -20,6 +21,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import org.muzzzlo.player.core.model.PlaybackBehaviorSettings
 import org.muzzzlo.player.core.model.SettingsRepository
 import javax.inject.Inject
 
@@ -33,6 +35,7 @@ class PlaybackService : MediaSessionService() {
     @Inject lateinit var settings: SettingsRepository
 
     private var session: MediaSession? = null
+    private var headsetResumer: HeadsetResumer? = null
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     override fun onCreate() {
@@ -58,7 +61,27 @@ class PlaybackService : MediaSessionService() {
         scope.launch(Dispatchers.Main) {
             settings.settings.map { it.crossfade }.distinctUntilChanged().collect { player.crossfade = it }
         }
+        val resumer = HeadsetResumer(this, player, Handler(Looper.getMainLooper()))
+        resumer.start()
+        headsetResumer = resumer
+        applyBehavior(initial.playbackBehavior, player, renderers, resumer)
+        scope.launch(Dispatchers.Main) {
+            settings.settings.map { it.playbackBehavior }.distinctUntilChanged().collect {
+                applyBehavior(it, player, renderers, resumer)
+            }
+        }
         session = MediaSession.Builder(this, player).build()
+    }
+
+    private fun applyBehavior(
+        behavior: PlaybackBehaviorSettings,
+        player: CrossfadePlayer,
+        renderers: List<AudioRenderersFactory>,
+        resumer: HeadsetResumer,
+    ) {
+        player.transientFocus = behavior.transientFocus
+        resumer.enabled = behavior.resumeOnHeadset
+        renderers.forEach { it.silenceTrim.enabled = behavior.skipSilence }
     }
 
     /**
@@ -102,6 +125,8 @@ class PlaybackService : MediaSessionService() {
     }
 
     override fun onDestroy() {
+        headsetResumer?.stop()
+        headsetResumer = null
         session?.run {
             player.release()
             release()
