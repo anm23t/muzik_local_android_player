@@ -47,6 +47,7 @@ dependencies {
     implementation(project(":feature:library"))
     implementation(project(":feature:player"))
     implementation(project(":feature:settings"))
+    implementation(project(":feature:stats"))
     implementation(project(":feature:tag-editor"))
 
     implementation(platform(libs.androidx.compose.bom))

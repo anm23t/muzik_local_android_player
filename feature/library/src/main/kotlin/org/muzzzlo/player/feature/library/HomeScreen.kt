@@ -53,8 +53,7 @@ private const val TILES_PER_ROW = 3
 
 /**
  * Home screen (28:620). Only the parts that need neither statistics nor smart playlists: the greeting,
- * "Continue listening", the mini player and the bottom menu. Playlists and statistics
- * are shown disabled until their tasks.
+ * "Continue listening", the mini player and the bottom menu. Playlists are shown disabled until their task.
  *
  * @param miniPlayer the mini player of `feature:player`, passed in by the app.
  */
@@ -65,6 +64,7 @@ fun HomeScreen(
     onOpenAlbum: (Long) -> Unit,
     onOpenTracks: () -> Unit,
     onOpenSettings: () -> Unit,
+    onOpenStats: () -> Unit,
     miniPlayer: @Composable () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel(),
@@ -95,7 +95,7 @@ fun HomeScreen(
         }
         Spacer(Modifier.weight(1f))
         miniPlayer()
-        BottomNav(homeNavItems(onOpenArtists, onOpenAlbums))
+        BottomNav(homeNavItems(onOpenArtists, onOpenAlbums, onOpenStats))
     }
 }
 
@@ -163,6 +163,7 @@ private fun ColumnScope.PermissionRequest(onRequest: () -> Unit) {
 private fun homeNavItems(
     onOpenArtists: () -> Unit,
     onOpenAlbums: () -> Unit,
+    onOpenStats: () -> Unit,
 ): List<BottomNavItem> =
     listOf(
         BottomNavItem(DesignR.drawable.ic_users, stringResource(R.string.nav_artists), onOpenArtists),
@@ -171,7 +172,6 @@ private fun homeNavItems(
         BottomNavItem(
             DesignR.drawable.ic_chart_no_axes_column,
             stringResource(R.string.nav_statistics),
-            {},
-            enabled = false,
+            onOpenStats,
         ),
     )

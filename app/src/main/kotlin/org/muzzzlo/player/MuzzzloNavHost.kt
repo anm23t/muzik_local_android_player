@@ -31,6 +31,7 @@ import org.muzzzlo.player.feature.player.QueueScreen
 import org.muzzzlo.player.feature.settings.FoldersScreen
 import org.muzzzlo.player.feature.settings.QuarantineScreen
 import org.muzzzlo.player.feature.settings.SettingsScreen
+import org.muzzzlo.player.feature.stats.StatsScreen
 import org.muzzzlo.player.feature.tageditor.ArtistProfileScreen
 import org.muzzzlo.player.feature.tageditor.BATCH_ALBUM_ID_ARG
 import org.muzzzlo.player.feature.tageditor.BatchTagEditorScreen
@@ -46,6 +47,7 @@ private const val ROUTE_ARTISTS = "artists"
 private const val ROUTE_ARTIST_CHECK = "artistCheck"
 private const val ROUTE_COMPOUND_NAMES = "compoundNames"
 private const val ROUTE_SETTINGS = "settings"
+private const val ROUTE_STATS = "stats"
 private const val ROUTE_SETTINGS_FOLDERS = "settingsFolders"
 private const val ROUTE_SETTINGS_QUARANTINE = "settingsQuarantine"
 private const val ROUTE_ARTIST = "artist?$ARTIST_ID_ARG={$ARTIST_ID_ARG}&$ARTIST_NAME_ARG={$ARTIST_NAME_ARG}"
@@ -111,7 +113,17 @@ fun MuzzzloNavHost() {
                     onOpenAlbum = { navController.navigate(albumRoute(it)) },
                     onOpenTracks = { navController.navigate(tracksRoute()) },
                     onOpenSettings = { navController.navigate(ROUTE_SETTINGS) },
+                    onOpenStats = { navController.navigate(ROUTE_STATS) },
                     miniPlayer = miniPlayer,
+                )
+            }
+            composable(ROUTE_STATS) {
+                StatsScreen(
+                    onBack = { navController.popBackStack() },
+                    onOpenAlbum = { navController.navigate(albumRoute(it)) },
+                    onOpenArtist = { id, name ->
+                        navController.navigate(if (id != null) artistRoute(id) else artistRoute(name))
+                    },
                 )
             }
             composable(ROUTE_ALBUMS) {
