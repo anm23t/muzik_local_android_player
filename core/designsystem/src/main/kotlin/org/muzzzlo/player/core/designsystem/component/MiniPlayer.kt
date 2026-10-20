@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -32,6 +33,8 @@ import org.muzzzlo.player.core.designsystem.theme.MuzzzloDimens
  * @param onClick opens the player.
  * @param onLongClick opens the track menu (DESIGN.md, section 3, "Поведение").
  * @param cover cover of the playing track; null shows [CoverPlaceholder].
+ * @param gestures swipe detection over the whole plate (1.0.5).
+ * @param coverOffsetPx horizontal shift of the cover while a swipe follows the finger.
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -45,6 +48,8 @@ fun MiniPlayer(
     modifier: Modifier = Modifier,
     onLongClick: (() -> Unit)? = null,
     cover: (@Composable (Modifier) -> Unit)? = null,
+    gestures: Modifier = Modifier,
+    coverOffsetPx: () -> Float = { 0f },
 ) {
     Column(
         modifier
@@ -53,14 +58,19 @@ fun MiniPlayer(
             .clip(MuzzzloDimens.MiniPlayerShape)
             .background(MuzzzloColors.SurfaceElevated)
             .border(MuzzzloDimens.BorderWidth, MuzzzloColors.Outline, MuzzzloDimens.MiniPlayerShape)
-            .combinedClickable(onClick = onClick, onLongClick = onLongClick),
+            .combinedClickable(onClick = onClick, onLongClick = onLongClick)
+            .then(gestures),
     ) {
         Row(
             Modifier.weight(1f).padding(horizontal = MuzzzloDimens.ItemGap),
             horizontalArrangement = Arrangement.spacedBy(MuzzzloDimens.ItemGap),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            val coverModifier = Modifier.size(MuzzzloDimens.MiniPlayerCover).clip(MuzzzloDimens.RowShape)
+            val coverModifier =
+                Modifier
+                    .graphicsLayer { translationX = coverOffsetPx() }
+                    .size(MuzzzloDimens.MiniPlayerCover)
+                    .clip(MuzzzloDimens.RowShape)
             if (cover != null) cover(coverModifier) else CoverPlaceholder(coverModifier)
             Column(Modifier.weight(1f)) {
                 Text(
