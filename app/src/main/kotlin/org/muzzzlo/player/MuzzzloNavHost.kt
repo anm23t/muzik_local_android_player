@@ -50,7 +50,7 @@ private const val ROUTE_STATS = "stats"
 private const val ROUTE_SETTINGS_FOLDERS = "settingsFolders"
 private const val ROUTE_SETTINGS_QUARANTINE = "settingsQuarantine"
 private const val ROUTE_ARTIST = "artist?$ARTIST_ID_ARG={$ARTIST_ID_ARG}&$ARTIST_NAME_ARG={$ARTIST_NAME_ARG}"
-private const val ROUTE_PLAYER = "player"
+internal const val ROUTE_PLAYER = "player"
 private const val ROUTE_QUEUE = "queue"
 private const val ROUTE_TAG_EDITOR = "tagEditor/{$TRACK_ID_ARG}"
 private const val ROUTE_BATCH_TAG_EDITOR = "tagEditorAlbum/{$BATCH_ALBUM_ID_ARG}"
@@ -104,7 +104,14 @@ fun MuzzzloNavHost() {
         )
     }
     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-        NavHost(navController, startDestination = ROUTE_HOME) {
+        NavHost(
+            navController,
+            startDestination = ROUTE_HOME,
+            enterTransition = ScreenTransitions.enter,
+            exitTransition = ScreenTransitions.exit,
+            popEnterTransition = ScreenTransitions.popEnter,
+            popExitTransition = ScreenTransitions.popExit,
+        ) {
             composable(ROUTE_HOME) {
                 HomeScreen(
                     onOpenArtists = { navController.navigate(ROUTE_ARTISTS) },
