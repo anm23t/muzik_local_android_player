@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
@@ -57,7 +58,8 @@ fun QueueScreen(
     viewModel: PlayerViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    Column(modifier.fillMaxSize()) {
+    // The only screen without ScreenFrame: it keeps clear of the system bars and the keyboard itself.
+    Column(modifier.fillMaxSize().safeDrawingPadding()) {
         TopAppBar(
             title = { Text(stringResource(R.string.queue_title)) },
             navigationIcon = {

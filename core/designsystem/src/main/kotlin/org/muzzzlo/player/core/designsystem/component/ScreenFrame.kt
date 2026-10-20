@@ -32,6 +32,7 @@ import org.muzzzlo.player.core.designsystem.theme.MuzzzloDimens
  * The rounded frame around every screen (DESIGN.md, section 1; mockup node 15:4).
  * The outer padding adapts to the device: system bars, cutouts and the keyboard push the frame in,
  * narrow screens use smaller paddings ([FrameInsets]).
+ * The frame reads the raw window insets, so parents must not pad for them again: the keyboard would count twice.
  *
  * @param outlined draws the border; the home screen (28:620) keeps the paddings of the frame without it.
  */

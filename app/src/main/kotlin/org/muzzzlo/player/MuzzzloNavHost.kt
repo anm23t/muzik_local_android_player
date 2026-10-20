@@ -2,7 +2,6 @@ package org.muzzzlo.player
 
 import android.net.Uri
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -104,7 +103,7 @@ fun MuzzzloNavHost() {
             onOpenArtist = openArtist,
         )
     }
-    Surface(Modifier.fillMaxSize().safeDrawingPadding(), color = MaterialTheme.colorScheme.background) {
+    Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         NavHost(navController, startDestination = ROUTE_HOME) {
             composable(ROUTE_HOME) {
                 HomeScreen(
