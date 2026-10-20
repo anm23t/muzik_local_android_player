@@ -19,8 +19,10 @@ import org.junit.jupiter.params.provider.CsvSource
 import org.muzzzlo.player.core.model.AppLanguage
 import org.muzzzlo.player.core.model.AppSettings
 import org.muzzzlo.player.core.model.CrossfadeSettings
+import org.muzzzlo.player.core.model.PlaybackBehaviorSettings
 import org.muzzzlo.player.core.model.ReplayGainMode
 import org.muzzzlo.player.core.model.ReplayGainSettings
+import org.muzzzlo.player.core.model.TransientFocusAction
 import java.io.File
 
 class DataStoreSettingsRepositoryTest {
@@ -55,6 +57,9 @@ class DataStoreSettingsRepositoryTest {
             val replayGain = ReplayGainSettings(ReplayGainMode.ALBUM, 2.5f, -10f, clipProtection = false)
             repository.setReplayGain(replayGain)
             repository.setCrossfade(CrossfadeSettings(seconds = 6, withinAlbum = true))
+            val behavior =
+                PlaybackBehaviorSettings(TransientFocusAction.PAUSE, resumeOnHeadset = true, skipSilence = true)
+            repository.setPlaybackBehavior(behavior)
 
             val expected =
                 AppSettings(
@@ -67,6 +72,7 @@ class DataStoreSettingsRepositoryTest {
                     gapless = false,
                     replayGain = replayGain,
                     crossfade = CrossfadeSettings(seconds = 6, withinAlbum = true),
+                    playbackBehavior = behavior,
                 )
             assertEquals(expected, repository.settings.first())
         }
@@ -134,6 +140,7 @@ class DataStoreSettingsRepositoryTest {
                 it[DataStoreSettingsRepository.REPLAY_GAIN_PREAMP_DB] = 99f
                 it[DataStoreSettingsRepository.REPLAY_GAIN_UNTAGGED_DB] = Float.NaN
                 it[DataStoreSettingsRepository.CROSSFADE_SECONDS] = 40
+                it[DataStoreSettingsRepository.TRANSIENT_FOCUS] = "SHOUT"
             }
             val settings = repository.settings.first()
             assertEquals(4, settings.id3v2VersionForNewTags)
@@ -141,6 +148,7 @@ class DataStoreSettingsRepositoryTest {
             assertEquals(AppLanguage.SYSTEM, settings.language)
             assertEquals(ReplayGainSettings(preampDb = 15f, untaggedGainDb = 0f), settings.replayGain)
             assertEquals(CrossfadeSettings(seconds = 12), settings.crossfade)
+            assertEquals(TransientFocusAction.DUCK, settings.playbackBehavior.transientFocus)
         }
 
     @Test

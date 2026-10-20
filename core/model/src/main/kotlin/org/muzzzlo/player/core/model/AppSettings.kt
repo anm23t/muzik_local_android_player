@@ -24,6 +24,7 @@ enum class AppLanguage(val tag: String?) {
  *   a pause between tracks; off for files where this causes clicks or cut-off sound.
  * @property replayGain loudness levelling by ReplayGain tags.
  * @property crossfade overlap of the end of a track with the start of the next one.
+ * @property playbackBehavior audio focus, headset and silence handling.
  */
 data class AppSettings(
     val excludedFolders: Set<String> = emptySet(),
@@ -35,6 +36,7 @@ data class AppSettings(
     val gapless: Boolean = true,
     val replayGain: ReplayGainSettings = ReplayGainSettings(),
     val crossfade: CrossfadeSettings = CrossfadeSettings(),
+    val playbackBehavior: PlaybackBehaviorSettings = PlaybackBehaviorSettings(),
 ) {
     companion object {
         const val DEFAULT_MIN_TRACK_SECONDS = 30
@@ -74,4 +76,6 @@ interface SettingsRepository {
 
     /** Stores [settings] with the length clamped ([CrossfadeSettings.clamped]). */
     suspend fun setCrossfade(settings: CrossfadeSettings)
+
+    suspend fun setPlaybackBehavior(settings: PlaybackBehaviorSettings)
 }

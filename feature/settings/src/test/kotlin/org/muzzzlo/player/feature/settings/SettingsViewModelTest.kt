@@ -17,10 +17,12 @@ import org.muzzzlo.player.core.model.CrossfadeSettings
 import org.muzzzlo.player.core.model.LibraryFolder
 import org.muzzzlo.player.core.model.LibraryMaintenance
 import org.muzzzlo.player.core.model.LibraryRepository
+import org.muzzzlo.player.core.model.PlaybackBehaviorSettings
 import org.muzzzlo.player.core.model.QuarantinedFile
 import org.muzzzlo.player.core.model.ReplayGainMode
 import org.muzzzlo.player.core.model.ReplayGainSettings
 import org.muzzzlo.player.core.model.SettingsRepository
+import org.muzzzlo.player.core.model.TransientFocusAction
 import java.lang.reflect.Proxy
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -103,6 +105,19 @@ class SettingsViewModelTest {
         assertEquals(CrossfadeSettings(seconds = 3, withinAlbum = true), settings.state.value.crossfade)
     }
 
+    @Test
+    fun `playback behaviour changes build on each other and the focus choice closes its dialog`() {
+        viewModel.onDialogRequested(SettingsDialog.TransientFocus)
+        viewModel.onTransientFocusChosen(TransientFocusAction.PAUSE)
+        viewModel.onResumeOnHeadsetChanged(true)
+        viewModel.onSkipSilenceChanged(true)
+
+        val expected = PlaybackBehaviorSettings(TransientFocusAction.PAUSE, resumeOnHeadset = true, skipSilence = true)
+        assertEquals(expected, settings.state.value.playbackBehavior)
+        assertEquals(expected, viewModel.state.value.settings.playbackBehavior)
+        assertNull(viewModel.state.value.dialog)
+    }
+
     /**
      * Settings in memory. [saved] lists every ReplayGain save; with [saveOnly] off the flow does not change, as when
      * DataStore has not emitted yet, so the view model must build on its own state.
@@ -122,6 +137,10 @@ class SettingsViewModelTest {
         override suspend fun setCrossfade(settings: CrossfadeSettings) {
             savedCrossfade += settings
             if (saveOnly) state.value = state.value.copy(crossfade = settings.clamped())
+        }
+
+        override suspend fun setPlaybackBehavior(settings: PlaybackBehaviorSettings) {
+            state.value = state.value.copy(playbackBehavior = settings)
         }
 
         override suspend fun setFolderIncluded(

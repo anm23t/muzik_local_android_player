@@ -16,6 +16,7 @@ import org.muzzzlo.player.core.model.CrossfadeSettings
 import org.muzzzlo.player.core.model.DispatcherProvider
 import org.muzzzlo.player.core.model.EmbeddedPicture
 import org.muzzzlo.player.core.model.FileTags
+import org.muzzzlo.player.core.model.PlaybackBehaviorSettings
 import org.muzzzlo.player.core.model.ReplayGainSettings
 import org.muzzzlo.player.core.model.SettingsRepository
 import org.muzzzlo.player.core.model.TagEdit
@@ -120,6 +121,8 @@ class DefaultTrackTagRepositoryTest {
         override suspend fun setReplayGain(settings: ReplayGainSettings) = Unit
 
         override suspend fun setCrossfade(settings: CrossfadeSettings) = Unit
+
+        override suspend fun setPlaybackBehavior(settings: PlaybackBehaviorSettings) = Unit
     }
 
     private class FakeTrackFiles(val byId: MutableMap<Long, ScannedFile>) : TrackFiles {

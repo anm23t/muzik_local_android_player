@@ -60,6 +60,16 @@
     <string name="settings_crossfade_hint">The end of a track overlaps the start of the next one. Only when a track ends by itself.</string>
     <string name="settings_crossfade_within_album">Crossfade within an album</string>
     <string name="settings_crossfade_within_album_hint">Also between consecutive tracks of one album. Off keeps albums without pauses.</string>
+    <string name="settings_transient_focus">Short sounds from other apps</string>
+    <string name="settings_transient_focus_hint">What happens while a navigation prompt or a message tone plays.</string>
+    <string name="settings_transient_focus_duck">Lower the volume</string>
+    <string name="settings_transient_focus_duck_note">Playback goes on quietly and returns to full volume afterwards.</string>
+    <string name="settings_transient_focus_pause">Pause</string>
+    <string name="settings_transient_focus_pause_note">Playback pauses and continues after the sound.</string>
+    <string name="settings_resume_on_headset">Resume when a headset connects</string>
+    <string name="settings_resume_on_headset_hint">Music stopped by unplugging headphones starts again within 10 minutes.</string>
+    <string name="settings_skip_silence">Skip silence at track ends</string>
+    <string name="settings_skip_silence_hint">Digital silence at the start and the end of a track is not played. Silence inside a track stays.</string>
     <string name="settings_decibels">%1$s dB</string>
     <string name="settings_decrease">Decrease</string>
     <string name="settings_increase">Increase</string>

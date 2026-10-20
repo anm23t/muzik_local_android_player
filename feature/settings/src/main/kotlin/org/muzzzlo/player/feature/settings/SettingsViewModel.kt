@@ -15,13 +15,24 @@ import org.muzzzlo.player.core.model.AppSettings
 import org.muzzzlo.player.core.model.CrossfadeSettings
 import org.muzzzlo.player.core.model.LibraryMaintenance
 import org.muzzzlo.player.core.model.LibraryRepository
+import org.muzzzlo.player.core.model.PlaybackBehaviorSettings
 import org.muzzzlo.player.core.model.ReplayGainMode
 import org.muzzzlo.player.core.model.ReplayGainSettings
 import org.muzzzlo.player.core.model.SettingsRepository
+import org.muzzzlo.player.core.model.TransientFocusAction
 import javax.inject.Inject
 
 /** A choice dialog over the settings screen. */
-enum class SettingsDialog { MinLength, Id3Version, Language, ReplayGainMode, Preamp, UntaggedGain, Crossfade }
+enum class SettingsDialog {
+    MinLength,
+    Id3Version,
+    Language,
+    ReplayGainMode,
+    Preamp,
+    UntaggedGain,
+    Crossfade,
+    TransientFocus,
+}
 
 /**
  * State of the settings screen.
@@ -124,6 +135,21 @@ class SettingsViewModel
             val updated = change(local.value.settings.crossfade).clamped()
             local.update { it.copy(settings = it.settings.copy(crossfade = updated)) }
             viewModelScope.launch { repository.setCrossfade(updated) }
+        }
+
+        fun onTransientFocusChosen(action: TransientFocusAction) {
+            local.update { it.copy(dialog = null) }
+            changePlaybackBehavior { it.copy(transientFocus = action) }
+        }
+
+        fun onResumeOnHeadsetChanged(enabled: Boolean) = changePlaybackBehavior { it.copy(resumeOnHeadset = enabled) }
+
+        fun onSkipSilenceChanged(enabled: Boolean) = changePlaybackBehavior { it.copy(skipSilence = enabled) }
+
+        private fun changePlaybackBehavior(change: (PlaybackBehaviorSettings) -> PlaybackBehaviorSettings) {
+            val updated = change(local.value.settings.playbackBehavior)
+            local.update { it.copy(settings = it.settings.copy(playbackBehavior = updated)) }
+            viewModelScope.launch { repository.setPlaybackBehavior(updated) }
         }
 
         fun onRescanClicked() {

@@ -92,6 +92,7 @@ fun SettingsScreen(
             )
             ReplayGainRows(settings.replayGain, viewModel)
             CrossfadeRows(settings.crossfade, viewModel)
+            PlaybackBehaviorRows(settings.playbackBehavior, viewModel)
 
             GroupTitle(R.string.settings_group_interface)
             ValueRow(
@@ -136,6 +137,12 @@ fun SettingsScreen(
             )
         SettingsDialog.Crossfade ->
             CrossfadeDialog(settings.crossfade.seconds, viewModel::onCrossfadeStepped, viewModel::onDialogDismissed)
+        SettingsDialog.TransientFocus ->
+            TransientFocusDialog(
+                settings.playbackBehavior,
+                viewModel::onTransientFocusChosen,
+                viewModel::onDialogDismissed,
+            )
         null -> Unit
     }
 }

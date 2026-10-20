@@ -64,6 +64,16 @@
     <string name="settings_crossfade_hint">Конец трека накладывается на начало следующего. Только когда трек доигрывает сам.</string>
     <string name="settings_crossfade_within_album">Переход внутри альбома</string>
     <string name="settings_crossfade_within_album_hint">Также между соседними треками одного альбома. Выключено: альбомы играют без пауз.</string>
+    <string name="settings_transient_focus">Короткие звуки других приложений</string>
+    <string name="settings_transient_focus_hint">Что происходит, пока звучит подсказка навигатора или сигнал сообщения.</string>
+    <string name="settings_transient_focus_duck">Приглушать</string>
+    <string name="settings_transient_focus_duck_note">Музыка играет тише и потом возвращается к полной громкости.</string>
+    <string name="settings_transient_focus_pause">Пауза</string>
+    <string name="settings_transient_focus_pause_note">Музыка встаёт на паузу и продолжается после звука.</string>
+    <string name="settings_resume_on_headset">Продолжать при подключении наушников</string>
+    <string name="settings_resume_on_headset_hint">Музыка, остановленная отключением наушников, запускается снова в течение 10 минут.</string>
+    <string name="settings_skip_silence">Пропускать тишину в начале и конце</string>
+    <string name="settings_skip_silence_hint">Цифровая тишина в начале и в конце трека не воспроизводится. Тишина внутри трека остаётся.</string>
     <string name="settings_decibels">%1$s дБ</string>
     <string name="settings_decrease">Уменьшить</string>
     <string name="settings_increase">Увеличить</string>

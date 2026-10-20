@@ -15,9 +15,11 @@ import kotlinx.coroutines.flow.map
 import org.muzzzlo.player.core.model.AppLanguage
 import org.muzzzlo.player.core.model.AppSettings
 import org.muzzzlo.player.core.model.CrossfadeSettings
+import org.muzzzlo.player.core.model.PlaybackBehaviorSettings
 import org.muzzzlo.player.core.model.ReplayGainMode
 import org.muzzzlo.player.core.model.ReplayGainSettings
 import org.muzzzlo.player.core.model.SettingsRepository
+import org.muzzzlo.player.core.model.TransientFocusAction
 import javax.inject.Inject
 
 /**
@@ -90,6 +92,14 @@ class DataStoreSettingsRepository
             }
         }
 
+        override suspend fun setPlaybackBehavior(settings: PlaybackBehaviorSettings) {
+            store.edit {
+                it[TRANSIENT_FOCUS] = settings.transientFocus.name
+                it[RESUME_ON_HEADSET] = settings.resumeOnHeadset
+                it[SKIP_SILENCE] = settings.skipSilence
+            }
+        }
+
         internal companion object {
             val EXCLUDED_FOLDERS = stringSetPreferencesKey("excluded_folders")
             val MIN_TRACK_SECONDS = intPreferencesKey("min_track_seconds")
@@ -104,6 +114,9 @@ class DataStoreSettingsRepository
             val REPLAY_GAIN_CLIP_PROTECTION = booleanPreferencesKey("replay_gain_clip_protection")
             val CROSSFADE_SECONDS = intPreferencesKey("crossfade_seconds")
             val CROSSFADE_WITHIN_ALBUM = booleanPreferencesKey("crossfade_within_album")
+            val TRANSIENT_FOCUS = stringPreferencesKey("transient_focus")
+            val RESUME_ON_HEADSET = booleanPreferencesKey("resume_on_headset")
+            val SKIP_SILENCE = booleanPreferencesKey("skip_silence")
 
             fun toSettings(preferences: Preferences): AppSettings {
                 val defaults = AppSettings()
@@ -126,8 +139,20 @@ class DataStoreSettingsRepository
                             seconds = preferences[CROSSFADE_SECONDS] ?: defaults.crossfade.seconds,
                             withinAlbum = preferences[CROSSFADE_WITHIN_ALBUM] ?: defaults.crossfade.withinAlbum,
                         ).clamped(),
+                    playbackBehavior = playbackBehaviorOf(preferences, defaults.playbackBehavior),
                 )
             }
+
+            private fun playbackBehaviorOf(
+                preferences: Preferences,
+                defaults: PlaybackBehaviorSettings,
+            ) = PlaybackBehaviorSettings(
+                transientFocus =
+                    TransientFocusAction.entries.firstOrNull { it.name == preferences[TRANSIENT_FOCUS] }
+                        ?: defaults.transientFocus,
+                resumeOnHeadset = preferences[RESUME_ON_HEADSET] ?: defaults.resumeOnHeadset,
+                skipSilence = preferences[SKIP_SILENCE] ?: defaults.skipSilence,
+            )
 
             private fun replayGainOf(
                 preferences: Preferences,
