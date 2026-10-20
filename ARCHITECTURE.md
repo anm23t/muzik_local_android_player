@@ -139,6 +139,7 @@ core:playback  core:library core:stats core:tags
 - Исходники TagLib подключены git submodule `core/tags/src/main/cpp/taglib`, закреплены на теге `v2.3.2` (вместе с вложенным utfcpp). После клонирования: `git submodule update --init --recursive`. Обновление версии: checkout нового тега в submodule, коммит gitlink, проверка тестов `core:tags`.
 - Версии NDK и CMake зафиксированы в `gradle/libs.versions.toml` (`ndk`, `cmake`) и продублированы в `.github/workflows/ci.yml`. Оба пакета ставятся через `sdkmanager`.
 - Android: `externalNativeBuild` собирает `libtaglib_jni.so` для arm64-v8a, armeabi-v7a, x86_64 (`c++_static`, в release `MinSizeRel`).
+- Релиз: R8 и сжатие ресурсов включены (`app/build.gradle.kts`), `assembleRelease` даёт три неподписанных APK: `arm64-v8a` (3,9 МБ), `armeabi-v7a` (3,7 МБ) и универсальный (4,9 МБ, с x86_64 для эмуляторов). Размеры на 2026-10-20. Подпись ставит владелец.
 - JVM-тесты: задача `buildHostTagLib` собирает тот же CMake-проект под хост CMake'ом из SDK и системным компилятором C++ (Xcode Command Line Tools или gcc/clang), `jni.h` берётся из JDK, на котором запущен Gradle. Если линкер Command Line Tools старее новейшего macOS SDK (ошибка `tapi error: unknown architecture`), в `local.properties` указывается подходящий SDK: `tags.host.osxSysroot=/Library/Developer/CommandLineTools/SDKs/MacOSX26.5.sdk`, либо обновляются Command Line Tools.
 - Лицензии: TagLib используется под LGPL-2.1, utfcpp под Boost 1.0 (`docs/decisions/005-tag-library.md`); тексты лицензий лежат в submodule и попадут в экран лицензий приложения.
 

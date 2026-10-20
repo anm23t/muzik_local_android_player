@@ -26,6 +26,16 @@ android {
         }
     }
 
+    splits {
+        abi {
+            // One APK per phone architecture plus a universal one; x86_64 only ships in the universal APK.
+            isEnable = true
+            reset()
+            include("arm64-v8a", "armeabi-v7a")
+            isUniversalApk = true
+        }
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17

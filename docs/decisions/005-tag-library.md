@@ -107,8 +107,8 @@ and a crash in native code takes the process down instead of throwing an excepti
    fuzz the bridge with broken fixtures in 0.3.2 (done: `BrokenFilesTest`), and consider reading tags in a separate `:scanner` process if crashes show up.
 2. **Strings across JNI.** The spike uses `NewStringUTF`, which expects modified UTF-8: characters outside the BMP (emoji) would break.
    Production code passes strings as UTF-8 byte arrays in both directions, with a mandatory emoji test (ARCHITECTURE.md, section 5).
-3. **Build complexity.** CI and contributors need the NDK and CMake; F-Droid builds need the same NDK version pinned. ABI splits are planned in 1.0.3.
-4. **APK size per ABI** as measured above; a universal APK carries all ABIs.
+3. **Build complexity.** CI and contributors need the NDK and CMake; F-Droid builds need the same NDK version pinned. ABI splits were added in 1.0.3.
+4. **APK size per ABI** as measured above; a universal APK carries all ABIs. Release sizes (2026-10-20, whole app): arm64-v8a 3.9 MB, armeabi-v7a 3.7 MB, universal 4.9 MB.
 5. **Speed on a phone** — measured in task 0.3.2 with `TagReadBenchmark` (`core:tags` instrumented tests) on a phone reporting
    Android 16 (API 36), 1586 music files (1117 MP3, 427 FLAC, 23 M4A, 9 Ogg, 10 WAV), reading as the scanner does:
    open the `content://` URI, read tags and audio properties by descriptor behind `NativeCallGuard`, one file at a time.
