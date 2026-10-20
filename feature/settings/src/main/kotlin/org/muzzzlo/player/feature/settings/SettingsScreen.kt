@@ -97,6 +97,9 @@ fun SettingsScreen(
             GroupTitle(R.string.settings_group_stats)
             StatsRows(settings.stats, viewModel)
 
+            GroupTitle(R.string.settings_group_data)
+            DataRows()
+
             GroupTitle(R.string.settings_group_interface)
             ValueRow(
                 text = stringResource(R.string.settings_language),
