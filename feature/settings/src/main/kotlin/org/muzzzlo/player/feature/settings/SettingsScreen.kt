@@ -94,6 +94,9 @@ fun SettingsScreen(
             CrossfadeRows(settings.crossfade, viewModel)
             PlaybackBehaviorRows(settings.playbackBehavior, viewModel)
 
+            GroupTitle(R.string.settings_group_stats)
+            StatsRows(settings.stats, viewModel)
+
             GroupTitle(R.string.settings_group_interface)
             ValueRow(
                 text = stringResource(R.string.settings_language),
@@ -142,6 +145,13 @@ fun SettingsScreen(
                 settings.playbackBehavior,
                 viewModel::onTransientFocusChosen,
                 viewModel::onDialogDismissed,
+            )
+        SettingsDialog.ListenThreshold ->
+            ListenThresholdDialog(
+                stats = settings.stats,
+                onPercentStep = viewModel.stats::onPercentStepped,
+                onMinutesStep = viewModel.stats::onMinutesStepped,
+                onDismiss = viewModel::onDialogDismissed,
             )
         null -> Unit
     }

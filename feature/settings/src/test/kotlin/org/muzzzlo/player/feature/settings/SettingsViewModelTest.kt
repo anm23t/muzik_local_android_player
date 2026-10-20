@@ -119,6 +119,30 @@ class SettingsViewModelTest {
         assertNull(viewModel.state.value.dialog)
     }
 
+    @Test
+    fun `threshold steps build on each other, stop at the ends and keep the dialog open`() {
+        settings.saveOnly = false
+        viewModel.onDialogRequested(SettingsDialog.ListenThreshold)
+        repeat(2) { viewModel.stats.onPercentStepped(1) }
+        viewModel.stats.onMinutesStepped(-1)
+
+        assertEquals(StatsSettings(thresholdPercent = 70, thresholdMinutes = 3), viewModel.state.value.settings.stats)
+        assertEquals(StatsSettings(thresholdPercent = 70, thresholdMinutes = 3), settings.savedStats.last())
+        assertEquals(SettingsDialog.ListenThreshold, viewModel.state.value.dialog)
+
+        repeat(20) { viewModel.stats.onPercentStepped(1) }
+        repeat(20) { viewModel.stats.onMinutesStepped(-1) }
+        assertEquals(StatsSettings(thresholdPercent = 90, thresholdMinutes = 1), viewModel.state.value.settings.stats)
+    }
+
+    @Test
+    fun `private mode is switched without touching the threshold`() {
+        viewModel.stats.onMinutesStepped(2)
+        viewModel.stats.onPrivateModeChanged(true)
+
+        assertEquals(StatsSettings(thresholdMinutes = 6, privateMode = true), settings.state.value.stats)
+    }
+
     /**
      * Settings in memory. [saved] lists every ReplayGain save; with [saveOnly] off the flow does not change, as when
      * DataStore has not emitted yet, so the view model must build on its own state.

@@ -78,6 +78,15 @@
     <string name="settings_decrease">Уменьшить</string>
     <string name="settings_increase">Увеличить</string>
 
+    <string name="settings_group_stats">Статистика</string>
+    <string name="settings_listen_threshold">Порог засчитывания</string>
+    <string name="settings_listen_threshold_value">%1$d%% или %2$d мин</string>
+    <string name="settings_listen_threshold_hint">Доля трека или время, что наступит раньше.</string>
+    <string name="settings_threshold_share">Доля трека</string>
+    <string name="settings_threshold_time">Или время</string>
+    <string name="settings_percent">%d%%</string>
+    <string name="settings_private_mode">Приватный режим</string>
+    <string name="settings_private_mode_hint">Пока включён, прослушивания не записываются.</string>
     <string name="settings_group_interface">Интерфейс</string>
     <string name="settings_language">Язык</string>
     <string name="settings_language_system">Как в системе</string>

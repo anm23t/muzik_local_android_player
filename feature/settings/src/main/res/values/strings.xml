@@ -74,6 +74,15 @@
     <string name="settings_decrease">Decrease</string>
     <string name="settings_increase">Increase</string>
 
+    <string name="settings_group_stats">Statistics</string>
+    <string name="settings_listen_threshold">Listen threshold</string>
+    <string name="settings_listen_threshold_value">%1$d%% or %2$d min</string>
+    <string name="settings_listen_threshold_hint">Share of the track or time, whichever comes first.</string>
+    <string name="settings_threshold_share">Share of the track</string>
+    <string name="settings_threshold_time">Or time</string>
+    <string name="settings_percent">%d%%</string>
+    <string name="settings_private_mode">Private mode</string>
+    <string name="settings_private_mode_hint">Listens are not recorded while it is on.</string>
     <string name="settings_group_interface">Interface</string>
     <string name="settings_language">Language</string>
     <string name="settings_language_system">System</string>

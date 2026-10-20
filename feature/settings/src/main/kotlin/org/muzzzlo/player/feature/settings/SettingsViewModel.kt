@@ -32,6 +32,7 @@ enum class SettingsDialog {
     UntaggedGain,
     Crossfade,
     TransientFocus,
+    ListenThreshold,
 }
 
 /**
@@ -59,6 +60,14 @@ class SettingsViewModel
     ) : ViewModel() {
         private val local = MutableStateFlow(SettingsUiState())
         val state: StateFlow<SettingsUiState> = local.asStateFlow()
+
+        /** Changes of the statistics section. */
+        val stats =
+            StatsSettingsEditor(
+                current = { local.value.settings.stats },
+                show = { stats -> local.update { it.copy(settings = it.settings.copy(stats = stats)) } },
+                save = { stats -> viewModelScope.launch { repository.setStats(stats) } },
+            )
 
         init {
             viewModelScope.launch {
