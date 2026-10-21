@@ -119,6 +119,13 @@ class ListenWriterTest {
             to: Long,
         ) = emptyFlow<List<OrphanPlayRow>>()
 
+        override fun observeArtistTopTracks(
+            artistId: Long,
+            limit: Int,
+        ) = emptyFlow<List<TopTrackRow>>()
+
+        override fun observeArtistPlayCount(artistId: Long) = emptyFlow<Int>()
+
         override fun observeRecentAlbumIds(limit: Int) = emptyFlow<List<Long>>()
     }
 

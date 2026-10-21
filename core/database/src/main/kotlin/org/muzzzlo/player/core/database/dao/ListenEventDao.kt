@@ -92,6 +92,36 @@ interface ListenEventDao {
         to: Long,
     ): Flow<List<ArtistPlaysRow>>
 
+    /** Counted listens per track of one artist (`track_artist`), tracks that are gone have no link and do not count. */
+    @Query(
+        """
+        SELECT t.id AS trackId, t.title AS title, e.artists_snapshot AS artistsSnapshot,
+               COUNT(*) AS plays, SUM(e.played_ms) AS playedMs, MAX(e.started_at) AS lastAt
+        FROM listen_event e
+        JOIN track t ON t.id = e.track_id
+        JOIN track_artist ta ON ta.track_id = t.id
+        WHERE e.counted = 1 AND ta.artist_id = :artistId
+        GROUP BY t.id
+        ORDER BY plays DESC, playedMs DESC, t.title COLLATE NOCASE ASC, t.id ASC
+        LIMIT :limit
+        """,
+    )
+    fun observeArtistTopTracks(
+        artistId: Long,
+        limit: Int,
+    ): Flow<List<TopTrackRow>>
+
+    /** Counted listens of the tracks of one artist, all time. */
+    @Query(
+        """
+        SELECT COUNT(*)
+        FROM listen_event e
+        JOIN track_artist ta ON ta.track_id = e.track_id
+        WHERE e.counted = 1 AND ta.artist_id = :artistId
+        """,
+    )
+    fun observeArtistPlayCount(artistId: Long): Flow<Int>
+
     /**
      * Albums of the latest listens, counted or skipped, the most recent first. Listens of tracks that are gone and
      * tracks without an album are left out.

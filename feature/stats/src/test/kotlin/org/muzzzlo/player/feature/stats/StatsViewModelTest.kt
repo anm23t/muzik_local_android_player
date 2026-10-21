@@ -147,6 +147,13 @@ class StatsViewModelTest {
             limit: Int,
         ) = answer(period) { it.artists }
 
+        override fun artistTopTracks(
+            artistId: Long,
+            limit: Int,
+        ) = flowOf(emptyList<TopTrack>())
+
+        override fun artistPlays(artistId: Long) = flowOf(0)
+
         override fun recentAlbumIds(limit: Int) = flowOf(emptyList<Long>())
     }
 }

@@ -48,9 +48,13 @@
         <item quantity="one">%d song</item>
         <item quantity="other">%d songs</item>
     </plurals>
+    <plurals name="artist_play_count">
+        <item quantity="one">%d play</item>
+        <item quantity="other">%d plays</item>
+    </plurals>
     <string name="artist_top_songs">Top songs</string>
     <string name="artist_streams">Streams</string>
-    <string name="artist_top_songs_empty">Top songs and play counts will appear here once listening statistics are collected.</string>
+    <string name="artist_top_songs_empty">Songs you listen to will appear here.</string>
     <string name="artist_albums">Albums</string>
     <string name="artist_singles">Singles</string>
     <string name="artist_appears_on">Appears on</string>

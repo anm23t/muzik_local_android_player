@@ -62,6 +62,15 @@ interface StatsRepository {
         limit: Int = DEFAULT_TOP_LIMIT,
     ): Flow<List<TopArtist>>
 
+    /** The most listened tracks of one artist, all time. Tracks that are gone from the library are left out. */
+    fun artistTopTracks(
+        artistId: Long,
+        limit: Int = DEFAULT_TOP_LIMIT,
+    ): Flow<List<TopTrack>>
+
+    /** Counted listens of all tracks of one artist, all time; every artist of a track gets the listen. */
+    fun artistPlays(artistId: Long): Flow<Int>
+
     /**
      * Ids of the albums of the latest listens (counted or skipped), the most recent first, at most [limit].
      * Listens of deleted tracks and of tracks without an album do not count.

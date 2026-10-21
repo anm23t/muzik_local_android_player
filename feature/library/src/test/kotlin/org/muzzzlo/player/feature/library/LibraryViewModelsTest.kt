@@ -36,6 +36,7 @@ import org.muzzzlo.player.core.model.LibraryRepository
 import org.muzzzlo.player.core.model.PlayerState
 import org.muzzzlo.player.core.model.StatsPeriod
 import org.muzzzlo.player.core.model.StatsRepository
+import org.muzzzlo.player.core.model.TopTrack
 import org.muzzzlo.player.core.model.Track
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -44,6 +45,9 @@ class LibraryViewModelsTest {
     private val second = Track(2, "content://2", "Second", listOf("A", "B"), 10, "Album", 1_000, 2)
     private val album = Album(10, "Album", listOf("A"), 2010, 2, 100)
     private val older = Album(11, "Older", listOf("C"), 1999, 1, 50)
+
+    private val topSecond = TopTrack(2, "Second", listOf("A", "B"), 4, 400)
+    private val topFirst = TopTrack(1, "First", listOf("A"), 3, 300)
 
     private val anna = Artist(7, "A", 2)
     private val bob = Artist(8, "B", 1)
@@ -237,7 +241,7 @@ class LibraryViewModelsTest {
     @Test
     fun `the artist card shows the artist and their albums`() =
         runTest {
-            val viewModel = ArtistViewModel(library, SavedStateHandle(mapOf(ARTIST_ID_ARG to anna.id)))
+            val viewModel = ArtistViewModel(library, stats, player, SavedStateHandle(mapOf(ARTIST_ID_ARG to anna.id)))
             subscribe(viewModel.state)
 
             assertEquals(anna, viewModel.state.value.artist)
@@ -245,10 +249,50 @@ class LibraryViewModelsTest {
         }
 
     @Test
+    fun `the artist card shows the top songs and the total listens`() =
+        runTest {
+            stats.artistTop.value = listOf(topSecond, topFirst)
+            stats.artistPlayCount.value = 9
+            val viewModel = ArtistViewModel(library, stats, player, SavedStateHandle(mapOf(ARTIST_ID_ARG to anna.id)))
+            subscribe(viewModel.state)
+
+            assertEquals(listOf(second to 4, first to 3), viewModel.state.value.topSongs.map { it.track to it.plays })
+            assertEquals(9, viewModel.state.value.totalPlays)
+        }
+
+    @Test
+    fun `a top song that is no longer in the library is left out`() =
+        runTest {
+            stats.artistTop.value = listOf(TopTrack(99, "Gone", listOf("A"), 5, 500), topFirst)
+            val viewModel = ArtistViewModel(library, stats, player, SavedStateHandle(mapOf(ARTIST_ID_ARG to anna.id)))
+            subscribe(viewModel.state)
+
+            assertEquals(listOf(first), viewModel.state.value.topSongs.map { it.track })
+        }
+
+    @Test
+    fun `tapping a top song plays the top songs from it`() =
+        runTest {
+            stats.artistTop.value = listOf(topSecond, topFirst)
+            val viewModel = ArtistViewModel(library, stats, player, SavedStateHandle(mapOf(ARTIST_ID_ARG to anna.id)))
+            subscribe(viewModel.state)
+
+            viewModel.onTopSongClicked(1)
+            viewModel.onTopSongClicked(5)
+
+            assertEquals(listOf(listOf(second, first) to 1), player.played)
+        }
+
+    @Test
     fun `the artist card opens by name`() =
         runTest {
             val viewModel =
-                ArtistViewModel(library, SavedStateHandle(mapOf(ARTIST_ID_ARG to NO_ARTIST, ARTIST_NAME_ARG to "B")))
+                ArtistViewModel(
+                    library,
+                    stats,
+                    player,
+                    SavedStateHandle(mapOf(ARTIST_ID_ARG to NO_ARTIST, ARTIST_NAME_ARG to "B")),
+                )
             subscribe(viewModel.state)
 
             assertEquals(bob, viewModel.state.value.artist)
@@ -257,7 +301,8 @@ class LibraryViewModelsTest {
     @Test
     fun `an unknown name shows no artist once loaded`() =
         runTest {
-            val viewModel = ArtistViewModel(library, SavedStateHandle(mapOf(ARTIST_NAME_ARG to "Nobody")))
+            val viewModel =
+                ArtistViewModel(library, stats, player, SavedStateHandle(mapOf(ARTIST_NAME_ARG to "Nobody")))
             subscribe(viewModel.state)
 
             assertNull(viewModel.state.value.artist)
@@ -267,7 +312,7 @@ class LibraryViewModelsTest {
     @Test
     fun `a picked photo goes to the library and a broken one is ignored`() =
         runTest {
-            val viewModel = ArtistViewModel(library, SavedStateHandle(mapOf(ARTIST_ID_ARG to anna.id)))
+            val viewModel = ArtistViewModel(library, stats, player, SavedStateHandle(mapOf(ARTIST_ID_ARG to anna.id)))
             subscribe(viewModel.state)
 
             viewModel.onPhotoPicked("content://media/picker/1")
@@ -476,6 +521,8 @@ class LibraryViewModelsTest {
     /** Only the history of albums matters to the home screen. */
     private class FakeStats : StatsRepository {
         val recent = MutableStateFlow<List<Long>>(emptyList())
+        val artistTop = MutableStateFlow<List<TopTrack>>(emptyList())
+        val artistPlayCount = MutableStateFlow(0)
 
         override fun totals(period: StatsPeriod) = error("not used")
 
@@ -493,6 +540,13 @@ class LibraryViewModelsTest {
             period: StatsPeriod,
             limit: Int,
         ) = error("not used")
+
+        override fun artistTopTracks(
+            artistId: Long,
+            limit: Int,
+        ) = artistTop
+
+        override fun artistPlays(artistId: Long) = artistPlayCount
 
         override fun recentAlbumIds(limit: Int) = recent
     }

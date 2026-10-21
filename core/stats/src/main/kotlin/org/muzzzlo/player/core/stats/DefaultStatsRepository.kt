@@ -63,5 +63,15 @@ internal class DefaultStatsRepository
             ) { linked, orphans -> mergeTopArtists(linked, orphans, limit) }
         }
 
+        override fun artistTopTracks(
+            artistId: Long,
+            limit: Int,
+        ): Flow<List<TopTrack>> =
+            dao.observeArtistTopTracks(artistId, limit).map { rows ->
+                rows.map { TopTrack(it.trackId, it.title, snapshotNames(it.artistsSnapshot), it.plays, it.playedMs) }
+            }
+
+        override fun artistPlays(artistId: Long): Flow<Int> = dao.observeArtistPlayCount(artistId)
+
         override fun recentAlbumIds(limit: Int): Flow<List<Long>> = dao.observeRecentAlbumIds(limit)
     }

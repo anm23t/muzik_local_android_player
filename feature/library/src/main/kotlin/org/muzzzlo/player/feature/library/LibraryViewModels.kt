@@ -271,12 +271,20 @@ class ArtistListViewModel
 data class ArtistUiState(
     val artist: Artist? = null,
     val discography: ArtistDiscography = ArtistDiscography(),
+    val topSongs: List<ArtistTopSong> = emptyList(),
+    val totalPlays: Int = 0,
     val isLoaded: Boolean = false,
 )
 
+/** A row of the artist's top songs: the [track] to play and its counted listens. */
+data class ArtistTopSong(
+    val track: Track,
+    val plays: Int,
+)
+
 /**
- * Artist card (33:714): photo, number of songs, top songs and albums. Play counts and the top songs need
- * statistics (0.6), until then the screen shows an empty state there.
+ * Artist card (33:714): photo, number of songs and total listens, top songs (up to five, all time) and albums.
+ * Every artist of a track gets its listens, so a feature track counts for each of them.
  *
  * Opened by id from the artist list ([ARTIST_ID_ARG]) or by name from the player and the album card
  * ([ARTIST_NAME_ARG]), where only names are at hand.
@@ -287,6 +295,8 @@ class ArtistViewModel
     @Inject
     constructor(
         private val library: LibraryRepository,
+        private val stats: StatsRepository,
+        private val player: PlayerController,
         savedState: SavedStateHandle,
     ) : ViewModel() {
         private val artistId: Flow<Long?> =
@@ -301,9 +311,25 @@ class ArtistViewModel
                     combine(
                         library.observeArtists().map { artists -> artists.firstOrNull { it.id == id } },
                         library.observeArtistAlbums(id),
-                    ) { artist, discography -> ArtistUiState(artist, discography, isLoaded = true) }
+                        topSongs(id),
+                        stats.artistPlays(id),
+                    ) { artist, discography, top, plays ->
+                        ArtistUiState(artist, discography, top, plays, isLoaded = true)
+                    }
                 }
             }.stateIn(this, ArtistUiState())
+
+        private fun topSongs(artistId: Long): Flow<List<ArtistTopSong>> =
+            stats.artistTopTracks(artistId).map { top ->
+                val tracks = library.tracksByIds(top.mapNotNull { it.trackId }).associateBy { it.id }
+                top.mapNotNull { row -> tracks[row.trackId]?.let { ArtistTopSong(it, row.plays) } }
+            }
+
+        /** A top song was tapped: the queue is the top songs, starting with it. */
+        fun onTopSongClicked(index: Int) {
+            val tracks = state.value.topSongs.map { it.track }
+            if (index in tracks.indices) player.play(tracks, index)
+        }
 
         /** The user picked a picture ([uri] from the photo picker); it becomes the artist photo. */
         fun onPhotoPicked(uri: String) {

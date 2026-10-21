@@ -237,4 +237,43 @@ class ListenEventDaoStatsTest {
         runBlocking {
             assertEquals(emptyList<Long>(), dao.observeRecentAlbumIds(5).first())
         }
+
+    @Test
+    fun artistTopTracksCountOnlyThatArtistAndOrderByPlays() =
+        runBlocking {
+            val x = artist("X")
+            val y = artist("Y")
+            val duet = track("duet", null, x, y)
+            val solo = track("solo", null, x)
+            val other = track("other", null, y)
+            listen(duet, 1)
+            listen(solo, 2)
+            listen(solo, 3)
+            listen(solo, 4, counted = false, skipped = true)
+            listen(other, 5)
+            val top = dao.observeArtistTopTracks(x, 5).first()
+            assertEquals(listOf("solo", "duet"), top.map { it.title })
+            assertEquals(listOf(2, 1), top.map { it.plays })
+            assertEquals(listOf("duet", "other"), dao.observeArtistTopTracks(y, 5).first().map { it.title })
+        }
+
+    @Test
+    fun artistTopTracksRespectTheLimitAndSkipDeletedTracks() =
+        runBlocking {
+            val x = artist("X")
+            repeat(7) { listen(track("t$it", null, x), it.toLong()) }
+            val gone = track("gone", null, x)
+            listen(gone, 20)
+            db.openHelper.writableDatabase.execSQL("DELETE FROM track WHERE id = ?", arrayOf<Any>(gone))
+            listen(null, 21)
+            val top = dao.observeArtistTopTracks(x, 5).first()
+            assertEquals(5, top.size)
+            assertEquals(7, dao.observeArtistPlayCount(x).first())
+        }
+
+    @Test
+    fun artistPlayCountOfNoListensIsZero() =
+        runBlocking {
+            assertEquals(0, dao.observeArtistPlayCount(artist("X")).first())
+        }
 }

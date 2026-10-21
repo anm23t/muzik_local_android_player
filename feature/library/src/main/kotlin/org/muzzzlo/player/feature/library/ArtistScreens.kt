@@ -4,6 +4,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -212,7 +213,7 @@ private val ArtistSortField.label: Int
 
 /**
  * Artist card (33:714) with back and home on top (owner's decision, DESIGN.md, section 3). A long press on the
- * photo picks a new one. Play counts and the top songs wait for statistics (0.6) and show an empty state.
+ * photo picks a new one. The header shows the artist's total listens, the top songs play as a queue.
  *
  * @param onOpenSongs opens the list of all songs of the artist ("All Songs").
  * @param onEditArtist opens the profile editor (rename, merge, split) of the artist with this id.
@@ -261,9 +262,10 @@ fun ArtistScreen(
             ) {
                 ArtistHeader(
                     artist,
+                    totalPlays = state.totalPlays,
                     onPhotoLongPress = { if (artist.photoPath == null) pickPhoto() else photoMenuOpen = true },
                 )
-                TopSongs()
+                TopSongs(state.topSongs, viewModel::onTopSongClicked)
                 ArtistDiscographySections(
                     state.discography,
                     onOpenAlbum,
@@ -286,6 +288,7 @@ fun ArtistScreen(
 @Composable
 private fun ArtistHeader(
     artist: Artist,
+    totalPlays: Int,
     onPhotoLongPress: () -> Unit,
 ) {
     OutlinedPanel {
@@ -318,14 +321,22 @@ private fun ArtistHeader(
                     style = MaterialTheme.typography.titleSmall,
                     color = MuzzzloColors.TextSecondary,
                 )
+                Text(
+                    text = pluralStringResource(R.plurals.artist_play_count, totalPlays, totalPlays),
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MuzzzloColors.TextSecondary,
+                )
             }
         }
     }
 }
 
-/** "Top Song / Streams" (33:714). Empty until listening statistics arrive in 0.6. */
+/** "Top Song / Streams" (33:714): up to five songs with their listens; an empty state before the first listen. */
 @Composable
-private fun TopSongs() {
+private fun TopSongs(
+    songs: List<ArtistTopSong>,
+    onSongClick: (Int) -> Unit,
+) {
     OutlinedPanel {
         Row(
             Modifier.fillMaxWidth(),
@@ -346,11 +357,34 @@ private fun TopSongs() {
                 color = MuzzzloColors.TextPrimary,
             )
         }
-        Text(
-            text = stringResource(R.string.artist_top_songs_empty),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MuzzzloColors.TextSecondary,
-        )
+        if (songs.isEmpty()) {
+            Text(
+                text = stringResource(R.string.artist_top_songs_empty),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MuzzzloColors.TextSecondary,
+            )
+        }
+        songs.forEachIndexed { index, song ->
+            Row(
+                Modifier.fillMaxWidth().clickable { onSongClick(index) },
+                horizontalArrangement = Arrangement.spacedBy(MuzzzloDimens.ContentGap),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = song.track.title,
+                    modifier = Modifier.weight(1f),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MuzzzloColors.TextPrimary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    text = song.plays.toString(),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MuzzzloColors.TextSecondary,
+                )
+            }
+        }
     }
 }
 

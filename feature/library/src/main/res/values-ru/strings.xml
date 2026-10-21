@@ -52,9 +52,15 @@
         <item quantity="many">%d песен</item>
         <item quantity="other">%d песни</item>
     </plurals>
+    <plurals name="artist_play_count">
+        <item quantity="one">%d прослушивание</item>
+        <item quantity="few">%d прослушивания</item>
+        <item quantity="many">%d прослушиваний</item>
+        <item quantity="other">%d прослушивания</item>
+    </plurals>
     <string name="artist_top_songs">Топ песен</string>
     <string name="artist_streams">Прослушано</string>
-    <string name="artist_top_songs_empty">Топ песен и число прослушиваний появятся здесь, когда накопится статистика прослушиваний.</string>
+    <string name="artist_top_songs_empty">Здесь появятся песни, которые вы послушаете.</string>
     <string name="artist_albums">Альбомы</string>
     <string name="artist_singles">Синглы</string>
     <string name="artist_appears_on">Встречается в</string>
