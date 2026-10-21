@@ -38,6 +38,12 @@ android {
     }
 
     buildTypes {
+        debug {
+            // A separate app next to the installed release: the release key differs, and replacing the release
+            // would mean uninstalling it and losing its library data.
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug"
+        }
         release {
             signingConfigs.findByName("release")?.let { signingConfig = it }
             isMinifyEnabled = true

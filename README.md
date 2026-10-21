@@ -74,6 +74,8 @@ sdkmanager "ndk;30.0.16248370" "cmake;3.31.6"
 
 A release build is signed with the key described in a git-ignored `keystore.properties` in the project root
 (`storeFile`, `storePassword`, `keyAlias`, `keyPassword`); without that file `assembleRelease` makes an unsigned APK.
+The debug build is a separate app, `org.muzzzlo.player.debug` ("WUZZZIK debug"), so it installs next to a release
+build without touching its data.
 See [CONTRIBUTING.md](CONTRIBUTING.md) for how to work on the code.
 
 ## Third-party code
