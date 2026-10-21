@@ -55,26 +55,44 @@ internal class SwipeMathTest {
         expected: Float,
     ) = assertEquals(expected, dampedOffset(raw, canPrevious, canNext))
 
-    @ParameterizedTest(name = "progress {0}, speed {1}: open={2}")
+    // Height 1000: the fling mark is 300 px/s; the settle mark is 25% of the path from where the drag began.
+    @ParameterizedTest(name = "from {0} to {1}, speed {2}: open={3}")
     @CsvSource(
-        "0.5, 0, true",
-        "0.49, 0, false",
-        "0.9, 0, true",
-        "0.1, 0, false",
-        "0.1, -2000, true",
-        "0.9, 2000, false",
-        "0.9, 299, true",
-        "0.1, -299, false",
-        "0.9, 300, false",
-        "0.1, -300, true",
+        // Opening from closed.
+        "0, 0.25, 0, true",
+        "0, 0.24, 0, false",
+        "0, 0.5, 0, true",
+        "0, 0.1, 0, false",
+        "0, 0.1, -300, true",
+        "0, 0.9, 300, false",
+        "0, 0.1, -299, false",
+        "0, 0.9, 299, true",
+        // Closing from open.
+        "1, 0.75, 0, false",
+        "1, 0.76, 0, true",
+        "1, 0.5, 0, false",
+        "1, 0.9, 0, true",
+        "1, 0.9, 300, false",
+        "1, 0.1, -300, true",
+        "1, 0.9, 299, true",
+        "1, 0.6, -299, false",
+        // A drag that caught the sheet mid-animation counts from the nearer end.
+        "0.4, 0.25, 0, true",
+        "0.6, 0.75, 0, false",
     )
     fun `sheet settles`(
+        start: Float,
         progress: Float,
         speed: Float,
         expected: Boolean,
     ) = if (expected) {
-        assertTrue(sheetSettlesOpen(progress, speed, 1000f))
+        assertTrue(sheetSettlesOpen(progress, speed, 1000f, start))
     } else {
-        assertFalse(sheetSettlesOpen(progress, speed, 1000f))
+        assertFalse(sheetSettlesOpen(progress, speed, 1000f, start))
     }
+
+    @ParameterizedTest(name = "unknown height {0}: the fling is ignored")
+    @CsvSource("0", "-5")
+    fun `no height means no fling`(height: Float) =
+        assertFalse(sheetSettlesOpen(0.1f, -5000f, height, startProgress = 0f))
 }

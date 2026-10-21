@@ -28,10 +28,14 @@ internal class PlayerSheetState(private val scope: CoroutineScope) {
         private set
     private var job: Job? = null
 
+    /** Where the current drag began, null between drags; [release] uses it to know the direction. */
+    private var dragStart: Float? = null
+
     /** [deltaPx] is the finger movement since the last call, positive downwards. */
     fun dragBy(deltaPx: Float) {
         if (heightPx <= 0f) return
         job?.cancel()
+        if (dragStart == null) dragStart = progress
         progress = (progress - deltaPx / heightPx).coerceIn(0f, 1f)
     }
 
@@ -43,7 +47,9 @@ internal class PlayerSheetState(private val scope: CoroutineScope) {
 
     /** Ends a drag; [velocityPxPerSec] is positive downwards. */
     fun release(velocityPxPerSec: Float) {
-        if (sheetSettlesOpen(progress, velocityPxPerSec, heightPx)) open() else close()
+        val start = dragStart ?: progress
+        dragStart = null
+        if (sheetSettlesOpen(progress, velocityPxPerSec, heightPx, start)) open() else close()
     }
 
     fun open() = animateTo(1f)
