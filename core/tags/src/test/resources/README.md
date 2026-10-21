@@ -8,6 +8,7 @@ Small synthetic files only: generated sine tones, no copyrighted music, covers o
 | `tags/*.mp3, *.flac, *.m4a, *.ogg, *.opus` | 1 s sine tones with the same reference tags in every format: MP3 ID3v2.3 and v2.4, FLAC, M4A, Ogg Vorbis, Opus; `untagged.*` without tags | `src/test/fixtures/make_fixtures.sh` |
 | `tags/extra*.mp3, extra.flac, extra.m4a, extra.ogg, extra.opus` | copies of the tagged files with fields the app does not know: TXXX and PRIV frames, an APEv2 and an ID3v1 tag at the end of `extra_v23.mp3`, custom Vorbis fields, a freeform MP4 atom; a tag write must keep them | `src/test/fixtures/extra_fixtures.py` (run by the same script) |
 | `tags/replaygain_v24.mp3, replaygain.flac, replaygain.m4a, replaygain.opus` | copies of the untagged tones with ReplayGain values: TXXX frames, Vorbis comments, lower-case freeform MP4 atoms, Opus `R128_*` gains | `src/test/fixtures/replaygain_fixtures.py` (run by the same script) |
+| `tags/big_cover.ogg` | 1 s stereo Ogg Vorbis at 48 kHz, title `Big cover`, a 1080×1080 synthetic noise JPEG (about 320 KB) as the front cover in `METADATA_BLOCK_PICTURE`: the comment packet (about 440 KB) spans many Ogg pages (task 1.1.2) | `src/test/fixtures/big_cover_fixture.py` (run by the same script) |
 | `tags/cover_front.png`, `tags/cover_other.png` | 8×8 solid colour pictures embedded as the front cover and an "other" picture | same script |
 
 The reference values and how each format stores them are described in `src/test/fixtures/tag_fixtures.py`;

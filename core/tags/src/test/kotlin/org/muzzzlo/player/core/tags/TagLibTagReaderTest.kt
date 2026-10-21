@@ -185,16 +185,72 @@ class TagLibTagReaderTest {
         }
 
     @Test
-    fun `a file left in progress by a crash is quarantined and not read`() =
+    fun `a file that crashed while read alone is quarantined and not read`() =
         runTest {
             val guardDir = File(tempDir, "crashed")
             val key = fixture("flac.flac").path
-            simulateCrashDuringRead(guardDir, key)
+            leaveMarker(guardDir, "in-progress-solo", key)
             val reader = testTagReader(NativeCallGuard(guardDir))
 
             assertEquals(TagReadResult.Quarantined, reader.readTags(TagSource.FilePath(key)))
             assertNull(reader.readCover(TagSource.FilePath(key)))
             assertTrue(reader.readTags(TagSource.FilePath(fixture("ogg.ogg").path)) is TagReadResult.Success)
+        }
+
+    @Test
+    fun `a file left in progress by an ordinary read is read again alone and cleared`() =
+        runTest {
+            val guardDir = File(tempDir, "crashed")
+            val key = fixture("flac.flac").path
+            leaveMarker(guardDir, "in-progress", key)
+            val reader = testTagReader(NativeCallGuard(guardDir))
+
+            assertTrue(reader.readTags(TagSource.FilePath(key)) is TagReadResult.Success)
+            val guard = NativeCallGuard(guardDir)
+            assertTrue(guard.suspects().isEmpty())
+            assertTrue(guard.quarantined().isEmpty())
+        }
+
+    @Test
+    fun `reads Ogg Vorbis whose big cover spans many comment pages, by path`() =
+        runTest {
+            val guardDir = File(tempDir, "big")
+            val reader = testTagReader(NativeCallGuard(guardDir))
+            val source = TagSource.FilePath(fixture(BIG_COVER).path)
+
+            assertBigCoverFile(reader.readTags(source), reader.readCover(source))
+            assertNothingLeftBehind(guardDir)
+        }
+
+    @Test
+    fun `reads Ogg Vorbis whose big cover spans many comment pages, by descriptor`() =
+        runTest {
+            val guardDir = File(tempDir, "big")
+            val reader = testTagReader(NativeCallGuard(guardDir))
+
+            FileInputStream(fixture(BIG_COVER)).use { stream ->
+                val source = TagSource.Descriptor(stream.fd.toIntFd(), key = "content://media/3", fileName = BIG_COVER)
+
+                assertBigCoverFile(reader.readTags(source), reader.readCover(source))
+            }
+            assertNothingLeftBehind(guardDir)
+        }
+
+    @Test
+    fun `big cover file left in progress by a crash elsewhere is read alone and not quarantined`() =
+        runTest {
+            // The case from task 1.1.2: the process died while this file and others were being read.
+            val guardDir = File(tempDir, "big")
+            val key = fixture(BIG_COVER).path
+            leaveMarker(guardDir, "in-progress", key)
+            leaveMarker(guardDir, "in-progress", fixture("ogg.ogg").path)
+            val reader = testTagReader(NativeCallGuard(guardDir))
+            val source = TagSource.FilePath(key)
+
+            assertBigCoverFile(reader.readTags(source), reader.readCover(source))
+            val guard = NativeCallGuard(guardDir)
+            assertTrue(guard.quarantined().isEmpty())
+            assertEquals(setOf(fixture("ogg.ogg").path), guard.suspects())
         }
 
     @Test
@@ -215,18 +271,40 @@ class TagLibTagReaderTest {
             assertTrue(result.exceptionOrNull() is IllegalArgumentException)
         }
 
-    /**
-     * Leaves a marker behind, exactly what a process killed inside native code leaves: the guarded block copies
-     * its own marker aside, and the copy is put back after the guard removed the original.
-     */
-    private fun simulateCrashDuringRead(
+    /** Leaves a marker for [key] in [folder] of [guardDir], as a process killed inside native code does. */
+    private fun leaveMarker(
         guardDir: File,
+        folder: String,
         key: String,
     ) {
-        val markers = File(guardDir, "in-progress")
-        val saved = File(tempDir, "saved-markers")
-        NativeCallGuard(guardDir).runGuarded(key) { markers.copyRecursively(saved) }
-        saved.copyRecursively(markers)
+        val markers = File(guardDir, folder).apply { mkdirs() }
+        File(markers, "${markers.list().orEmpty().size}-crashed").writeText(key)
+    }
+
+    private fun assertBigCoverFile(
+        tags: TagReadResult,
+        cover: EmbeddedPicture?,
+    ) {
+        assertTrue(tags is TagReadResult.Success) { "Expected tags of $BIG_COVER, got $tags" }
+        val fileTags = (tags as TagReadResult.Success).fileTags
+        assertEquals(AudioFormat.OGG_VORBIS, fileTags.format)
+        assertEquals("Big cover", fileTags.tags.title)
+        assertTrue(fileTags.tags.hasCover)
+        assertEquals(BIG_SAMPLE_RATE_HZ, fileTags.audio?.sampleRateHz)
+        assertNotNull(cover)
+        assertEquals("image/jpeg", cover!!.mimeType)
+        assertEquals(FRONT, cover.pictureType)
+        assertTrue(cover.data.size > BIG_COVER_MIN_BYTES) { "cover of ${cover.data.size} bytes" }
+        // A JPEG starts with SOI and ends with EOI: the whole picture came through all the pages.
+        assertEquals(listOf(0xFF, 0xD8), cover.data.take(2).map { it.toInt() and 0xFF })
+        assertEquals(listOf(0xFF, 0xD9), cover.data.takeLast(2).map { it.toInt() and 0xFF })
+    }
+
+    private fun assertNothingLeftBehind(guardDir: File) {
+        val guard = NativeCallGuard(guardDir)
+        assertTrue(guard.recoverAfterCrash().isEmpty())
+        assertTrue(guard.suspects().isEmpty())
+        assertTrue(guard.quarantined().isEmpty())
     }
 
     /** `untagged.mp3` with a padded ID3v2.4 tag inserted between its first and second MPEG frames. */
@@ -279,6 +357,11 @@ class TagLibTagReaderTest {
         const val LYRICS = "[00:00.10]Line one\n[00:00.50]Вторая строка 🎶"
         const val TONE_MS = 1000L
         const val SECOND_TAG_BODY = 2048
+        const val BIG_COVER = "big_cover.ogg"
+        const val BIG_SAMPLE_RATE_HZ = 48000
+
+        /** The fixture's JPEG is about 320 KB; its base64 comment spans several 64 KB Ogg pages. */
+        const val BIG_COVER_MIN_BYTES = 300_000
 
         /** Encoder delay and padding (MP3 frames, Opus pre-skip) make lengths differ slightly from 1 s. */
         const val DURATION_TOLERANCE_MS = 100L

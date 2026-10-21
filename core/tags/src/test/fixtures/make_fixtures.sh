@@ -24,6 +24,9 @@ ff "${tone[@]}" -ar 22050 -c:a aac -b:a 32k m4a.m4a
 ff "${tone[@]}" -ar 22050 -ac 2 -c:a vorbis -strict -2 ogg.ogg
 ff -f lavfi -i "sine=frequency=440:duration=1" -ac 1 -ar 48000 -fflags +bitexact -flags:a +bitexact \
   -map_metadata -1 -c:a libopus -b:a 16k opus.opus
+# 48 kHz Vorbis for the big cover fixture; noise does not compress, so the JPEG stays about 320 KB.
+ff "${tone[@]}" -ar 48000 -ac 2 -c:a vorbis -strict -2 big_cover.ogg
+ff -f lavfi -i "color=c=gray:s=1080x1080,noise=alls=60:allf=u" -frames:v 1 -q:v 8 -fflags +bitexact big_cover.jpg
 
 ff -f lavfi -i "color=c=red:s=8x8" -frames:v 1 -fflags +bitexact cover_front.png
 ff -f lavfi -i "color=c=blue:s=8x8" -frames:v 1 -fflags +bitexact cover_other.png
@@ -31,4 +34,5 @@ ff -f lavfi -i "color=c=blue:s=8x8" -frames:v 1 -fflags +bitexact cover_other.pn
 "$PY" -I "$HERE/tag_fixtures.py" "$OUT"
 "$PY" -I "$HERE/extra_fixtures.py" "$OUT"
 "$PY" -I "$HERE/replaygain_fixtures.py" "$OUT"
+"$PY" -I "$HERE/big_cover_fixture.py" "$OUT"
 ls -l "$OUT"

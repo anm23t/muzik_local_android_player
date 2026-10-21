@@ -503,9 +503,9 @@ class SafeTagWriterTest {
         assertTrue(journalDir.listFiles().orEmpty().isEmpty()) { "left in the journal: ${journalDir.list()?.toList()}" }
     }
 
-    /** Puts [key] into quarantine the way a native crash does. */
+    /** A marker of a call that ran alone and never finished: the second crash on [key], which quarantines it. */
     private fun simulateNativeCrash(key: String) {
-        val markers = File(guardDir, "in-progress").apply { mkdirs() }
+        val markers = File(guardDir, "in-progress-solo").apply { mkdirs() }
         File(markers, "1-crashed").writeText(key)
     }
 
