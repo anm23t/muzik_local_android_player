@@ -7,6 +7,7 @@ import dagger.hilt.components.SingletonComponent
 import org.muzzzlo.player.core.library.DefaultAccentRepository
 import org.muzzzlo.player.core.library.DefaultArtistCheckRepository
 import org.muzzzlo.player.core.library.DefaultArtistProfileRepository
+import org.muzzzlo.player.core.library.DefaultAutoPlaylistRepository
 import org.muzzzlo.player.core.library.DefaultCompoundRepository
 import org.muzzzlo.player.core.library.DefaultCoverRepository
 import org.muzzzlo.player.core.library.DefaultLibraryMaintenance
@@ -19,6 +20,7 @@ import org.muzzzlo.player.core.library.TrackFiles
 import org.muzzzlo.player.core.model.AccentRepository
 import org.muzzzlo.player.core.model.ArtistCheckRepository
 import org.muzzzlo.player.core.model.ArtistProfileRepository
+import org.muzzzlo.player.core.model.AutoPlaylistRepository
 import org.muzzzlo.player.core.model.CompoundRepository
 import org.muzzzlo.player.core.model.CoverRepository
 import org.muzzzlo.player.core.model.LibraryMaintenance
@@ -65,6 +67,10 @@ internal abstract class LibraryModule {
     @Binds
     @Singleton
     abstract fun playlists(impl: DefaultPlaylistRepository): PlaylistRepository
+
+    @Binds
+    @Singleton
+    abstract fun autoPlaylists(impl: DefaultAutoPlaylistRepository): AutoPlaylistRepository
 
     @Binds
     @Singleton

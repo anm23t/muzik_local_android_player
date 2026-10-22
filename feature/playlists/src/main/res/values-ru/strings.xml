@@ -10,6 +10,10 @@
         <item quantity="many">%d треков</item>
         <item quantity="other">%d трека</item>
     </plurals>
+    <string name="auto_playlist_favorites">Избранное</string>
+    <string name="auto_playlist_top_songs">Лучшие песни</string>
+    <string name="auto_playlist_favorites_empty">В избранном пока ничего нет. Добавляйте треки пунктом «Добавить в избранное» в меню трека.</string>
+    <string name="auto_playlist_top_songs_empty">Оценённых треков пока нет. Оценивайте треки пунктом «Оценить» в меню трека.</string>
     <string name="playlist_play">Играть</string>
     <string name="playlist_manage">Действия с плейлистом</string>
     <string name="playlist_rename">Переименовать</string>

@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -19,6 +20,8 @@ import org.muzzzlo.player.core.designsystem.component.ArtistChoice
 import org.muzzzlo.player.core.designsystem.component.PlaylistChoice
 import org.muzzzlo.player.core.designsystem.component.TrackAction
 import org.muzzzlo.player.core.designsystem.component.TrackMarksMenu
+import org.muzzzlo.player.core.model.AutoPlaylist
+import org.muzzzlo.player.core.model.AutoPlaylistRepository
 import org.muzzzlo.player.core.model.LibraryRepository
 import org.muzzzlo.player.core.model.PlayerController
 import org.muzzzlo.player.core.model.Playlist
@@ -40,9 +43,17 @@ private fun <T> Flow<T>.stateIn(
     initial: T,
 ): StateFlow<T> = stateIn(viewModel.viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), initial)
 
-/** What the list of playlists renders. */
+/** An automatic playlist as its row in the list shows it. */
+data class AutoPlaylistSummary(
+    val playlist: AutoPlaylist,
+    val trackCount: Int,
+    val firstTrackId: Long?,
+)
+
+/** What the list of playlists renders: the automatic playlists first, then the user's own. */
 data class PlaylistListUiState(
     val playlists: List<Playlist> = emptyList(),
+    val auto: List<AutoPlaylistSummary> = emptyList(),
     val isLoaded: Boolean = false,
 )
 
@@ -52,10 +63,15 @@ class PlaylistListViewModel
     @Inject
     constructor(
         private val playlists: PlaylistRepository,
+        autoPlaylists: AutoPlaylistRepository,
     ) : ViewModel() {
         val state: StateFlow<PlaylistListUiState> =
-            playlists.observePlaylists()
-                .map { PlaylistListUiState(it, isLoaded = true) }
+            combine(
+                playlists.observePlaylists(),
+                combine(AutoPlaylist.entries.map { kind -> autoPlaylists.observeTracks(kind).map { kind to it } }) {
+                    it.map { (kind, tracks) -> AutoPlaylistSummary(kind, tracks.size, tracks.firstOrNull()?.id) }
+                },
+            ) { user, auto -> PlaylistListUiState(user, auto, isLoaded = true) }
                 .stateIn(this, PlaylistListUiState())
 
         /** Creates an empty playlist; a blank name does nothing. */
@@ -63,6 +79,89 @@ class PlaylistListViewModel
             val clean = PlaylistNames.clean(name) ?: return
             viewModelScope.launch { playlists.create(clean) }
         }
+    }
+
+/** Navigation argument of the card of an automatic playlist: [AutoPlaylist.key]. */
+const val AUTO_PLAYLIST_ARG = "autoPlaylist"
+
+/**
+ * What the card of an automatic playlist renders.
+ *
+ * @property playlist null for an unknown key in the route.
+ */
+data class AutoPlaylistUiState(
+    val playlist: AutoPlaylist? = null,
+    val tracks: List<Track> = emptyList(),
+    val currentTrackId: Long? = null,
+    val isLoaded: Boolean = false,
+)
+
+/** The card of "Favorites" or "Top songs": play and the track menu, nothing to edit. */
+@HiltViewModel
+class AutoPlaylistViewModel
+    @Inject
+    constructor(
+        autoPlaylists: AutoPlaylistRepository,
+        private val playlists: PlaylistRepository,
+        private val library: LibraryRepository,
+        private val player: PlayerController,
+        private val marks: TrackMarksRepository,
+        savedState: SavedStateHandle,
+    ) : ViewModel() {
+        private val playlist: AutoPlaylist? = AutoPlaylist.fromKey(savedState[AUTO_PLAYLIST_ARG])
+
+        val state: StateFlow<AutoPlaylistUiState> =
+            combine(
+                playlist?.let(autoPlaylists::observeTracks) ?: flowOf(emptyList()),
+                player.state.map { it.currentTrack?.id }.distinctUntilChanged(),
+            ) { tracks, current -> AutoPlaylistUiState(playlist, tracks, current, isLoaded = true) }
+                .stateIn(this, AutoPlaylistUiState())
+
+        /** The "Play" button: the whole playlist from the first track. */
+        fun onPlay() = onTrackClicked(0)
+
+        fun onTrackClicked(index: Int) {
+            val tracks = state.value.tracks
+            if (index in tracks.indices) player.play(tracks, index)
+        }
+
+        fun onTrackAction(
+            track: Track,
+            action: TrackAction,
+        ) {
+            when (action) {
+                TrackAction.PlayNext -> player.playNext(track)
+                TrackAction.AddToQueue -> player.addToQueue(track)
+                // Navigation, pickers, favorites and rating are handled by the screen and the menu.
+                TrackAction.OpenQueue,
+                TrackAction.GoToArtist,
+                TrackAction.AddToPlaylist,
+                TrackAction.RemoveFromPlaylist,
+                TrackAction.AddToFavorites,
+                TrackAction.Rate,
+                TrackAction.EditTags,
+                -> Unit
+            }
+        }
+
+        /** Artists of the track for the track menu ("Go to artist"). */
+        suspend fun artistChoices(trackId: Long): List<ArtistChoice> =
+            library.artistsOfTrack(trackId).map { ArtistChoice(it.id, it.name, it.photoPath) }
+
+        /** "Add to playlist" of the track menu. */
+        fun addToPlaylist(trackId: Long): AddToPlaylist =
+            AddToPlaylist(
+                load = { playlists.observePlaylists().first().map { PlaylistChoice(it.id, it.name) } },
+                onAdd = { id -> viewModelScope.launch { playlists.addTracks(id, listOf(trackId)) } },
+                onCreate = { name ->
+                    PlaylistNames.clean(name)?.let { clean ->
+                        viewModelScope.launch { playlists.createWithTracks(clean, listOf(trackId)) }
+                    }
+                },
+            )
+
+        /** "Add to favorites" and "Rate" of the track menu. */
+        fun trackMarks(trackId: Long): TrackMarksMenu = marks.menuFor(viewModelScope, trackId)
     }
 
 /**

@@ -114,7 +114,13 @@ fun PlaylistScreen(
             }
             return@ScreenFrame
         }
-        PlaylistHeader(playlist, onManage = { dialog = PlaylistDialog.Actions }, onPlay = viewModel::onPlay)
+        PlaylistHeader(
+            name = playlist.name,
+            trackCount = playlist.trackCount,
+            firstTrackId = playlist.firstTrackId,
+            onManage = { dialog = PlaylistDialog.Actions },
+            onPlay = viewModel::onPlay,
+        )
         ContentWithMiniPlayer(miniPlayer) {
             if (state.entries.isEmpty()) {
                 Notice(stringResource(R.string.playlist_empty))
@@ -130,10 +136,13 @@ fun PlaylistScreen(
     }
 }
 
+/** Cover, name, number of tracks and "Play"; the pencil button is shown when there is something to [onManage]. */
 @Composable
-private fun PlaylistHeader(
-    playlist: Playlist,
-    onManage: () -> Unit,
+internal fun PlaylistHeader(
+    name: String,
+    trackCount: Int,
+    firstTrackId: Long?,
+    onManage: (() -> Unit)?,
     onPlay: () -> Unit,
 ) {
     Row(
@@ -145,11 +154,11 @@ private fun PlaylistHeader(
             shape = MuzzzloDimens.MiniPlayerShape,
             coverShape = MuzzzloDimens.TileShape,
             inset = MuzzzloDimens.AlbumCardInset,
-            cover = { PlaylistCover(playlist.firstTrackId, it) },
+            cover = { PlaylistCover(firstTrackId, it) },
         )
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(MuzzzloDimens.SmallGap)) {
             Text(
-                text = playlist.name,
+                text = name,
                 style = MaterialTheme.typography.titleMedium,
                 color = MuzzzloColors.TextPrimary,
                 maxLines = 3,
@@ -166,19 +175,21 @@ private fun PlaylistHeader(
         )
         Spacer(Modifier.size(MuzzzloDimens.SmallGap))
         Text(
-            text = trackCountText(playlist.trackCount),
+            text = trackCountText(trackCount),
             modifier = Modifier.weight(1f),
             style = MaterialTheme.typography.bodyMedium,
             color = MuzzzloColors.TextSecondary,
         )
-        RoundIconButton(
-            icon = DesignR.drawable.ic_pencil,
-            contentDescription = stringResource(R.string.playlist_manage),
-            onClick = onManage,
-            size = RoundIconButtonSize.Small,
-        )
-        if (playlist.trackCount > 0) {
+        if (onManage != null) {
+            RoundIconButton(
+                icon = DesignR.drawable.ic_pencil,
+                contentDescription = stringResource(R.string.playlist_manage),
+                onClick = onManage,
+                size = RoundIconButtonSize.Small,
+            )
             Spacer(Modifier.size(MuzzzloDimens.ItemGap))
+        }
+        if (trackCount > 0) {
             PillButton(text = stringResource(R.string.playlist_play), onClick = onPlay, icon = DesignR.drawable.ic_play)
         }
     }

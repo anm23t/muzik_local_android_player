@@ -8,6 +8,10 @@
         <item quantity="one">%d track</item>
         <item quantity="other">%d tracks</item>
     </plurals>
+    <string name="auto_playlist_favorites">Favorites</string>
+    <string name="auto_playlist_top_songs">Top songs</string>
+    <string name="auto_playlist_favorites_empty">No favorites yet. Add tracks with “Add to favorites” in the menu of a track.</string>
+    <string name="auto_playlist_top_songs_empty">No rated tracks yet. Rate tracks with “Rate” in the menu of a track.</string>
     <string name="playlist_play">Play</string>
     <string name="playlist_manage">Playlist actions</string>
     <string name="playlist_rename">Rename</string>

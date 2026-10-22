@@ -17,6 +17,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.muzzzlo.player.core.designsystem.component.PlaylistChoice
 import org.muzzzlo.player.core.designsystem.component.TrackAction
+import org.muzzzlo.player.core.model.AutoPlaylist
 import org.muzzzlo.player.core.model.PlayerState
 import org.muzzzlo.player.core.model.Track
 
@@ -26,6 +27,7 @@ class PlaylistViewModelsTest {
     private val b = Track(2, "content://2", "B", listOf("Y"), null, null, 1_000, null)
     private val c = Track(3, "content://3", "C", emptyList(), null, null, 1_000, null)
     private val playlists = FakePlaylists(listOf(a, b, c).associateBy { it.id })
+    private val autoPlaylists = FakeAutoPlaylists()
     private val player = FakePlayerController()
 
     @BeforeEach
@@ -47,7 +49,7 @@ class PlaylistViewModelsTest {
     @Test
     fun `the list shows playlists and creates one with a clean name`() =
         runTest {
-            val viewModel = PlaylistListViewModel(playlists)
+            val viewModel = PlaylistListViewModel(playlists, autoPlaylists)
             backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.state.collect {} }
 
             viewModel.onCreate("  Road \n trip ")
@@ -55,6 +57,77 @@ class PlaylistViewModelsTest {
 
             assertTrue(viewModel.state.value.isLoaded)
             assertEquals(listOf("Road trip"), viewModel.state.value.playlists.map { it.name })
+        }
+
+    private fun TestScope.autoCard(key: String): AutoPlaylistViewModel {
+        val savedState = SavedStateHandle(mapOf(AUTO_PLAYLIST_ARG to key))
+        val viewModel =
+            AutoPlaylistViewModel(autoPlaylists, playlists, FakeLibrary(), player, FakeTrackMarks(), savedState)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.state.collect {} }
+        return viewModel
+    }
+
+    @Test
+    fun `the list puts the automatic playlists first with their size and first cover`() =
+        runTest {
+            autoPlaylists.tracks.value = mapOf(AutoPlaylist.Favorites to listOf(c, a))
+            val viewModel = PlaylistListViewModel(playlists, autoPlaylists)
+            backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.state.collect {} }
+
+            assertEquals(
+                listOf(
+                    AutoPlaylistSummary(AutoPlaylist.Favorites, 2, c.id),
+                    AutoPlaylistSummary(AutoPlaylist.TopSongs, 0, null),
+                ),
+                viewModel.state.value.auto,
+            )
+
+            autoPlaylists.tracks.value += AutoPlaylist.TopSongs to listOf(b)
+            assertEquals(1, viewModel.state.value.auto.last().trackCount)
+        }
+
+    @Test
+    fun `an automatic playlist follows its source and plays without a playlist mark`() =
+        runTest {
+            autoPlaylists.tracks.value = mapOf(AutoPlaylist.TopSongs to listOf(b, a))
+            val viewModel = autoCard("top-songs")
+
+            assertEquals(AutoPlaylist.TopSongs, viewModel.state.value.playlist)
+            assertEquals(listOf(b, a), viewModel.state.value.tracks)
+
+            viewModel.onTrackClicked(1)
+            viewModel.onPlay()
+            viewModel.onTrackClicked(5)
+            autoPlaylists.tracks.value = mapOf(AutoPlaylist.TopSongs to listOf(a))
+
+            assertEquals(listOf(listOf(b, a) to 1, listOf(b, a) to 0), player.played)
+            assertEquals(listOf<Long?>(null, null), player.playedFrom)
+            assertEquals(listOf(a), viewModel.state.value.tracks)
+        }
+
+    @Test
+    fun `an unknown key shows no playlist`() =
+        runTest {
+            val viewModel = autoCard("recent")
+
+            assertNull(viewModel.state.value.playlist)
+            assertTrue(viewModel.state.value.isLoaded)
+            assertTrue(viewModel.state.value.tracks.isEmpty())
+        }
+
+    @Test
+    fun `the menu of an automatic playlist queues the track and saves marks`() =
+        runTest {
+            val viewModel = autoCard("favorites")
+
+            viewModel.onTrackAction(a, TrackAction.PlayNext)
+            viewModel.onTrackAction(a, TrackAction.AddToQueue)
+            viewModel.onTrackAction(a, TrackAction.RemoveFromPlaylist)
+            viewModel.trackMarks(a.id).onFavorite(true)
+
+            assertEquals(listOf(a), player.playedNext)
+            assertEquals(listOf(a), player.addedToQueue)
+            assertTrue(viewModel.trackMarks(a.id).load().isFavorite)
         }
 
     @Test

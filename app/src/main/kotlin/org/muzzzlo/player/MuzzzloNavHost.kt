@@ -40,6 +40,8 @@ import org.muzzzlo.player.feature.library.TracksScreen
 import org.muzzzlo.player.feature.player.MiniPlayer
 import org.muzzzlo.player.feature.player.PlayerScreen
 import org.muzzzlo.player.feature.player.QueueScreen
+import org.muzzzlo.player.feature.playlists.AUTO_PLAYLIST_ARG
+import org.muzzzlo.player.feature.playlists.AutoPlaylistScreen
 import org.muzzzlo.player.feature.playlists.PLAYLIST_ID_ARG
 import org.muzzzlo.player.feature.playlists.PlaylistListScreen
 import org.muzzzlo.player.feature.playlists.PlaylistScreen
@@ -69,6 +71,7 @@ private const val ROUTE_ARTIST = "artist?$ARTIST_ID_ARG={$ARTIST_ID_ARG}&$ARTIST
 private const val ROUTE_QUEUE = "queue"
 private const val ROUTE_PLAYLISTS = "playlists"
 private const val ROUTE_PLAYLIST = "playlist/{$PLAYLIST_ID_ARG}"
+private const val ROUTE_AUTO_PLAYLIST = "auto-playlist/{$AUTO_PLAYLIST_ARG}"
 private const val ROUTE_TAG_EDITOR = "tagEditor/{$TRACK_ID_ARG}"
 private const val ROUTE_BATCH_TAG_EDITOR = "tagEditorAlbum/{$BATCH_ALBUM_ID_ARG}"
 private const val ROUTE_ARTIST_PROFILE = "artistProfile/{$PROFILE_ARTIST_ID_ARG}"
@@ -176,6 +179,20 @@ fun MuzzzloNavHost() {
                     PlaylistListScreen(
                         onBack = { navController.popBackStack() },
                         onOpenPlaylist = { navController.navigate("playlist/$it") },
+                        onOpenAutoPlaylist = { navController.navigate("auto-playlist/${it.key}") },
+                        miniPlayer = miniPlayer,
+                    )
+                }
+                composable(
+                    ROUTE_AUTO_PLAYLIST,
+                    arguments = listOf(navArgument(AUTO_PLAYLIST_ARG) { type = NavType.StringType }),
+                ) {
+                    AutoPlaylistScreen(
+                        onBack = { navController.popBackStack() },
+                        onHome = { navController.goHome() },
+                        onOpenQueue = { navController.navigate(ROUTE_QUEUE) },
+                        onEditTags = openTagEditor,
+                        onOpenArtist = openArtist,
                         miniPlayer = miniPlayer,
                     )
                 }

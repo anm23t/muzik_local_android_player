@@ -22,6 +22,7 @@ import org.muzzzlo.player.core.designsystem.component.CoverSource
 import org.muzzzlo.player.core.designsystem.component.RoundIconButton
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloColors
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloDimens
+import org.muzzzlo.player.core.model.AutoPlaylist
 import org.muzzzlo.player.core.designsystem.R as DesignR
 
 // The same frame pieces as in `feature:library`; features do not depend on each other, so they are repeated here.
@@ -92,3 +93,23 @@ internal fun PlaylistCover(
     firstTrackId: Long?,
     modifier: Modifier,
 ) = CoverImage(firstTrackId?.let { CoverSource.Track(it) }, modifier)
+
+/** The name of an automatic playlist. */
+@Composable
+internal fun AutoPlaylist.title(): String =
+    stringResource(
+        when (this) {
+            AutoPlaylist.Favorites -> R.string.auto_playlist_favorites
+            AutoPlaylist.TopSongs -> R.string.auto_playlist_top_songs
+        },
+    )
+
+/** What an empty automatic playlist says about how to fill it. */
+@Composable
+internal fun AutoPlaylist.emptyText(): String =
+    stringResource(
+        when (this) {
+            AutoPlaylist.Favorites -> R.string.auto_playlist_favorites_empty
+            AutoPlaylist.TopSongs -> R.string.auto_playlist_top_songs_empty
+        },
+    )
