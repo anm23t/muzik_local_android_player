@@ -15,6 +15,8 @@ data class Track(
     val discNumber: Int? = null,
     /** ReplayGain values from the file's tags; [ReplayGainInfo.NONE] when it has none. */
     val replayGain: ReplayGainInfo = ReplayGainInfo.NONE,
+    /** Rating in tenths 0..100 (67 means 6.7) for lists; null when not rated. Only the library fills it. */
+    val ratingTenths: Int? = null,
 ) {
     /** Artists joined for display, for example "A, B". */
     val artistsText: String get() = artists.joinToString(", ")

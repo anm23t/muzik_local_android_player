@@ -137,4 +137,5 @@ internal fun TrackEntity.toTrack(
         trackNumber = trackNumber,
         discNumber = discNumber,
         replayGain = ReplayGainInfo(rgTrackGain, rgTrackPeak, rgAlbumGain, rgAlbumPeak),
+        ratingTenths = ratingTenths,
     )

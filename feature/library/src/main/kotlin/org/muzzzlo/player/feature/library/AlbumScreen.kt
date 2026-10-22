@@ -127,6 +127,7 @@ fun AlbumScreen(
                 itemsIndexed(state.tracks, key = { _, track -> track.id }) { index, track ->
                     TrackRow(
                         title = track.title,
+                        ratingTenths = track.ratingTenths,
                         onClick = { viewModel.onTrackClicked(index) },
                         number = trackNumberText(track, index),
                         subtitle = track.artistsText.takeIf { track.artists != album.artists && it.isNotEmpty() },

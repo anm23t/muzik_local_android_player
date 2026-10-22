@@ -87,6 +87,7 @@ fun AutoPlaylistScreen(
                     itemsIndexed(state.tracks, key = { _, track -> track.id }) { index, track ->
                         TrackRow(
                             title = track.title,
+                            ratingTenths = track.ratingTenths,
                             onClick = { viewModel.onTrackClicked(index) },
                             subtitle = track.artistsText.ifEmpty { null },
                             cover = { PlaylistCover(track.id, it) },

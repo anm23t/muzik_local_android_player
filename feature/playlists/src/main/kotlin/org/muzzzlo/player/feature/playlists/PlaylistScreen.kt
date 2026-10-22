@@ -217,6 +217,7 @@ private fun PlaylistTracks(
             val isDragged = index == draggingIndex
             TrackRow(
                 title = entry.track.title,
+                ratingTenths = entry.track.ratingTenths,
                 onClick = { onClick(index) },
                 modifier =
                     Modifier

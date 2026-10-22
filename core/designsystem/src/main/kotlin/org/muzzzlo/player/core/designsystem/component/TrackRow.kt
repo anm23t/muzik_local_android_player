@@ -14,12 +14,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -51,6 +53,7 @@ fun TrackRow(
     isCurrent: Boolean = false,
     onMoreClick: (() -> Unit)? = null,
     onLongClick: (() -> Unit)? = null,
+    ratingTenths: Int? = null,
     trailing: @Composable RowScope.() -> Unit = {},
 ) {
     val accent = MuzzzloTheme.accent
@@ -99,9 +102,36 @@ fun TrackRow(
                 )
             }
         }
+        if (ratingTenths != null) RatingBadge(ratingTenths)
         if (isCurrent) NowPlayingIndicator()
         trailing()
         if (onMoreClick != null) TrackMenuButton(onClick = onMoreClick)
+    }
+}
+
+/** The rating of a track in a row: a small star and the number, "6.7". Not in the mockup, see DESIGN.md, section 7. */
+@Composable
+fun RatingBadge(
+    ratingTenths: Int,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier,
+        horizontalArrangement = Arrangement.spacedBy(MuzzzloDimens.TinyGap),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            painter = painterResource(R.drawable.ic_star),
+            contentDescription = null,
+            modifier = Modifier.size(MuzzzloDimens.SmallIcon),
+            tint = MuzzzloTheme.accent.accent,
+        )
+        Text(
+            text = RatingScale.format(ratingTenths),
+            style = MaterialTheme.typography.bodySmall,
+            color = MuzzzloColors.TextSecondary,
+            maxLines = 1,
+        )
     }
 }
 
