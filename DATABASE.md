@@ -1,6 +1,6 @@
 # DATABASE
 
-Схема БД (Room/SQLite). Версия схемы: 8. Любое изменение сопровождается миграцией и тестом миграции.
+Схема БД (Room/SQLite). Версия схемы: 9. Любое изменение сопровождается миграцией и тестом миграции.
 
 Соглашения: `id` это автоинкрементный `INTEGER PRIMARY KEY`, время хранится как миллисекунды Unix (UTC), строки поиска хранятся в нормализованном виде (без регистра, лишних пробелов).
 
@@ -107,10 +107,31 @@ PK: (`track_id`, `artist_id`). Индекс по `artist_id` для страни
 | skipped | INTEGER NOT NULL | 1, если пропущен |
 | title_snapshot | TEXT NOT NULL | Снимок названия |
 | artists_snapshot | TEXT NOT NULL | Снимок исполнителей (JSON-массив имён) |
+| playlist_id | INTEGER | FK -> playlist.id, ON DELETE SET NULL. Плейлист, из которого запущена очередь (`PlayerController.play(..., playlistId)`); NULL для остальных. Версия схемы 9, задача 1.1.5 |
 
-Индексы: по `started_at`, по `track_id`.
+Индексы: по `started_at`, по `track_id`, по `playlist_id`.
 
 Схема версии 8 (задача 0.6.1, миграция 7→8). `artists_snapshot` кодируется так же, как `track.artist_tag_values`. Сканер обновляет строки `track` на месте, поэтому `track_id` обнуляется только при настоящем удалении трека из БД. Пропавший файл (`is_missing = 1`) связь сохраняет.
+
+### playlist
+| Поле | Тип | Описание |
+|---|---|---|
+| id | INTEGER PK | |
+| name | TEXT NOT NULL | Имя (`PlaylistNames.clean`: без краевых пробелов, пробелы схлопнуты, до 100 символов); может повторяться |
+| created_at | INTEGER NOT NULL | Момент создания, мс; вместе с именем узнаёт плейлист при импорте копии |
+| last_played_at | INTEGER | Когда последний раз запущен с карточки плейлиста, мс; NULL до первого запуска. Место в «Continue listening» |
+
+### playlist_track
+| Поле | Тип | Описание |
+|---|---|---|
+| id | INTEGER PK | Своя запись: трек может стоять в плейлисте несколько раз |
+| playlist_id | INTEGER NOT NULL | FK -> playlist.id, ON DELETE CASCADE |
+| track_id | INTEGER NOT NULL | FK -> track.id, ON DELETE CASCADE |
+| position | INTEGER NOT NULL | Порядок, 0 первый; добавление в конец, перестановка нумерует заново |
+
+Индексы: по (`playlist_id`, `position`), по `track_id`.
+
+Схема версии 9 (задача 1.1.5, миграция 8→9, вместе с `listen_event.playlist_id`). Записи пропавших файлов (`track.is_missing = 1`) остаются, но не показываются и не считаются; при возвращении файла они снова видны. Перестановка видимых записей не трогает места скрытых (`PlaylistOrder.reorder`).
 
 ### artist_compound
 Составные имена: исполнители, в псевдониме которых есть запятая («Tyler, The Creator»). Используются при разборе тега (раздел 4 в `ARCHITECTURE.md`).
@@ -129,7 +150,6 @@ PK: (`track_id`, `artist_id`). Индекс по `artist_id` для страни
 Разделители не настраиваются: фиксированы `;` и `,`.
 
 ### Заготовки на следующие версии
-- `playlist(id, name, created_at)` и `playlist_track(id, playlist_id, track_id, position)` (версия 1.1). Один трек может входить в несколько плейлистов и повторяться в одном, поэтому у `playlist_track` собственный `id`, а не составной ключ. Добавление и удаление отдельного трека делается из меню действий трека.
 - `smart_playlist(id, name, rules_json)` (версия 1.4).
 - `playback_queue_item(position, track_id)` и таблица состояния позиции (версия 0.2, либо DataStore).
 
@@ -139,7 +159,8 @@ PK: (`track_id`, `artist_id`). Индекс по `artist_id` для страни
 - Топ исполнителей за период: `listen_event` (counted = 1) JOIN `track_artist` по `track_id`, группировка по `artist_id`. Для событий без `track_id` используется `artists_snapshot`.
 - Карта активности по часам и дням недели: группировка `started_at` с учётом часового пояса пользователя.
 - Дубликаты: группировка по (`title_key`, набор `artist_id`, округлённый `duration_ms`).
-- Последние альбомы для «Continue listening» (0.6.5): `listen_event` JOIN `track` по `track_id`, `album_id IS NOT NULL`, группировка по `album_id`, сортировка по `MAX(started_at)` по убыванию, `LIMIT 5`. Новых таблиц и миграции не нужно.
+- Последние альбомы для «Continue listening» (0.6.5, с 1.1.5 со временем): `listen_event` JOIN `track` по `track_id`, `album_id IS NOT NULL`, `playlist_id IS NULL` (прослушивания из плейлиста альбом не поднимают), группировка по `album_id`, `MAX(started_at)`, сортировка по нему по убыванию, `LIMIT 5`.
+- Плейлисты со счётчиком и первым треком (1.1.5): подзапросы к `playlist_track` JOIN `track` с `is_missing = 0`, порядок по `position`, затем `id`.
 - Разделы карточки исполнителя (0.4.11): альбомы исполнителя из `album_artist` и `track_artist`, `LEFT JOIN track` по `album_id` (только `is_missing = 0`, все треки альбома, не только его), `MAX(track_total)`, `MAX(disc_total)`, `MAX(disc_number)`, группировка по `album.id`.
 - Фото исполнителей альбома (0.4.8): `album_artist` JOIN `artist` по `artist_id`, порядок по `position`, поле `artist.photo_uri`.
 
