@@ -204,6 +204,30 @@ class MigrationTest {
         }
     }
 
+    @Test
+    fun `9 to 10 dates the existing favorites with zero`() {
+        helper.createDatabase(DB_NAME, 9).use { db ->
+            db.execSQL(
+                "INSERT INTO track (id, media_store_id, uri, title, title_key, artist_tag_values, duration_ms, " +
+                    "date_modified, has_cover, has_lyrics, is_missing, is_damaged, rating_tenths, is_favorite) " +
+                    "VALUES (1, 10, 'content://media/10', 'Song', 'song', '[\"A\"]', 1000, 500, 0, 0, 0, 0, 67, 1), " +
+                    "(2, 11, 'content://media/11', 'Other', 'other', '[]', 1000, 500, 0, 0, 0, 0, NULL, 0)",
+            )
+        }
+
+        helper.runMigrationsAndValidate(DB_NAME, 10, true, MIGRATION_9_10).use { db ->
+            db.query("SELECT id, rating_tenths, is_favorite, favorited_at FROM track ORDER BY id").use {
+                it.moveToFirst()
+                assertEquals(67, it.getInt(1))
+                assertEquals(1, it.getInt(2))
+                assertEquals(0L, it.getLong(3))
+                it.moveToNext()
+                assertEquals(0, it.getInt(2))
+                assertTrue(it.isNull(3))
+            }
+        }
+    }
+
     private companion object {
         const val DB_NAME = "migration-test.db"
     }

@@ -131,3 +131,15 @@ val MIGRATION_8_9 =
             db.execSQL("CREATE INDEX IF NOT EXISTS `index_listen_event_playlist_id` ON `listen_event` (`playlist_id`)")
         }
     }
+
+/**
+ * Version 10: `track.favorited_at`, the moment a track became a favorite, for the "Favorites" order (task 1.1.6).
+ * Favorites that exist already (from a backup) get 0, so they come after the new ones.
+ */
+val MIGRATION_9_10 =
+    object : Migration(9, 10) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE `track` ADD COLUMN `favorited_at` INTEGER")
+            db.execSQL("UPDATE `track` SET `favorited_at` = 0 WHERE `is_favorite` = 1")
+        }
+    }

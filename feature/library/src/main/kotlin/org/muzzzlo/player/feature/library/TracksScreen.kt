@@ -42,6 +42,7 @@ fun TracksScreen(
             viewModel::artistChoices,
             onOpenArtist,
             viewModel::addToPlaylist,
+            viewModel::trackMarks,
         )
     val unknownArtist = stringResource(R.string.unknown_artist)
 

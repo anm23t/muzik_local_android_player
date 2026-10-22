@@ -22,6 +22,11 @@
     <string name="playlist_name">Название</string>
     <string name="playlist_create">Создать</string>
     <string name="track_action_add_to_favorites">Добавить в избранное</string>
+    <string name="track_action_remove_from_favorites">Убрать из избранного</string>
+    <string name="rating_decrease">Уменьшить оценку на 0,1</string>
+    <string name="rating_increase">Увеличить оценку на 0,1</string>
+    <string name="rating_save">Сохранить</string>
+    <string name="rating_clear">Снять оценку</string>
     <string name="track_action_rate">Оценить</string>
     <string name="track_action_edit_tags">Редактировать теги</string>
 </resources>

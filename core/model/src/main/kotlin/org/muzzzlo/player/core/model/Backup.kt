@@ -33,6 +33,8 @@ data class BackupTrackMark(
     val durationMs: Long,
     val ratingTenths: Int?,
     val favorite: Boolean,
+    /** When the track became a favorite (epoch ms), null when unknown or for older backups. */
+    val favoritedAtMs: Long? = null,
 )
 
 /** A track of a backed up playlist, found again like in [BackupTrackMark]. */
@@ -117,6 +119,7 @@ object BackupJson {
                             "durationMs" to it.durationMs,
                             "rating" to it.ratingTenths,
                             "favorite" to it.favorite,
+                            "favoritedAt" to it.favoritedAtMs,
                         )
                     },
                 "events" to
@@ -214,6 +217,7 @@ object BackupJson {
             it.long("durationMs") ?: 0L,
             it.long("rating")?.toInt()?.coerceIn(0, MAX_RATING),
             it["favorite"] as? Boolean ?: false,
+            it.long("favoritedAt"),
         )
 
     private fun eventOf(it: Map<*, *>) =

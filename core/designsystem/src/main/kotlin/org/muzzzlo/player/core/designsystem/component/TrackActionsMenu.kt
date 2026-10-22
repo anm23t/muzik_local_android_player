@@ -1,5 +1,6 @@
 package org.muzzzlo.player.core.designsystem.component
 
+import androidx.annotation.StringRes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -26,6 +27,8 @@ import org.muzzzlo.player.core.designsystem.theme.MuzzzloColors
  * [ArtistPickerMenu]. [onAction] also receives [TrackAction.GoToArtist].
  * @param addToPlaylist makes "Add to playlist" open [PlaylistPickerMenu] and then, for a new playlist,
  * [PlaylistNameDialog]; without it the item is not shown. [onAction] also receives [TrackAction.AddToPlaylist].
+ * @param marks makes "Add to favorites" (or "Remove from favorites") and "Rate" work; without it the two items are
+ * not shown. [onAction] does not receive them.
  */
 @Composable
 fun TrackActionsMenu(
@@ -38,21 +41,27 @@ fun TrackActionsMenu(
     loadArtists: (suspend () -> List<ArtistChoice>)? = null,
     onOpenArtist: ((Long) -> Unit)? = null,
     addToPlaylist: AddToPlaylist? = null,
+    marks: TrackMarksMenu? = null,
 ) {
     var step by remember { mutableStateOf(MenuStep.Actions) }
     var artistChoices by remember { mutableStateOf<List<ArtistChoice>>(emptyList()) }
-    LaunchedEffect(Unit) { artistChoices = loadArtists?.invoke().orEmpty() }
-    when (step) {
-        MenuStep.Actions -> Unit
-        MenuStep.Artists -> {
-            ArtistPickerMenu(artists = artistChoices, onPick = { onOpenArtist?.invoke(it.id) }, onDismiss = onDismiss)
-            return
-        }
-        MenuStep.Playlists, MenuStep.NewPlaylist -> {
-            addToPlaylist?.let { PlaylistSteps(it, step, onNew = { step = MenuStep.NewPlaylist }, onDismiss) }
-            return
-        }
+    var markState by remember { mutableStateOf(TrackMarksState()) }
+    LaunchedEffect(Unit) {
+        artistChoices = loadArtists?.invoke().orEmpty()
+        marks?.let { markState = it.load() }
     }
+    val replaced =
+        StepDialog(
+            step = step,
+            artistChoices = artistChoices,
+            currentRating = markState.ratingTenths,
+            onOpenArtist = onOpenArtist,
+            onRate = { marks?.onRate?.invoke(it) },
+            addToPlaylist = addToPlaylist,
+            onNewPlaylist = { step = MenuStep.NewPlaylist },
+            onDismiss = onDismiss,
+        )
+    if (replaced) return
     val canOpenArtist = onOpenArtist != null && artistChoices.isNotEmpty()
     MuzzzloDialog(title = title, onDismiss = onDismiss, modifier = modifier) {
         if (artists.isNotEmpty()) {
@@ -64,24 +73,28 @@ fun TrackActionsMenu(
                 overflow = TextOverflow.Ellipsis,
             )
         }
-        actions.filter { isShown(it, canOpenArtist, addToPlaylist != null) }.forEach { action ->
+        actions.filter { isShown(it, canOpenArtist, addToPlaylist != null, marks != null) }.forEach { action ->
             ActionRow(
                 icon = action.icon,
-                text = stringResource(action.label),
+                text = stringResource(labelOf(action, markState.isFavorite)),
                 onClick = {
                     val tap = if (action == TrackAction.GoToArtist) ArtistTap.of(artistChoices) else ArtistTap.Nothing
-                    if (tap is ArtistTap.Choose) {
-                        step = MenuStep.Artists
-                        return@ActionRow
+                    val next = stepAfter(action, tap)
+                    when {
+                        action == TrackAction.AddToFavorites -> {
+                            onDismiss()
+                            marks?.onFavorite?.invoke(!markState.isFavorite)
+                        }
+                        next != null -> {
+                            if (action == TrackAction.AddToPlaylist) onAction(action)
+                            step = next
+                        }
+                        else -> {
+                            onDismiss()
+                            onAction(action)
+                            if (tap is ArtistTap.Open) onOpenArtist?.invoke(tap.artist.id)
+                        }
                     }
-                    if (action == TrackAction.AddToPlaylist) {
-                        onAction(action)
-                        step = MenuStep.Playlists
-                        return@ActionRow
-                    }
-                    onDismiss()
-                    onAction(action)
-                    if (tap is ArtistTap.Open) onOpenArtist?.invoke(tap.artist.id)
                 },
             )
         }
@@ -89,17 +102,65 @@ fun TrackActionsMenu(
 }
 
 /** Which dialog of the menu is open: the actions, or a picker that replaced them. */
-private enum class MenuStep { Actions, Artists, Playlists, NewPlaylist }
+private enum class MenuStep { Actions, Artists, Playlists, NewPlaylist, Rating }
+
+/** Shows the dialog of a step that replaced the actions; false for [MenuStep.Actions], which shows nothing here. */
+@Composable
+private fun StepDialog(
+    step: MenuStep,
+    artistChoices: List<ArtistChoice>,
+    currentRating: Int?,
+    onOpenArtist: ((Long) -> Unit)?,
+    onRate: (Int?) -> Unit,
+    addToPlaylist: AddToPlaylist?,
+    onNewPlaylist: () -> Unit,
+    onDismiss: () -> Unit,
+): Boolean {
+    when (step) {
+        MenuStep.Actions -> return false
+        MenuStep.Artists ->
+            ArtistPickerMenu(artists = artistChoices, onPick = { onOpenArtist?.invoke(it.id) }, onDismiss = onDismiss)
+        MenuStep.Rating -> RatingDialog(current = currentRating, onRate = onRate, onDismiss = onDismiss)
+        MenuStep.Playlists, MenuStep.NewPlaylist ->
+            addToPlaylist?.let { PlaylistSteps(it, step, onNew = onNewPlaylist, onDismiss) }
+    }
+    return true
+}
+
+/** The dialog that replaces the actions after [action], or null when the action is done in the menu itself. */
+private fun stepAfter(
+    action: TrackAction,
+    tap: ArtistTap,
+): MenuStep? =
+    when {
+        action == TrackAction.Rate -> MenuStep.Rating
+        action == TrackAction.AddToPlaylist -> MenuStep.Playlists
+        tap is ArtistTap.Choose -> MenuStep.Artists
+        else -> null
+    }
 
 private fun isShown(
     action: TrackAction,
     canOpenArtist: Boolean,
     canAddToPlaylist: Boolean,
+    canMark: Boolean,
 ): Boolean =
     when (action) {
         TrackAction.GoToArtist -> canOpenArtist
         TrackAction.AddToPlaylist -> canAddToPlaylist
+        TrackAction.AddToFavorites, TrackAction.Rate -> canMark
         else -> true
+    }
+
+@StringRes
+private fun labelOf(
+    action: TrackAction,
+    isFavorite: Boolean,
+): Int =
+    if (action == TrackAction.AddToFavorites && isFavorite) {
+        R.string.track_action_remove_from_favorites
+    } else {
+        action.label
     }
 
 @Composable

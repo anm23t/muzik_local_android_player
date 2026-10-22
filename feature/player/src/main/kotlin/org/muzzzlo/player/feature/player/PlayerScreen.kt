@@ -140,6 +140,7 @@ fun PlayerScreen(
             loadArtists = { viewModel.artistChoices(track.id) },
             onOpenArtist = onOpenArtist,
             addToPlaylist = remember(track.id) { viewModel.addToPlaylist(track.id) },
+            marks = remember(track.id) { viewModel.trackMarks(track.id) },
         )
     }
 }
@@ -336,6 +337,7 @@ fun MiniPlayer(
             loadArtists = { viewModel.artistChoices(track.id) },
             onOpenArtist = onOpenArtist,
             addToPlaylist = remember(track.id) { viewModel.addToPlaylist(track.id) },
+            marks = remember(track.id) { viewModel.trackMarks(track.id) },
         )
     }
     MiniPlayerView(

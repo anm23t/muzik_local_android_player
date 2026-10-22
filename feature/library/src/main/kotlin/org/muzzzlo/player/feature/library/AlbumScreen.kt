@@ -71,6 +71,7 @@ fun AlbumScreen(
             viewModel::artistChoices,
             onOpenArtistById,
             viewModel::addToPlaylist,
+            viewModel::trackMarks,
         )
 
     ScreenFrame(modifier) {

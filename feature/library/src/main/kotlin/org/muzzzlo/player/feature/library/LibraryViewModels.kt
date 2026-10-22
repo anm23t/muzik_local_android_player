@@ -22,6 +22,7 @@ import kotlinx.coroutines.launch
 import org.muzzzlo.player.core.designsystem.component.AddToPlaylist
 import org.muzzzlo.player.core.designsystem.component.ArtistChoice
 import org.muzzzlo.player.core.designsystem.component.TrackAction
+import org.muzzzlo.player.core.designsystem.component.TrackMarksMenu
 import org.muzzzlo.player.core.model.Album
 import org.muzzzlo.player.core.model.Artist
 import org.muzzzlo.player.core.model.ArtistDiscography
@@ -35,6 +36,7 @@ import org.muzzzlo.player.core.model.PlayerController
 import org.muzzzlo.player.core.model.PlaylistRepository
 import org.muzzzlo.player.core.model.StatsRepository
 import org.muzzzlo.player.core.model.Track
+import org.muzzzlo.player.core.model.TrackMarksRepository
 import javax.inject.Inject
 
 /** Navigation argument of the album card: the id of the album. */
@@ -381,6 +383,7 @@ class AlbumViewModel
         private val library: LibraryRepository,
         private val player: PlayerController,
         private val playlists: PlaylistRepository,
+        private val marks: TrackMarksRepository,
         savedState: SavedStateHandle,
     ) : ViewModel() {
         private val albumId: Long = checkNotNull(savedState[ALBUM_ID_ARG])
@@ -413,6 +416,9 @@ class AlbumViewModel
 
         /** "Add to playlist" of the track menu. */
         fun addToPlaylist(trackId: Long): AddToPlaylist = playlists.addToPlaylist(viewModelScope, trackId)
+
+        /** "Add to favorites" and "Rate" of the track menu. */
+        fun trackMarks(trackId: Long): TrackMarksMenu = marks.menuFor(viewModelScope, trackId)
     }
 
 /**
@@ -438,6 +444,7 @@ class TracksViewModel
         private val library: LibraryRepository,
         private val player: PlayerController,
         private val playlists: PlaylistRepository,
+        private val marks: TrackMarksRepository,
         savedState: SavedStateHandle,
     ) : ViewModel() {
         private val artistId: Long? = savedState.get<Long>(ARTIST_ID_ARG)?.takeIf { it != NO_ARTIST }
@@ -470,6 +477,9 @@ class TracksViewModel
 
         /** "Add to playlist" of the track menu. */
         fun addToPlaylist(trackId: Long): AddToPlaylist = playlists.addToPlaylist(viewModelScope, trackId)
+
+        /** "Add to favorites" and "Rate" of the track menu. */
+        fun trackMarks(trackId: Long): TrackMarksMenu = marks.menuFor(viewModelScope, trackId)
     }
 
 /** Artists of the track as the artist picker shows them. */

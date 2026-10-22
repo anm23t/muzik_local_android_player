@@ -116,6 +116,8 @@ data class TrackEntity(
     /** Rating 0-100 (tenths of a point, 67 = 6.7); null when not rated. Stored only in the database. */
     @ColumnInfo(name = "rating_tenths") val ratingTenths: Int? = null,
     @ColumnInfo(name = "is_favorite", defaultValue = "0") val isFavorite: Boolean = false,
+    /** When the track became a favorite (schema 10), epoch milliseconds; 0 when unknown; null when not a favorite. */
+    @ColumnInfo(name = "favorited_at") val favoritedAt: Long? = null,
     /** ReplayGain values from the tags (schema 7), decibels and linear peaks; null when the file has none. */
     @ColumnInfo(name = "rg_track_gain") val rgTrackGain: Float? = null,
     @ColumnInfo(name = "rg_track_peak") val rgTrackPeak: Float? = null,

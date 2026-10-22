@@ -76,6 +76,7 @@ class DefaultBackupRepositoryTest {
         tags: String = "[\"A\"]",
         rating: Int? = null,
         favorite: Boolean = false,
+        favoritedAt: Long? = null,
         target: MuzzzloDatabase = db,
         durationMs: Long = 200_000,
     ): Long =
@@ -89,6 +90,7 @@ class DefaultBackupRepositoryTest {
                 durationMs = durationMs,
                 ratingTenths = rating,
                 isFavorite = favorite,
+                favoritedAt = favoritedAt,
             ),
         )
 
@@ -120,7 +122,7 @@ class DefaultBackupRepositoryTest {
             db.libraryDao().insertAlias(
                 ArtistAliasEntity(aliasKey = "tyler 2", aliasDisplay = "Tyler 2", artistId = artist),
             )
-            val id = track("Song", "[\"A\",\"B\"]", rating = 67, favorite = true)
+            val id = track("Song", "[\"A\",\"B\"]", rating = 67, favorite = true, favoritedAt = 1234)
             track("Unrated")
             event(id, 10)
             event(null, 20, "Deleted track")
@@ -145,6 +147,7 @@ class DefaultBackupRepositoryTest {
             val row = other.backupDao().trackIdentities().single()
             assertEquals(67, row.ratingTenths)
             assertTrue(row.isFavorite)
+            assertEquals(1234L, row.favoritedAt)
             val events = other.listenEventDao().all()
             assertEquals(listOf(null, newId), events.map { it.trackId })
             assertEquals(listOf("Tyler, The Creator"), compounds.remembered)
@@ -182,6 +185,8 @@ class DefaultBackupRepositoryTest {
             val row = other.backupDao().trackIdentities().single { it.id == id }
             assertEquals(90, row.ratingTenths)
             assertTrue(row.isFavorite)
+            // The backup does not say when: the favorite comes after those with a known moment.
+            assertEquals(0L, row.favoritedAt)
             other.close()
         }
 

@@ -17,7 +17,7 @@ class PlayerViewModelTest {
     @EnumSource(TrackAction::class)
     fun `only queue actions reach the player`(action: TrackAction) {
         val player = FakePlayerController()
-        PlayerViewModel(player, FakeLibrary(), FakePlaylists()).onTrackAction(track, action)
+        PlayerViewModel(player, FakeLibrary(), FakePlaylists(), FakeTrackMarks()).onTrackAction(track, action)
 
         val expectedNext = if (action == TrackAction.PlayNext) listOf(track) else emptyList()
         val expectedQueue = if (action == TrackAction.AddToQueue) listOf(track) else emptyList()
@@ -29,7 +29,7 @@ class PlayerViewModelTest {
     fun `the picker gets the artists of the track in order with their photos`() =
         runBlocking {
             val library = FakeLibrary(mapOf(1L to listOf(ArtistRef(5, "B", "/b.jpg"), ArtistRef(4, "A"))))
-            val viewModel = PlayerViewModel(FakePlayerController(), library, FakePlaylists())
+            val viewModel = PlayerViewModel(FakePlayerController(), library, FakePlaylists(), FakeTrackMarks())
 
             assertEquals(listOf(ArtistChoice(5, "B", "/b.jpg"), ArtistChoice(4, "A", null)), viewModel.artistChoices(1))
             assertEquals(emptyList<ArtistChoice>(), viewModel.artistChoices(2))

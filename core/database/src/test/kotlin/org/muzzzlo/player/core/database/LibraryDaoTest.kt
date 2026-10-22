@@ -48,6 +48,7 @@ class LibraryDaoTest {
         discNumber: Int? = null,
         discTotal: Int? = null,
         isMissing: Boolean = false,
+        rating: Int? = null,
     ) = TrackEntity(
         mediaStoreId = null,
         uri = uri,
@@ -61,6 +62,7 @@ class LibraryDaoTest {
         discTotal = discTotal,
         durationMs = 1000,
         isMissing = isMissing,
+        ratingTenths = rating,
     )
 
     @Test
@@ -406,6 +408,53 @@ class LibraryDaoTest {
             dao.insertAlbum(AlbumEntity(title = "Lonely", titleKey = "lonely"))
             dao.deleteEmptyAlbums()
             assertTrue(dao.observeAlbums().first().isEmpty())
+        }
+
+    @Test
+    fun `favorites come latest first and a cleared favorite leaves the list`() =
+        runBlocking {
+            val a = dao.insertTrack(track("u1", "Aa"))
+            val b = dao.insertTrack(track("u2", "Bb"))
+            val c = dao.insertTrack(track("u3", "Cc"))
+            val gone = dao.insertTrack(track("u4", "Dd", isMissing = true))
+            dao.setFavorite(a, true, 100)
+            dao.setFavorite(b, true, 300)
+            dao.setFavorite(c, true, 200)
+            dao.setFavorite(gone, true, 400)
+            assertEquals(listOf(b, c, a), dao.observeFavoriteTracks().first().map { it.id })
+
+            dao.setFavorite(c, false, null)
+            assertEquals(listOf(b, a), dao.observeFavoriteTracks().first().map { it.id })
+            assertEquals(false, dao.marksOf(c)?.isFavorite)
+        }
+
+    @Test
+    fun `favorites without a moment come after the dated ones in title order`() =
+        runBlocking {
+            val old2 = dao.insertTrack(track("u1", "Zz"))
+            val old1 = dao.insertTrack(track("u2", "Aa"))
+            val dated = dao.insertTrack(track("u3", "Mm"))
+            dao.setFavorite(old2, true, 0)
+            dao.setFavorite(old1, true, 0)
+            dao.setFavorite(dated, true, 5)
+            assertEquals(listOf(dated, old1, old2), dao.observeFavoriteTracks().first().map { it.id })
+        }
+
+    @Test
+    fun `rated tracks come best first and unrated ones are left out`() =
+        runBlocking {
+            val low = dao.insertTrack(track("u1", "Low", rating = 12))
+            val zero = dao.insertTrack(track("u2", "Zero", rating = 0))
+            val topB = dao.insertTrack(track("u3", "Bb", rating = 95))
+            val topA = dao.insertTrack(track("u4", "Aa", rating = 95))
+            dao.insertTrack(track("u5", "None"))
+            dao.insertTrack(track("u6", "Gone", rating = 100, isMissing = true))
+            assertEquals(listOf(topA, topB, low, zero), dao.observeRatedTracks().first().map { it.id })
+
+            dao.setRating(low, null)
+            dao.setRating(zero, 30)
+            assertEquals(listOf(topA, topB, zero), dao.observeRatedTracks().first().map { it.id })
+            assertEquals(30, dao.marksOf(zero)?.ratingTenths)
         }
 
     @Test

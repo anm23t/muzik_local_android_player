@@ -89,7 +89,14 @@ class DefaultBackupRepository
                         },
                 marks =
                     marked.map {
-                        BackupTrackMark(it.title, tagValues(it), it.durationMs, it.ratingTenths, it.isFavorite)
+                        BackupTrackMark(
+                            it.title,
+                            tagValues(it),
+                            it.durationMs,
+                            it.ratingTenths,
+                            it.isFavorite,
+                            it.favoritedAt.takeIf { _ -> it.isFavorite },
+                        )
                     },
                 events = eventsOf(),
                 playlists = playlistsOf(),
@@ -202,7 +209,13 @@ class DefaultBackupRepository
             val rating = track.ratingTenths ?: mark.ratingTenths
             val favorite = track.isFavorite || mark.favorite
             if (rating == track.ratingTenths && favorite == track.isFavorite) return false
-            backup.setMark(track.id, rating, favorite)
+            val favoritedAt =
+                when {
+                    !favorite -> null
+                    track.isFavorite -> track.favoritedAt
+                    else -> mark.favoritedAtMs ?: 0L
+                }
+            backup.setMark(track.id, rating, favorite, favoritedAt)
             return true
         }
 

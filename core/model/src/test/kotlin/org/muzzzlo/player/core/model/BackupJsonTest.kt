@@ -27,7 +27,14 @@ class BackupJsonTest {
                 ),
             marks =
                 listOf(
-                    BackupTrackMark("Song \u0442\u0435\u0441\u0442 \uD83C\uDFB5", listOf("A", "B"), 123_456, 67, true),
+                    BackupTrackMark(
+                        "Song \u0442\u0435\u0441\u0442 \uD83C\uDFB5",
+                        listOf("A", "B"),
+                        123_456,
+                        67,
+                        true,
+                        1_700_000_000_000,
+                    ),
                     BackupTrackMark("Plain", emptyList(), 1, null, false),
                 ),
             events =
@@ -89,6 +96,16 @@ class BackupJsonTest {
             """{"format":"muzzzlo-backup","schemaVersion":1,"extra":1,""" +
                 """"marks":[{"title":"t","durationMs":1,"rating":500,"x":null}]}"""
         assertEquals(100, BackupJson.decode(text).marks.single().ratingTenths)
+    }
+
+    @Test
+    fun `a mark of an older backup has no favorite moment`() {
+        val text =
+            """{"format":"muzzzlo-backup","schemaVersion":2,"marks":[""" +
+                """{"title":"t","durationMs":1,"favorite":true},""" +
+                """{"title":"u","durationMs":1,"favorite":true,"favoritedAt":1700000000000}]}"""
+        val marks = BackupJson.decode(text).marks
+        assertEquals(listOf(null, 1_700_000_000_000), marks.map { it.favoritedAtMs })
     }
 
     @Test

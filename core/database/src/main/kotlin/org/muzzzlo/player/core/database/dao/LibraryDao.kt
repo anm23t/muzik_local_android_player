@@ -100,12 +100,51 @@ data class TrackStamp(
     @ColumnInfo(name = "is_damaged") val isDamaged: Boolean,
 )
 
+/** Rating and favorite flag of a track. */
+data class TrackMarksRow(
+    @ColumnInfo(name = "rating_tenths") val ratingTenths: Int?,
+    @ColumnInfo(name = "is_favorite") val isFavorite: Boolean,
+)
+
 @Dao
 interface LibraryDao {
     // ---- reads for the UI ----
 
     @Query("SELECT t.* FROM track t LEFT JOIN album a ON a.id = t.album_id WHERE t.is_missing = 0 ORDER BY t.title_key")
     fun observeTracks(): Flow<List<TrackEntity>>
+
+    /** Favorites, the latest added first; those restored from an older backup (moment 0) come last. */
+    @Query(
+        "SELECT * FROM track WHERE is_missing = 0 AND is_favorite = 1 " +
+            "ORDER BY IFNULL(favorited_at, 0) DESC, title_key, id",
+    )
+    fun observeFavoriteTracks(): Flow<List<TrackEntity>>
+
+    /** Rated tracks, the highest rating first; tracks without a rating are not in the list. */
+    @Query(
+        "SELECT * FROM track WHERE is_missing = 0 AND rating_tenths IS NOT NULL " +
+            "ORDER BY rating_tenths DESC, title_key, id",
+    )
+    fun observeRatedTracks(): Flow<List<TrackEntity>>
+
+    @Query("SELECT rating_tenths, is_favorite FROM track WHERE id = :trackId")
+    suspend fun marksOf(trackId: Long): TrackMarksRow?
+
+    @Query("SELECT is_favorite FROM track WHERE id = :trackId")
+    suspend fun isFavorite(trackId: Long): Boolean?
+
+    @Query("UPDATE track SET is_favorite = :favorite, favorited_at = :favoritedAt WHERE id = :trackId")
+    suspend fun setFavorite(
+        trackId: Long,
+        favorite: Boolean,
+        favoritedAt: Long?,
+    )
+
+    @Query("UPDATE track SET rating_tenths = :ratingTenths WHERE id = :trackId")
+    suspend fun setRating(
+        trackId: Long,
+        ratingTenths: Int?,
+    )
 
     @Query(
         "SELECT * FROM track WHERE is_missing = 0 AND album_id = :albumId " +

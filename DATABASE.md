@@ -1,6 +1,6 @@
 # DATABASE
 
-Схема БД (Room/SQLite). Версия схемы: 9. Любое изменение сопровождается миграцией и тестом миграции.
+Схема БД (Room/SQLite). Версия схемы: 10. Любое изменение сопровождается миграцией и тестом миграции.
 
 Соглашения: `id` это автоинкрементный `INTEGER PRIMARY KEY`, время хранится как миллисекунды Unix (UTC), строки поиска хранятся в нормализованном виде (без регистра, лишних пробелов).
 
@@ -75,7 +75,8 @@ PK: (`album_id`, `artist_id`).
 | is_missing | INTEGER NOT NULL DEFAULT 0 | Файл пропал из MediaStore |
 | is_damaged | INTEGER NOT NULL DEFAULT 0 | Файл уронил нативное чтение тегов и в карантине (`NativeCallGuard`): теги взяты из MediaStore. Версия схемы 2 |
 | rating_tenths | INTEGER | Оценка 0-100 (шкала 0.0-10.0 с шагом 0.1, например 67 = 6.7), NULL = не оценён. Только в БД, в файлы не пишется |
-| is_favorite | INTEGER NOT NULL DEFAULT 0 | |
+| is_favorite | INTEGER NOT NULL DEFAULT 0 | Избранное. Только в БД |
+| favorited_at | INTEGER | Когда трек добавлен в избранное (мс), порядок «Favorites» от последних добавленных. NULL, если не в избранном; 0, если момент неизвестен (избранное из старой резервной копии, идёт в конце). Версия схемы 10, задача 1.1.6 |
 | rg_track_gain | REAL | ReplayGain трека в дБ (`REPLAYGAIN_TRACK_GAIN`, в Opus `R128_TRACK_GAIN` + 5 дБ), NULL = нет тега. Версия схемы 7, задача 0.5.3 |
 | rg_track_peak | REAL | Пик трека (`REPLAYGAIN_TRACK_PEAK`, 1.0 = полная шкала) |
 | rg_album_gain | REAL | ReplayGain альбома в дБ (`REPLAYGAIN_ALBUM_GAIN`, в Opus `R128_ALBUM_GAIN` + 5 дБ) |

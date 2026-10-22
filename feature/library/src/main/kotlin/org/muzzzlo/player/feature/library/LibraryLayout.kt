@@ -24,6 +24,7 @@ import org.muzzzlo.player.core.designsystem.component.ArtistChoice
 import org.muzzzlo.player.core.designsystem.component.RoundIconButton
 import org.muzzzlo.player.core.designsystem.component.TrackAction
 import org.muzzzlo.player.core.designsystem.component.TrackActionsMenu
+import org.muzzzlo.player.core.designsystem.component.TrackMarksMenu
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloColors
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloDimens
 import org.muzzzlo.player.core.model.Track
@@ -92,6 +93,7 @@ internal fun Notice(
  * @param loadArtists artists of the track with this id, for "Go to artist" and its picker.
  * @param onOpenArtist opens the card of the artist with this id ("Go to artist").
  * @param addToPlaylist "Add to playlist" for the track with this id.
+ * @param trackMarks "Add to favorites" and "Rate" for the track with this id.
  */
 @Composable
 internal fun rememberTrackMenu(
@@ -101,6 +103,7 @@ internal fun rememberTrackMenu(
     loadArtists: suspend (Long) -> List<ArtistChoice>,
     onOpenArtist: (Long) -> Unit,
     addToPlaylist: (Long) -> AddToPlaylist,
+    trackMarks: (Long) -> TrackMarksMenu,
 ): (Track) -> Unit {
     var menuTrack by remember { mutableStateOf<Track?>(null) }
     menuTrack?.let { track ->
@@ -119,6 +122,7 @@ internal fun rememberTrackMenu(
             loadArtists = { loadArtists(track.id) },
             onOpenArtist = onOpenArtist,
             addToPlaylist = remember(track.id) { addToPlaylist(track.id) },
+            marks = remember(track.id) { trackMarks(track.id) },
         )
     }
     return { menuTrack = it }

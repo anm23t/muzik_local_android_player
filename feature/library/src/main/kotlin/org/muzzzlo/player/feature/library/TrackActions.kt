@@ -5,8 +5,7 @@ import org.muzzzlo.player.core.model.PlayerController
 import org.muzzzlo.player.core.model.Track
 
 /**
- * Runs an item of the track menu that the player handles. Navigation items are handled by the screen,
- * the rest are placeholders until their tasks.
+ * Runs an item of the track menu that the player handles. Navigation items are handled by the screen.
  */
 internal fun PlayerController.onTrackAction(
     track: Track,
@@ -17,7 +16,7 @@ internal fun PlayerController.onTrackAction(
         TrackAction.AddToQueue -> addToQueue(track)
         TrackAction.OpenQueue, TrackAction.EditTags, TrackAction.GoToArtist -> Unit
         TrackAction.AddToPlaylist, TrackAction.RemoveFromPlaylist -> Unit
-        // Placeholders: favorites and rating come in 1.1.6.
+        // Favorites and rating go through TrackMarksMenu, the menu does not report them.
         TrackAction.AddToFavorites,
         TrackAction.Rate,
         -> Unit

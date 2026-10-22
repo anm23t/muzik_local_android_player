@@ -27,10 +27,10 @@ enum class TrackAction(
     /** Only in the playlist card: removes this entry of the playlist. */
     RemoveFromPlaylist(R.drawable.ic_list_minus, R.string.track_action_remove_from_playlist),
 
-    /** Placeholder until favorites (1.1). */
+    /** Toggles the favorite flag through [TrackMarksMenu]; the ViewModel has nothing to do. */
     AddToFavorites(R.drawable.ic_heart, R.string.track_action_add_to_favorites),
 
-    /** Placeholder until the rating dialog (1.1). */
+    /** Opens [RatingDialog]; the rating is saved through [TrackMarksMenu], the ViewModel has nothing to do. */
     Rate(R.drawable.ic_star, R.string.track_action_rate),
 
     /** Placeholder until the tag editor (0.3.6). */

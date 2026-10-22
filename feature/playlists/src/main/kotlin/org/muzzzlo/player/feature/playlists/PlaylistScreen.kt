@@ -102,6 +102,7 @@ fun PlaylistScreen(
             loadArtists = { viewModel.artistChoices(entry.track.id) },
             onOpenArtist = onOpenArtist,
             addToPlaylist = remember(entry.entryId) { viewModel.addToPlaylist(entry.track.id) },
+            marks = remember(entry.entryId) { viewModel.trackMarks(entry.track.id) },
         )
     }
 

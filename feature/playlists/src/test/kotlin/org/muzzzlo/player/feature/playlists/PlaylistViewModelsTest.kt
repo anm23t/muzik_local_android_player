@@ -36,7 +36,7 @@ class PlaylistViewModelsTest {
 
     private fun TestScope.card(playlistId: Long): PlaylistViewModel {
         val savedState = SavedStateHandle(mapOf(PLAYLIST_ID_ARG to playlistId))
-        val viewModel = PlaylistViewModel(playlists, FakeLibrary(), player, savedState)
+        val viewModel = PlaylistViewModel(playlists, FakeLibrary(), player, FakeTrackMarks(), savedState)
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.state.collect {} }
         return viewModel
     }

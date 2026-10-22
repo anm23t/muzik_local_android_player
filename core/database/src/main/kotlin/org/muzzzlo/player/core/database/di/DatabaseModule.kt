@@ -15,6 +15,7 @@ import org.muzzzlo.player.core.database.MIGRATION_5_6
 import org.muzzzlo.player.core.database.MIGRATION_6_7
 import org.muzzzlo.player.core.database.MIGRATION_7_8
 import org.muzzzlo.player.core.database.MIGRATION_8_9
+import org.muzzzlo.player.core.database.MIGRATION_9_10
 import org.muzzzlo.player.core.database.MuzzzloDatabase
 import org.muzzzlo.player.core.database.dao.BackupDao
 import org.muzzzlo.player.core.database.dao.LibraryDao
@@ -40,6 +41,7 @@ object DatabaseModule {
                 MIGRATION_6_7,
                 MIGRATION_7_8,
                 MIGRATION_8_9,
+                MIGRATION_9_10,
             )
             .build()
 

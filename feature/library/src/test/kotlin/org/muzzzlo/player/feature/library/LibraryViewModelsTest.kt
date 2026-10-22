@@ -24,6 +24,7 @@ import org.junit.jupiter.params.provider.EnumSource
 import org.muzzzlo.player.core.designsystem.component.ArtistChoice
 import org.muzzzlo.player.core.designsystem.component.PlaylistChoice
 import org.muzzzlo.player.core.designsystem.component.TrackAction
+import org.muzzzlo.player.core.designsystem.component.TrackMarksState
 import org.muzzzlo.player.core.model.Album
 import org.muzzzlo.player.core.model.Artist
 import org.muzzzlo.player.core.model.ArtistCheckRepository
@@ -42,6 +43,7 @@ import org.muzzzlo.player.core.model.StatsPeriod
 import org.muzzzlo.player.core.model.StatsRepository
 import org.muzzzlo.player.core.model.TopTrack
 import org.muzzzlo.player.core.model.Track
+import org.muzzzlo.player.core.model.TrackMarks
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class LibraryViewModelsTest {
@@ -65,12 +67,12 @@ class LibraryViewModelsTest {
         lib: LibraryRepository,
         savedState: SavedStateHandle = SavedStateHandle(),
         playlists: FakePlaylists = FakePlaylists(),
-    ) = TracksViewModel(lib, player, playlists, savedState)
+    ) = TracksViewModel(lib, player, playlists, FakeTrackMarks(), savedState)
 
     private fun albumViewModel(
         albumId: Long,
         lib: LibraryRepository = library,
-    ) = AlbumViewModel(lib, player, FakePlaylists(), SavedStateHandle(mapOf(ALBUM_ID_ARG to albumId)))
+    ) = AlbumViewModel(lib, player, FakePlaylists(), FakeTrackMarks(), SavedStateHandle(mapOf(ALBUM_ID_ARG to albumId)))
 
     @BeforeEach
     fun setUp() = Dispatchers.setMain(UnconfinedTestDispatcher())
@@ -81,17 +83,42 @@ class LibraryViewModelsTest {
     @ParameterizedTest
     @EnumSource(TrackAction::class)
     fun `only queue actions reach the player`(action: TrackAction) {
-        TracksViewModel(library, player, FakePlaylists(), SavedStateHandle()).onTrackAction(first, action)
+        TracksViewModel(
+            library,
+            player,
+            FakePlaylists(),
+            FakeTrackMarks(),
+            SavedStateHandle(),
+        ).onTrackAction(first, action)
 
         assertEquals(if (action == TrackAction.PlayNext) listOf(first) else emptyList<Track>(), player.playedNext)
         assertEquals(if (action == TrackAction.AddToQueue) listOf(first) else emptyList<Track>(), player.addedToQueue)
     }
 
     @Test
+    fun `the track menu loads the marks and saves a favorite and a rating`() =
+        runTest {
+            val marks = FakeTrackMarks().apply { marks[1] = TrackMarks(isFavorite = true, ratingTenths = 67) }
+            val viewModel = TracksViewModel(library, player, FakePlaylists(), marks, SavedStateHandle())
+
+            val menu = viewModel.trackMarks(1)
+            assertEquals(TrackMarksState(isFavorite = true, ratingTenths = 67), menu.load())
+            assertEquals(TrackMarksState(), viewModel.trackMarks(2).load())
+
+            menu.onFavorite(false)
+            menu.onRate(null)
+            viewModel.trackMarks(2).onRate(85)
+
+            assertEquals(listOf(1L to false), marks.favoriteCalls)
+            assertEquals(TrackMarks(isFavorite = false, ratingTenths = null), marks.marks(1))
+            assertEquals(85, marks.marks(2).ratingTenths)
+        }
+
+    @Test
     fun `the track menu gets the artists of the track in tag order with their photos`() =
         runTest {
             val lib = FakeLibrary(listOf(second), listOf(album), listOf(anna.copy(photoPath = "/p/a.jpg"), bob))
-            val viewModel = TracksViewModel(lib, player, FakePlaylists(), SavedStateHandle())
+            val viewModel = TracksViewModel(lib, player, FakePlaylists(), FakeTrackMarks(), SavedStateHandle())
 
             assertEquals(
                 listOf(ArtistChoice(7, "A", "/p/a.jpg"), ArtistChoice(8, "B", null)),
@@ -165,7 +192,7 @@ class LibraryViewModelsTest {
     @Test
     fun `a tap outside the list does not start playback`() =
         runTest {
-            val viewModel = TracksViewModel(library, player, FakePlaylists(), SavedStateHandle())
+            val viewModel = TracksViewModel(library, player, FakePlaylists(), FakeTrackMarks(), SavedStateHandle())
             subscribe(viewModel.state)
 
             viewModel.onTrackClicked(5)

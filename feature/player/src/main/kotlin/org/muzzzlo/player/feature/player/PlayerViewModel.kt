@@ -7,11 +7,13 @@ import kotlinx.coroutines.flow.StateFlow
 import org.muzzzlo.player.core.designsystem.component.AddToPlaylist
 import org.muzzzlo.player.core.designsystem.component.ArtistChoice
 import org.muzzzlo.player.core.designsystem.component.TrackAction
+import org.muzzzlo.player.core.designsystem.component.TrackMarksMenu
 import org.muzzzlo.player.core.model.LibraryRepository
 import org.muzzzlo.player.core.model.PlayerController
 import org.muzzzlo.player.core.model.PlayerState
 import org.muzzzlo.player.core.model.PlaylistRepository
 import org.muzzzlo.player.core.model.Track
+import org.muzzzlo.player.core.model.TrackMarksRepository
 import javax.inject.Inject
 
 @HiltViewModel
@@ -21,6 +23,7 @@ class PlayerViewModel
         private val player: PlayerController,
         private val library: LibraryRepository,
         private val playlists: PlaylistRepository,
+        private val marks: TrackMarksRepository,
     ) : ViewModel() {
         val state: StateFlow<PlayerState> = player.state
 
@@ -52,6 +55,9 @@ class PlayerViewModel
         /** "Add to playlist" of the track menu. */
         fun addToPlaylist(trackId: Long): AddToPlaylist = playlists.addToPlaylist(viewModelScope, trackId)
 
+        /** "Add to favorites" and "Rate" of the track menu. */
+        fun trackMarks(trackId: Long): TrackMarksMenu = marks.menuFor(viewModelScope, trackId)
+
         /** Item chosen in the track menu. Navigation items are handled by the screen. */
         fun onTrackAction(
             track: Track,
@@ -62,7 +68,7 @@ class PlayerViewModel
                 TrackAction.AddToQueue -> player.addToQueue(track)
                 TrackAction.OpenQueue, TrackAction.EditTags, TrackAction.GoToArtist -> Unit
                 TrackAction.AddToPlaylist, TrackAction.RemoveFromPlaylist -> Unit
-                // Placeholders: favorites and rating come in 1.1.6.
+                // Favorites and rating go through TrackMarksMenu, the menu does not report them.
                 TrackAction.AddToFavorites,
                 TrackAction.Rate,
                 -> Unit

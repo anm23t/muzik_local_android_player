@@ -18,6 +18,7 @@ import org.muzzzlo.player.core.designsystem.component.AddToPlaylist
 import org.muzzzlo.player.core.designsystem.component.ArtistChoice
 import org.muzzzlo.player.core.designsystem.component.PlaylistChoice
 import org.muzzzlo.player.core.designsystem.component.TrackAction
+import org.muzzzlo.player.core.designsystem.component.TrackMarksMenu
 import org.muzzzlo.player.core.model.LibraryRepository
 import org.muzzzlo.player.core.model.PlayerController
 import org.muzzzlo.player.core.model.Playlist
@@ -26,6 +27,7 @@ import org.muzzzlo.player.core.model.PlaylistNames
 import org.muzzzlo.player.core.model.PlaylistOrder
 import org.muzzzlo.player.core.model.PlaylistRepository
 import org.muzzzlo.player.core.model.Track
+import org.muzzzlo.player.core.model.TrackMarksRepository
 import javax.inject.Inject
 
 /** Navigation argument of the playlist card. */
@@ -85,6 +87,7 @@ class PlaylistViewModel
         private val playlists: PlaylistRepository,
         private val library: LibraryRepository,
         private val player: PlayerController,
+        private val marks: TrackMarksRepository,
         savedState: SavedStateHandle,
     ) : ViewModel() {
         private val playlistId: Long = checkNotNull(savedState[PLAYLIST_ID_ARG])
@@ -135,7 +138,7 @@ class PlaylistViewModel
                 TrackAction.PlayNext -> player.playNext(entry.track)
                 TrackAction.AddToQueue -> player.addToQueue(entry.track)
                 TrackAction.RemoveFromPlaylist -> viewModelScope.launch { playlists.removeEntry(entry.entryId) }
-                // Navigation and pickers are handled by the screen and the menu; favorites and rating come in 1.1.6.
+                // Navigation, pickers, favorites and rating are handled by the screen and the menu.
                 TrackAction.OpenQueue,
                 TrackAction.GoToArtist,
                 TrackAction.AddToPlaylist,
@@ -170,6 +173,9 @@ class PlaylistViewModel
                     }
                 },
             )
+
+        /** "Add to favorites" and "Rate" of the track menu. */
+        fun trackMarks(trackId: Long): TrackMarksMenu = marks.menuFor(viewModelScope, trackId)
 
         private fun ordered(
             entries: List<PlaylistEntry>,

@@ -13,6 +13,7 @@ data class TrackIdentity(
     @ColumnInfo(name = "duration_ms") val durationMs: Long,
     @ColumnInfo(name = "rating_tenths") val ratingTenths: Int?,
     @ColumnInfo(name = "is_favorite") val isFavorite: Boolean,
+    @ColumnInfo(name = "favorited_at") val favoritedAt: Long?,
 )
 
 /** An artist spelling with the name of its artist. */
@@ -33,7 +34,7 @@ data class PlaylistEntryIdentity(
 /** Reads and writes the data that the backup carries and the other DAOs do not expose (ARCHITECTURE.md, section 8). */
 @Dao
 interface BackupDao {
-    @Query("SELECT id, title, artist_tag_values, duration_ms, rating_tenths, is_favorite FROM track")
+    @Query("SELECT id, title, artist_tag_values, duration_ms, rating_tenths, is_favorite, favorited_at FROM track")
     suspend fun trackIdentities(): List<TrackIdentity>
 
     @Query(
@@ -45,11 +46,15 @@ interface BackupDao {
     )
     suspend fun aliases(): List<AliasWithArtist>
 
-    @Query("UPDATE track SET rating_tenths = :rating, is_favorite = :favorite WHERE id = :id")
+    @Query(
+        "UPDATE track SET rating_tenths = :rating, is_favorite = :favorite, favorited_at = :favoritedAt " +
+            "WHERE id = :id",
+    )
     suspend fun setMark(
         id: Long,
         rating: Int?,
         favorite: Boolean,
+        favoritedAt: Long?,
     )
 
     @Query("SELECT * FROM playlist ORDER BY id")
