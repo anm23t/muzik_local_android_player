@@ -27,6 +27,7 @@ include(
     ":core:designsystem",
     ":feature:library",
     ":feature:player",
+    ":feature:playlists",
     ":feature:settings",
     ":feature:stats",
     ":feature:tag-editor",

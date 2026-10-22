@@ -49,6 +49,7 @@ import org.muzzzlo.player.core.designsystem.component.CoverSource
 import org.muzzzlo.player.core.designsystem.component.TrackAction
 import org.muzzzlo.player.core.designsystem.component.TrackActionsMenu
 import org.muzzzlo.player.core.designsystem.component.TrackMenuButton
+import org.muzzzlo.player.core.designsystem.gesture.dragTargetIndex
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloDimens
 import org.muzzzlo.player.core.model.Track
 
@@ -108,7 +109,7 @@ private fun QueueList(
             },
             onDismiss = { menuTrack = null },
             // The queue is already open.
-            actions = TrackAction.entries - TrackAction.OpenQueue,
+            actions = TrackAction.Default - TrackAction.OpenQueue,
             loadArtists = { viewModel.artistChoices(track.id) },
             onOpenArtist = onOpenArtist,
             addToPlaylist = remember(track.id) { viewModel.addToPlaylist(track.id) },

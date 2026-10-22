@@ -17,6 +17,7 @@
     <string name="track_action_go_to_artist">К исполнителю</string>
     <string name="artist_picker_title">Выберите исполнителя</string>
     <string name="track_action_add_to_playlist">Добавить в плейлист</string>
+    <string name="track_action_remove_from_playlist">Убрать из плейлиста</string>
     <string name="playlist_new">Новый плейлист</string>
     <string name="playlist_name">Название</string>
     <string name="playlist_create">Создать</string>

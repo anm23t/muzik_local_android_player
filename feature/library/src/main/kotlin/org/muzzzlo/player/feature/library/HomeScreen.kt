@@ -64,7 +64,7 @@ private const val TILES_PER_ROW = 3
 
 /**
  * Home screen (28:620). Only the parts that need neither statistics nor smart playlists: the greeting,
- * "Continue listening", the mini player and the bottom menu. Playlists are shown disabled until their task.
+ * "Continue listening", the mini player and the bottom menu.
  *
  * @param miniPlayer the mini player of `feature:player`, passed in by the app.
  */
@@ -76,6 +76,7 @@ fun HomeScreen(
     onOpenTracks: () -> Unit,
     onOpenSettings: () -> Unit,
     onOpenStats: () -> Unit,
+    onOpenPlaylists: () -> Unit,
     miniPlayer: @Composable () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel(),
@@ -126,7 +127,7 @@ fun HomeScreen(
         }
         Spacer(Modifier.weight(1f))
         miniPlayer()
-        BottomNav(homeNavItems(onOpenArtists, onOpenAlbums, onOpenStats))
+        BottomNav(homeNavItems(onOpenArtists, onOpenAlbums, onOpenPlaylists, onOpenStats))
     }
 }
 
@@ -245,12 +246,13 @@ private tailrec fun Context.findActivity(): Activity? =
 private fun homeNavItems(
     onOpenArtists: () -> Unit,
     onOpenAlbums: () -> Unit,
+    onOpenPlaylists: () -> Unit,
     onOpenStats: () -> Unit,
 ): List<BottomNavItem> =
     listOf(
         BottomNavItem(DesignR.drawable.ic_users, stringResource(R.string.nav_artists), onOpenArtists),
         BottomNavItem(DesignR.drawable.ic_disc, stringResource(R.string.nav_albums), onOpenAlbums),
-        BottomNavItem(DesignR.drawable.ic_list_music, stringResource(R.string.nav_playlists), {}, enabled = false),
+        BottomNavItem(DesignR.drawable.ic_list_music, stringResource(R.string.nav_playlists), onOpenPlaylists),
         BottomNavItem(
             DesignR.drawable.ic_chart_no_axes_column,
             stringResource(R.string.nav_statistics),

@@ -24,6 +24,9 @@ enum class TrackAction(
     /** Opens the playlist picker of [TrackActionsMenu]; the ViewModel has nothing to do. */
     AddToPlaylist(R.drawable.ic_list_plus, R.string.track_action_add_to_playlist),
 
+    /** Only in the playlist card: removes this entry of the playlist. */
+    RemoveFromPlaylist(R.drawable.ic_list_minus, R.string.track_action_remove_from_playlist),
+
     /** Placeholder until favorites (1.1). */
     AddToFavorites(R.drawable.ic_heart, R.string.track_action_add_to_favorites),
 
@@ -32,4 +35,10 @@ enum class TrackAction(
 
     /** Placeholder until the tag editor (0.3.6). */
     EditTags(R.drawable.ic_pencil, R.string.track_action_edit_tags),
+    ;
+
+    companion object {
+        /** The items of every track menu; the playlist card adds [RemoveFromPlaylist]. */
+        val Default: List<TrackAction> = entries - RemoveFromPlaylist
+    }
 }

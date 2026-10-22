@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="playlists_title">Playlists</string>
+    <string name="playlists_back">Back</string>
+    <string name="playlists_home">Home</string>
+    <string name="playlists_empty">No playlists yet. Create one with the plus button or with “Add to playlist” in the menu of a track.</string>
+    <plurals name="playlist_track_count">
+        <item quantity="one">%d track</item>
+        <item quantity="other">%d tracks</item>
+    </plurals>
+    <string name="playlist_play">Play</string>
+    <string name="playlist_manage">Playlist actions</string>
+    <string name="playlist_rename">Rename</string>
+    <string name="playlist_rename_title">Rename playlist</string>
+    <string name="playlist_save">Save</string>
+    <string name="playlist_delete">Delete playlist</string>
+    <string name="playlist_delete_text">The playlist “%1$s” will be deleted. Its tracks stay in the library.</string>
+    <string name="playlist_delete_confirm">Delete</string>
+    <string name="playlist_empty">The playlist is empty. Add tracks with “Add to playlist” in the menu of a track.</string>
+    <string name="playlist_not_found">This playlist is gone</string>
+    <string name="playlist_reorder">Drag to move</string>
+</resources>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="playlists_title">Плейлисты</string>
+    <string name="playlists_back">Назад</string>
+    <string name="playlists_home">Главная</string>
+    <string name="playlists_empty">Плейлистов пока нет. Создайте его кнопкой с плюсом или пунктом «Добавить в плейлист» в меню трека.</string>
+    <plurals name="playlist_track_count">
+        <item quantity="one">%d трек</item>
+        <item quantity="few">%d трека</item>
+        <item quantity="many">%d треков</item>
+        <item quantity="other">%d трека</item>
+    </plurals>
+    <string name="playlist_play">Играть</string>
+    <string name="playlist_manage">Действия с плейлистом</string>
+    <string name="playlist_rename">Переименовать</string>
+    <string name="playlist_rename_title">Переименовать плейлист</string>
+    <string name="playlist_save">Сохранить</string>
+    <string name="playlist_delete">Удалить плейлист</string>
+    <string name="playlist_delete_text">Плейлист «%1$s» будет удалён. Его треки останутся в библиотеке.</string>
+    <string name="playlist_delete_confirm">Удалить</string>
+    <string name="playlist_empty">Плейлист пуст. Добавляйте треки пунктом «Добавить в плейлист» в меню трека.</string>
+    <string name="playlist_not_found">Этого плейлиста больше нет</string>
+    <string name="playlist_reorder">Перетащите, чтобы переместить</string>
+</resources>

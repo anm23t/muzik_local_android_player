@@ -40,6 +40,9 @@ import org.muzzzlo.player.feature.library.TracksScreen
 import org.muzzzlo.player.feature.player.MiniPlayer
 import org.muzzzlo.player.feature.player.PlayerScreen
 import org.muzzzlo.player.feature.player.QueueScreen
+import org.muzzzlo.player.feature.playlists.PLAYLIST_ID_ARG
+import org.muzzzlo.player.feature.playlists.PlaylistListScreen
+import org.muzzzlo.player.feature.playlists.PlaylistScreen
 import org.muzzzlo.player.feature.settings.FoldersScreen
 import org.muzzzlo.player.feature.settings.QuarantineScreen
 import org.muzzzlo.player.feature.settings.SettingsScreen
@@ -64,6 +67,8 @@ private const val ROUTE_SETTINGS_FOLDERS = "settingsFolders"
 private const val ROUTE_SETTINGS_QUARANTINE = "settingsQuarantine"
 private const val ROUTE_ARTIST = "artist?$ARTIST_ID_ARG={$ARTIST_ID_ARG}&$ARTIST_NAME_ARG={$ARTIST_NAME_ARG}"
 private const val ROUTE_QUEUE = "queue"
+private const val ROUTE_PLAYLISTS = "playlists"
+private const val ROUTE_PLAYLIST = "playlist/{$PLAYLIST_ID_ARG}"
 private const val ROUTE_TAG_EDITOR = "tagEditor/{$TRACK_ID_ARG}"
 private const val ROUTE_BATCH_TAG_EDITOR = "tagEditorAlbum/{$BATCH_ALBUM_ID_ARG}"
 private const val ROUTE_ARTIST_PROFILE = "artistProfile/{$PROFILE_ARTIST_ID_ARG}"
@@ -162,6 +167,27 @@ fun MuzzzloNavHost() {
                         onOpenTracks = { navController.navigate(tracksRoute()) },
                         onOpenSettings = { navController.navigate(ROUTE_SETTINGS) },
                         onOpenStats = { navController.navigate(ROUTE_STATS) },
+                        onOpenPlaylists = { navController.navigate(ROUTE_PLAYLISTS) },
+                        miniPlayer = miniPlayer,
+                    )
+                }
+                composable(ROUTE_PLAYLISTS) {
+                    PlaylistListScreen(
+                        onBack = { navController.popBackStack() },
+                        onOpenPlaylist = { navController.navigate("playlist/$it") },
+                        miniPlayer = miniPlayer,
+                    )
+                }
+                composable(
+                    ROUTE_PLAYLIST,
+                    arguments = listOf(navArgument(PLAYLIST_ID_ARG) { type = NavType.LongType }),
+                ) {
+                    PlaylistScreen(
+                        onBack = { navController.popBackStack() },
+                        onHome = { navController.goHome() },
+                        onOpenQueue = { navController.navigate(ROUTE_QUEUE) },
+                        onEditTags = openTagEditor,
+                        onOpenArtist = openArtist,
                         miniPlayer = miniPlayer,
                     )
                 }

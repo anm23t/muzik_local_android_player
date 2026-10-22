@@ -1,9 +1,9 @@
-package org.muzzzlo.player.feature.player
+package org.muzzzlo.player.core.designsystem.gesture
 
 import kotlin.math.roundToInt
 
-/** Queue index where a row ends up when it was dragged by [offsetPx] from [startIndex]. */
-internal fun dragTargetIndex(
+/** List index (queue, playlist) where a row ends up when it was dragged by [offsetPx] from [startIndex]. */
+fun dragTargetIndex(
     startIndex: Int,
     offsetPx: Float,
     rowHeightPx: Float,

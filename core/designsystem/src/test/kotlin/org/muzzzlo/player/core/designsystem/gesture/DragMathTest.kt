@@ -1,10 +1,10 @@
-package org.muzzzlo.player.feature.player
+package org.muzzzlo.player.core.designsystem.gesture
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 
-class DragMathTest {
+internal class DragMathTest {
     @ParameterizedTest
     @CsvSource(
         "2, 0, 100, 5, 2",

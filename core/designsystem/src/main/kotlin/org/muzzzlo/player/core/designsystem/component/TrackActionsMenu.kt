@@ -18,7 +18,8 @@ import org.muzzzlo.player.core.designsystem.theme.MuzzzloColors
  * Menu of actions for one track. Not in the mockup: built from the sort dialog
  * (DESIGN.md, section 7). The menu closes itself after a choice through [onDismiss].
  *
- * @param actions items to show; the queue screen leaves out [TrackAction.OpenQueue].
+ * @param actions items to show; the queue screen leaves out [TrackAction.OpenQueue], the playlist card adds
+ * [TrackAction.RemoveFromPlaylist].
  * @param artists names of the artists, shown under the title.
  * @param loadArtists loads the artists of the track with their photos when the menu opens. "Go to artist" is shown
  * only with [onOpenArtist] and at least one artist: one artist opens at once (by id), several open
@@ -33,7 +34,7 @@ fun TrackActionsMenu(
     onAction: (TrackAction) -> Unit,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
-    actions: List<TrackAction> = TrackAction.entries,
+    actions: List<TrackAction> = TrackAction.Default,
     loadArtists: (suspend () -> List<ArtistChoice>)? = null,
     onOpenArtist: ((Long) -> Unit)? = null,
     addToPlaylist: AddToPlaylist? = null,
