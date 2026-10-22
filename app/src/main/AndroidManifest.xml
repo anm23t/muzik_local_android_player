@@ -6,6 +6,8 @@
         android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Only for the opt-in check for a new release (task 1.1.9); off until the user agrees. -->
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:name=".MuzzzloApp"

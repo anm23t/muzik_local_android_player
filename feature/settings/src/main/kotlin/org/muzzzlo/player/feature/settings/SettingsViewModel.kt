@@ -20,6 +20,7 @@ import org.muzzzlo.player.core.model.ReplayGainMode
 import org.muzzzlo.player.core.model.ReplayGainSettings
 import org.muzzzlo.player.core.model.SettingsRepository
 import org.muzzzlo.player.core.model.TransientFocusAction
+import org.muzzzlo.player.core.model.UpdateCheckStore
 import javax.inject.Inject
 
 /** A choice dialog over the settings screen. */
@@ -39,11 +40,13 @@ enum class SettingsDialog {
  * State of the settings screen.
  *
  * @property quarantineCount files waiting in quarantine; shown on the row that opens their list.
+ * @property checkUpdates the user agreed to the daily check for a new release (task 1.1.9).
  */
 data class SettingsUiState(
     val settings: AppSettings = AppSettings(),
     val isScanning: Boolean = false,
     val quarantineCount: Int = 0,
+    val checkUpdates: Boolean = false,
     val dialog: SettingsDialog? = null,
 )
 
@@ -57,6 +60,7 @@ class SettingsViewModel
         private val repository: SettingsRepository,
         private val library: LibraryRepository,
         private val maintenance: LibraryMaintenance,
+        private val updates: UpdateCheckStore,
     ) : ViewModel() {
         private val local = MutableStateFlow(SettingsUiState())
         val state: StateFlow<SettingsUiState> = local.asStateFlow()
@@ -73,7 +77,14 @@ class SettingsViewModel
             viewModelScope.launch {
                 repository.settings.collect { settings -> local.update { it.copy(settings = settings) } }
             }
+            viewModelScope.launch {
+                updates.state.collect { state -> local.update { it.copy(checkUpdates = state.enabled == true) } }
+            }
             refreshQuarantine()
+        }
+
+        fun onCheckUpdatesChanged(enabled: Boolean) {
+            viewModelScope.launch { updates.setEnabled(enabled) }
         }
 
         fun onDialogRequested(dialog: SettingsDialog) = local.update { it.copy(dialog = dialog) }

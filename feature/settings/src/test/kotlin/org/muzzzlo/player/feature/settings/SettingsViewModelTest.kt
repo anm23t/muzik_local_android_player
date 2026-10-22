@@ -29,13 +29,27 @@ import java.lang.reflect.Proxy
 @OptIn(ExperimentalCoroutinesApi::class)
 class SettingsViewModelTest {
     private val settings = FakeSettings()
-    private val viewModel by lazy { SettingsViewModel(settings, unusedLibrary(), NoMaintenance) }
+    private val updates = FakeUpdateStore()
+    private val viewModel by lazy { SettingsViewModel(settings, unusedLibrary(), NoMaintenance, updates) }
 
     @BeforeEach
     fun setUp() = Dispatchers.setMain(UnconfinedTestDispatcher())
 
     @AfterEach
     fun tearDown() = Dispatchers.resetMain()
+
+    @Test
+    fun `the update switch follows the saved answer and saves a change`() {
+        assertEquals(false, viewModel.state.value.checkUpdates)
+
+        viewModel.onCheckUpdatesChanged(true)
+        assertEquals(true, updates.current.value.enabled)
+        assertEquals(true, viewModel.state.value.checkUpdates)
+
+        viewModel.onCheckUpdatesChanged(false)
+        assertEquals(false, updates.current.value.enabled)
+        assertEquals(false, viewModel.state.value.checkUpdates)
+    }
 
     @Test
     fun `choosing a mode saves it and closes the dialog`() {

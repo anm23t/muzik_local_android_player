@@ -37,3 +37,13 @@ audio focus, headset and silence settings.
 ## Deliberately not included
 
 Light theme (decision 8), playback speed and pitch, A-B repeat, network features before 2.0.
+
+## Update check is the one network request (task 1.1.9)
+
+The app can ask GitHub (`releases/latest` of the project, nothing else) once a day at start whether a newer release
+exists, and tell the user with a link to the release page. It never downloads or installs an APK. CLAUDE.md allows no
+network request without an explicit "on" setting, so the first start of 1.1 asks once "Check for updates?" (closing the
+window counts as "no"), and the setting stays in the settings screen. The answer, the time of the last check and the
+last announced tag live in DataStore next to, but not inside, `AppSettings`, and they are not in the backup: consent to
+use the network belongs to one installation. The `INTERNET` permission exists only for this request, which sends no
+user data.

@@ -100,6 +100,14 @@ fun SettingsScreen(
             GroupTitle(R.string.settings_group_data)
             DataRows()
 
+            GroupTitle(R.string.settings_group_updates)
+            SwitchRow(
+                text = stringResource(R.string.settings_check_updates),
+                checked = state.checkUpdates,
+                onCheckedChange = viewModel::onCheckUpdatesChanged,
+                secondary = stringResource(R.string.settings_check_updates_hint),
+            )
+
             GroupTitle(R.string.settings_group_interface)
             ValueRow(
                 text = stringResource(R.string.settings_language),

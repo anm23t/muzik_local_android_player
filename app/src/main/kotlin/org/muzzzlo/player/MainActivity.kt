@@ -22,6 +22,7 @@ import org.muzzzlo.player.core.model.AppLanguage
 import org.muzzzlo.player.core.model.PlayerController
 import org.muzzzlo.player.core.model.SettingsRepository
 import org.muzzzlo.player.feature.settings.LocaleContext
+import org.muzzzlo.player.feature.settings.UpdatePrompts
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -58,7 +59,10 @@ class MainActivity : ComponentActivity() {
         setContent {
             val accent by accentViewModel.accent.collectAsStateWithLifecycle()
             CompositionLocalProvider(LocalCoverLoader provides coverLoader) {
-                MuzzzloTheme(accent) { MuzzzloNavHost() }
+                MuzzzloTheme(accent) {
+                    MuzzzloNavHost()
+                    UpdatePrompts()
+                }
             }
         }
     }

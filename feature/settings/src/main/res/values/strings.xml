@@ -83,6 +83,16 @@
     <string name="settings_percent">%d%%</string>
     <string name="settings_private_mode">Private mode</string>
     <string name="settings_private_mode_hint">Listens are not recorded while it is on.</string>
+    <string name="settings_group_updates">Updates</string>
+    <string name="settings_check_updates">Check for updates</string>
+    <string name="settings_check_updates_hint">Once a day, when the app starts, it asks GitHub for the latest release and tells you if it is newer. Nothing is downloaded or installed. Needs the internet.</string>
+    <string name="update_ask_title">Check for updates?</string>
+    <string name="update_ask_text">MUZZZLO can ask GitHub once a day whether a newer version has been released, and tell you. Only the latest release is looked up: nothing is downloaded or installed, and nothing about you or your music is sent. You can change this in Settings.</string>
+    <string name="update_ask_yes">Yes, check</string>
+    <string name="update_ask_no">No</string>
+    <string name="update_available_title">New version</string>
+    <string name="update_available_text">Version %1$s is out. Open its page on GitHub to read what is new and to download it.</string>
+    <string name="update_open_page">Open release page</string>
     <string name="settings_group_interface">Interface</string>
     <string name="settings_language">Language</string>
     <string name="settings_language_system">System</string>
