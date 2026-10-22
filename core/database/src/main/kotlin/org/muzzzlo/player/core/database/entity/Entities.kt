@@ -222,3 +222,33 @@ data class ListenEventEntity(
     /** JSON array of artist names. */
     @ColumnInfo(name = "artists_snapshot") val artistsSnapshot: String,
 )
+
+/** A playlist of the user (DATABASE.md, `playlist`); lives only in the database and in the backup. */
+@Entity(tableName = "playlist")
+data class PlaylistEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val name: String,
+    /** Milliseconds since the epoch. */
+    @ColumnInfo(name = "created_at") val createdAt: Long,
+    /** When playback last started from the playlist, for "Continue listening"; null before the first time. */
+    @ColumnInfo(name = "last_played_at") val lastPlayedAt: Long? = null,
+)
+
+/**
+ * A track in a playlist at [position] (0 first). A track may be in a playlist more than once, so an entry has its
+ * own id. A missing file keeps its entries: they are hidden while the track is missing and come back with it.
+ */
+@Entity(
+    tableName = "playlist_track",
+    foreignKeys = [
+        ForeignKey(PlaylistEntity::class, ["id"], ["playlist_id"], onDelete = ForeignKey.CASCADE),
+        ForeignKey(TrackEntity::class, ["id"], ["track_id"], onDelete = ForeignKey.CASCADE),
+    ],
+    indices = [Index("playlist_id", "position"), Index("track_id")],
+)
+data class PlaylistTrackEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    @ColumnInfo(name = "playlist_id") val playlistId: Long,
+    @ColumnInfo(name = "track_id") val trackId: Long,
+    val position: Int,
+)

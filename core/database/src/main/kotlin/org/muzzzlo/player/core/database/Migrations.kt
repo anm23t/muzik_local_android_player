@@ -101,3 +101,25 @@ val MIGRATION_7_8 =
             db.execSQL("CREATE INDEX IF NOT EXISTS `index_listen_event_track_id` ON `listen_event` (`track_id`)")
         }
     }
+
+/** Version 9: `playlist` and `playlist_track` (task 1.1.5). */
+val MIGRATION_8_9 =
+    object : Migration(8, 9) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                "CREATE TABLE IF NOT EXISTS `playlist` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                    "`name` TEXT NOT NULL, `created_at` INTEGER NOT NULL, `last_played_at` INTEGER)",
+            )
+            db.execSQL(
+                "CREATE TABLE IF NOT EXISTS `playlist_track` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                    "`playlist_id` INTEGER NOT NULL, `track_id` INTEGER NOT NULL, `position` INTEGER NOT NULL, " +
+                    "FOREIGN KEY(`playlist_id`) REFERENCES `playlist`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , " +
+                    "FOREIGN KEY(`track_id`) REFERENCES `track`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+            )
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS `index_playlist_track_playlist_id_position` " +
+                    "ON `playlist_track` (`playlist_id`, `position`)",
+            )
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_playlist_track_track_id` ON `playlist_track` (`track_id`)")
+        }
+    }

@@ -177,6 +177,33 @@ class MigrationTest {
         }
     }
 
+    @Test
+    fun `8 to 9 adds playlists that follow their tracks`() {
+        helper.createDatabase(DB_NAME, 8).use { db ->
+            db.execSQL(
+                "INSERT INTO track (id, media_store_id, uri, title, title_key, artist_tag_values, duration_ms, " +
+                    "date_modified, has_cover, has_lyrics, is_missing, is_damaged, rating_tenths, is_favorite) " +
+                    "VALUES (1, 10, 'content://media/10', 'Song', 'song', '[\"A\"]', 1000, 500, 0, 0, 0, 0, 67, 1)",
+            )
+        }
+
+        helper.runMigrationsAndValidate(DB_NAME, 9, true, MIGRATION_8_9).use { db ->
+            db.execSQL("PRAGMA foreign_keys = ON")
+            db.execSQL("INSERT INTO playlist (id, name, created_at) VALUES (1, 'Mix', 5)")
+            db.execSQL("INSERT INTO playlist_track (playlist_id, track_id, position) VALUES (1, 1, 0), (1, 1, 1)")
+            db.query("SELECT COUNT(*) FROM playlist_track").use {
+                it.moveToFirst()
+                assertEquals(2, it.getInt(0))
+            }
+            db.execSQL("DELETE FROM track WHERE id = 1")
+            db.query("SELECT COUNT(*), (SELECT name FROM playlist) FROM playlist_track").use {
+                it.moveToFirst()
+                assertEquals(0, it.getInt(0))
+                assertEquals("Mix", it.getString(1))
+            }
+        }
+    }
+
     private companion object {
         const val DB_NAME = "migration-test.db"
     }

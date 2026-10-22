@@ -109,28 +109,32 @@ internal class DefaultLibraryRepository
                 indexer.index(ScanFilter.apply(source.query(), settings.settings.first()))
             }
 
-        private fun toTracks(
-            tracks: List<TrackEntity>,
-            artists: Map<Long, List<String>>,
-            albumTitles: Map<Long, String>,
-        ): List<Track> =
-            tracks.map {
-                Track(
-                    id = it.id,
-                    uri = it.uri,
-                    title = it.title,
-                    artists = artists[it.id].orEmpty(),
-                    albumId = it.albumId,
-                    albumTitle = it.albumId?.let(albumTitles::get),
-                    durationMs = it.durationMs,
-                    trackNumber = it.trackNumber,
-                    discNumber = it.discNumber,
-                    replayGain = ReplayGainInfo(it.rgTrackGain, it.rgTrackPeak, it.rgAlbumGain, it.rgAlbumPeak),
-                )
-            }
-
         private companion object {
             /** SQLite allows 999 variables in a query. */
             const val SQL_VARIABLE_CHUNK = 500
         }
     }
+
+/** Library tracks as the UI sees them, with artist names by track id and album titles by album id. */
+internal fun toTracks(
+    tracks: List<TrackEntity>,
+    artists: Map<Long, List<String>>,
+    albumTitles: Map<Long, String>,
+): List<Track> = tracks.map { it.toTrack(artists, albumTitles) }
+
+internal fun TrackEntity.toTrack(
+    artists: Map<Long, List<String>>,
+    albumTitles: Map<Long, String>,
+): Track =
+    Track(
+        id = id,
+        uri = uri,
+        title = title,
+        artists = artists[id].orEmpty(),
+        albumId = albumId,
+        albumTitle = albumId?.let(albumTitles::get),
+        durationMs = durationMs,
+        trackNumber = trackNumber,
+        discNumber = discNumber,
+        replayGain = ReplayGainInfo(rgTrackGain, rgTrackPeak, rgAlbumGain, rgAlbumPeak),
+    )
