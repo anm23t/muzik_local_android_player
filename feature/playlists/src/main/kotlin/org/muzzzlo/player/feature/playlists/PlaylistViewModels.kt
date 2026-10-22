@@ -140,6 +140,7 @@ class AutoPlaylistViewModel
                 TrackAction.AddToFavorites,
                 TrackAction.Rate,
                 TrackAction.EditTags,
+                TrackAction.Share,
                 -> Unit
             }
         }
@@ -244,6 +245,7 @@ class PlaylistViewModel
                 TrackAction.AddToFavorites,
                 TrackAction.Rate,
                 TrackAction.EditTags,
+                TrackAction.Share,
                 -> Unit
             }
         }

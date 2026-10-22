@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -33,6 +34,7 @@ import org.muzzzlo.player.core.designsystem.component.RoundIconButton
 import org.muzzzlo.player.core.designsystem.component.RoundIconButtonSize
 import org.muzzzlo.player.core.designsystem.component.ScreenFrame
 import org.muzzzlo.player.core.designsystem.component.TrackRow
+import org.muzzzlo.player.core.designsystem.component.shareTracks
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloColors
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloDimens
 import org.muzzzlo.player.core.model.Album
@@ -63,6 +65,7 @@ fun AlbumScreen(
     viewModel: AlbumViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val context = LocalContext.current
     val openMenu =
         rememberTrackMenu(
             viewModel::onTrackAction,
@@ -96,6 +99,13 @@ fun AlbumScreen(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MuzzzloColors.TextSecondary,
             )
+            RoundIconButton(
+                icon = DesignR.drawable.ic_share,
+                contentDescription = stringResource(R.string.album_share),
+                onClick = { context.shareTracks(state.tracks.map { it.uri }) },
+                size = RoundIconButtonSize.Small,
+            )
+            Spacer(Modifier.size(MuzzzloDimens.ItemGap))
             RoundIconButton(
                 icon = DesignR.drawable.ic_pencil,
                 contentDescription = stringResource(R.string.album_edit_tags),

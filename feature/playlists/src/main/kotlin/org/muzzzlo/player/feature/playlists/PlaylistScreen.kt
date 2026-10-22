@@ -103,6 +103,7 @@ fun PlaylistScreen(
             onOpenArtist = onOpenArtist,
             addToPlaylist = remember(entry.entryId) { viewModel.addToPlaylist(entry.track.id) },
             marks = remember(entry.entryId) { viewModel.trackMarks(entry.track.id) },
+            shareUri = entry.track.uri,
         )
     }
 

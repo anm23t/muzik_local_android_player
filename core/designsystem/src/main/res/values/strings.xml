@@ -28,5 +28,6 @@
     <string name="rating_increase">Increase rating by 0.1</string>
     <string name="rating_save">Save</string>
     <string name="rating_clear">Clear rating</string>
+    <string name="track_action_share">Share</string>
     <string name="track_action_edit_tags">Edit tags</string>
 </resources>

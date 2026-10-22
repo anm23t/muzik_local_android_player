@@ -33,6 +33,9 @@ enum class TrackAction(
     /** Opens [RatingDialog]; the rating is saved through [TrackMarksMenu], the ViewModel has nothing to do. */
     Rate(R.drawable.ic_star, R.string.track_action_rate),
 
+    /** Opens the system share sheet; [TrackActionsMenu] does it itself when it knows the track's address. */
+    Share(R.drawable.ic_share, R.string.track_action_share),
+
     /** Placeholder until the tag editor (0.3.6). */
     EditTags(R.drawable.ic_pencil, R.string.track_action_edit_tags),
     ;

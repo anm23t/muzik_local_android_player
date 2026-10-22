@@ -123,6 +123,7 @@ internal fun rememberTrackMenu(
             onOpenArtist = onOpenArtist,
             addToPlaylist = remember(track.id) { addToPlaylist(track.id) },
             marks = remember(track.id) { trackMarks(track.id) },
+            shareUri = track.uri,
         )
     }
     return { menuTrack = it }

@@ -66,7 +66,7 @@ class PlayerViewModel
             when (action) {
                 TrackAction.PlayNext -> player.playNext(track)
                 TrackAction.AddToQueue -> player.addToQueue(track)
-                TrackAction.OpenQueue, TrackAction.EditTags, TrackAction.GoToArtist -> Unit
+                TrackAction.OpenQueue, TrackAction.EditTags, TrackAction.GoToArtist, TrackAction.Share -> Unit
                 TrackAction.AddToPlaylist, TrackAction.RemoveFromPlaylist -> Unit
                 // Favorites and rating go through TrackMarksMenu, the menu does not report them.
                 TrackAction.AddToFavorites,

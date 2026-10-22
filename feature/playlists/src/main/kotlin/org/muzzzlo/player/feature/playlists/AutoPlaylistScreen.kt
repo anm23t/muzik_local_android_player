@@ -56,6 +56,7 @@ fun AutoPlaylistScreen(
             onOpenArtist = onOpenArtist,
             addToPlaylist = remember(track.id) { viewModel.addToPlaylist(track.id) },
             marks = remember(track.id) { viewModel.trackMarks(track.id) },
+            shareUri = track.uri,
         )
     }
 

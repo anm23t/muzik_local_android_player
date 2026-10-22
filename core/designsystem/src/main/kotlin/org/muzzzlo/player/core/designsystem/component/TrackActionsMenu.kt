@@ -10,6 +10,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import org.muzzzlo.player.core.designsystem.R
@@ -29,6 +30,8 @@ import org.muzzzlo.player.core.designsystem.theme.MuzzzloColors
  * [PlaylistNameDialog]; without it the item is not shown. [onAction] also receives [TrackAction.AddToPlaylist].
  * @param marks makes "Add to favorites" (or "Remove from favorites") and "Rate" work; without it the two items are
  * not shown. [onAction] does not receive them.
+ * @param shareUri the `content://` address of the track's file; makes "Share" open the system share sheet, without it
+ * the item is not shown. [onAction] does not receive it.
  */
 @Composable
 fun TrackActionsMenu(
@@ -42,7 +45,9 @@ fun TrackActionsMenu(
     onOpenArtist: ((Long) -> Unit)? = null,
     addToPlaylist: AddToPlaylist? = null,
     marks: TrackMarksMenu? = null,
+    shareUri: String? = null,
 ) {
+    val context = LocalContext.current
     var step by remember { mutableStateOf(MenuStep.Actions) }
     var artistChoices by remember { mutableStateOf<List<ArtistChoice>>(emptyList()) }
     var markState by remember { mutableStateOf(TrackMarksState()) }
@@ -64,16 +69,9 @@ fun TrackActionsMenu(
     if (replaced) return
     val canOpenArtist = onOpenArtist != null && artistChoices.isNotEmpty()
     MuzzzloDialog(title = title, onDismiss = onDismiss, modifier = modifier) {
-        if (artists.isNotEmpty()) {
-            Text(
-                text = artists,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MuzzzloColors.TextSecondary,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
-        actions.filter { isShown(it, canOpenArtist, addToPlaylist != null, marks != null) }.forEach { action ->
+        ArtistsLine(artists)
+        val optional = optionalActions(canOpenArtist, addToPlaylist != null, marks != null, shareUri != null)
+        actions.filter { it !in OPTIONAL_ACTIONS || it in optional }.forEach { action ->
             ActionRow(
                 icon = action.icon,
                 text = stringResource(labelOf(action, markState.isFavorite)),
@@ -84,6 +82,10 @@ fun TrackActionsMenu(
                         action == TrackAction.AddToFavorites -> {
                             onDismiss()
                             marks?.onFavorite?.invoke(!markState.isFavorite)
+                        }
+                        action == TrackAction.Share -> {
+                            onDismiss()
+                            shareUri?.let { context.shareTracks(listOf(it)) }
                         }
                         next != null -> {
                             if (action == TrackAction.AddToPlaylist) onAction(action)
@@ -103,6 +105,19 @@ fun TrackActionsMenu(
 
 /** Which dialog of the menu is open: the actions, or a picker that replaced them. */
 private enum class MenuStep { Actions, Artists, Playlists, NewPlaylist, Rating }
+
+/** The artists under the title; nothing for a track without any. */
+@Composable
+private fun ArtistsLine(artists: String) {
+    if (artists.isEmpty()) return
+    Text(
+        text = artists,
+        style = MaterialTheme.typography.bodyMedium,
+        color = MuzzzloColors.TextSecondary,
+        maxLines = 2,
+        overflow = TextOverflow.Ellipsis,
+    )
+}
 
 /** Shows the dialog of a step that replaced the actions; false for [MenuStep.Actions], which shows nothing here. */
 @Composable
@@ -139,17 +154,27 @@ private fun stepAfter(
         else -> null
     }
 
-private fun isShown(
-    action: TrackAction,
+private val OPTIONAL_ACTIONS =
+    setOf(
+        TrackAction.GoToArtist,
+        TrackAction.AddToPlaylist,
+        TrackAction.AddToFavorites,
+        TrackAction.Rate,
+        TrackAction.Share,
+    )
+
+/** The actions of [OPTIONAL_ACTIONS] that the screen has given the menu what they need for. */
+private fun optionalActions(
     canOpenArtist: Boolean,
     canAddToPlaylist: Boolean,
     canMark: Boolean,
-): Boolean =
-    when (action) {
-        TrackAction.GoToArtist -> canOpenArtist
-        TrackAction.AddToPlaylist -> canAddToPlaylist
-        TrackAction.AddToFavorites, TrackAction.Rate -> canMark
-        else -> true
+    canShare: Boolean,
+): Set<TrackAction> =
+    buildSet {
+        if (canOpenArtist) add(TrackAction.GoToArtist)
+        if (canAddToPlaylist) add(TrackAction.AddToPlaylist)
+        if (canMark) addAll(listOf(TrackAction.AddToFavorites, TrackAction.Rate))
+        if (canShare) add(TrackAction.Share)
     }
 
 @StringRes
