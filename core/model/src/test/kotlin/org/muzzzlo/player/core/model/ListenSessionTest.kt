@@ -19,6 +19,18 @@ class ListenSessionTest {
     }
 
     @Test
+    fun `each listen keeps the playlist its queue item came from`() {
+        session.onTrackChanged(A, ListenEnd.MANUAL, fromPlaylist = 7)
+        session.onPlayingChanged(true)
+        now = 10_000
+        session.onTrackChanged(B, ListenEnd.COMPLETED)
+        now = 20_000
+        session.finish(ListenEnd.MANUAL)
+
+        assertEquals(listOf(7L, null), finished.map { it.playlistId })
+    }
+
+    @Test
     fun `the next track opens at once while playing`() {
         session.onTrackChanged(A, ListenEnd.MANUAL)
         session.onPlayingChanged(true)

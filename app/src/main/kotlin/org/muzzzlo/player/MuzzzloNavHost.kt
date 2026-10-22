@@ -168,6 +168,7 @@ fun MuzzzloNavHost() {
                         onOpenSettings = { navController.navigate(ROUTE_SETTINGS) },
                         onOpenStats = { navController.navigate(ROUTE_STATS) },
                         onOpenPlaylists = { navController.navigate(ROUTE_PLAYLISTS) },
+                        onOpenPlaylist = { navController.navigate("playlist/$it") },
                         miniPlayer = miniPlayer,
                     )
                 }

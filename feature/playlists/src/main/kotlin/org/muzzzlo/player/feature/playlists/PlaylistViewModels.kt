@@ -108,7 +108,7 @@ class PlaylistViewModel
         fun onTrackClicked(index: Int) {
             val tracks = state.value.tracks
             if (index !in tracks.indices) return
-            player.play(tracks, index)
+            player.play(tracks, index, playlistId)
             viewModelScope.launch { playlists.markPlayed(playlistId) }
         }
 

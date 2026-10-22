@@ -42,10 +42,15 @@ interface PlayerController {
     /** Connects to the playback service and restores the queue saved by the previous run. Safe to call twice. */
     fun connect()
 
-    /** Replaces the queue with [tracks] and starts playing at [startIndex]. */
+    /**
+     * Replaces the queue with [tracks] and starts playing at [startIndex]. [playlistId] marks a queue started from
+     * a playlist: its listens remember the playlist (`listen_event.playlist_id`). Tracks added later with
+     * [playNext] or [addToQueue] carry no mark.
+     */
     fun play(
         tracks: List<Track>,
         startIndex: Int,
+        playlistId: Long? = null,
     )
 
     fun togglePlayPause()

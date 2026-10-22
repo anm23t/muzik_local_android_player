@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 9,
-    "identityHash": "da8502314ec68bc7bcd83d32efac43dc",
+    "identityHash": "b709f44dda2e828b0b6f388ec25ff150",
     "entities": [
       {
         "tableName": "artist",
@@ -631,7 +631,7 @@
       },
       {
         "tableName": "listen_event",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `track_id` INTEGER, `started_at` INTEGER NOT NULL, `played_ms` INTEGER NOT NULL, `duration_ms` INTEGER NOT NULL, `counted` INTEGER NOT NULL, `skipped` INTEGER NOT NULL, `title_snapshot` TEXT NOT NULL, `artists_snapshot` TEXT NOT NULL, FOREIGN KEY(`track_id`) REFERENCES `track`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `track_id` INTEGER, `started_at` INTEGER NOT NULL, `played_ms` INTEGER NOT NULL, `duration_ms` INTEGER NOT NULL, `counted` INTEGER NOT NULL, `skipped` INTEGER NOT NULL, `title_snapshot` TEXT NOT NULL, `artists_snapshot` TEXT NOT NULL, `playlist_id` INTEGER, FOREIGN KEY(`track_id`) REFERENCES `track`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL , FOREIGN KEY(`playlist_id`) REFERENCES `playlist`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL )",
         "fields": [
           {
             "fieldPath": "id",
@@ -686,6 +686,12 @@
             "columnName": "artists_snapshot",
             "affinity": "TEXT",
             "notNull": true
+          },
+          {
+            "fieldPath": "playlistId",
+            "columnName": "playlist_id",
+            "affinity": "INTEGER",
+            "notNull": false
           }
         ],
         "primaryKey": {
@@ -712,6 +718,15 @@
             ],
             "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_listen_event_track_id` ON `${TABLE_NAME}` (`track_id`)"
+          },
+          {
+            "name": "index_listen_event_playlist_id",
+            "unique": false,
+            "columnNames": [
+              "playlist_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_listen_event_playlist_id` ON `${TABLE_NAME}` (`playlist_id`)"
           }
         ],
         "foreignKeys": [
@@ -721,6 +736,17 @@
             "onUpdate": "NO ACTION",
             "columns": [
               "track_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          },
+          {
+            "table": "playlist",
+            "onDelete": "SET NULL",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "playlist_id"
             ],
             "referencedColumns": [
               "id"
@@ -851,7 +877,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'da8502314ec68bc7bcd83d32efac43dc')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'b709f44dda2e828b0b6f388ec25ff150')"
     ]
   }
 }

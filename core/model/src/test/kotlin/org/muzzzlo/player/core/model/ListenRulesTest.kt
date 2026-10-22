@@ -115,6 +115,15 @@ class ListenRulesTest {
     }
 
     @Test
+    fun `the event keeps the playlist of the listen`() {
+        val fromPlaylist = FinishedListen(TRACK, 0, 180_000, ListenEnd.COMPLETED, playlistId = 4)
+        val plain = fromPlaylist.copy(playlistId = null)
+
+        assertEquals(4L, ListenRules.eventOf(fromPlaylist, StatsSettings())?.playlistId)
+        assertNull(ListenRules.eventOf(plain, StatsSettings())?.playlistId)
+    }
+
+    @Test
     fun `private mode records nothing`() {
         val listen = FinishedListen(TRACK, 0, 180_000, ListenEnd.COMPLETED)
         assertNull(ListenRules.eventOf(listen, StatsSettings(privateMode = true)))

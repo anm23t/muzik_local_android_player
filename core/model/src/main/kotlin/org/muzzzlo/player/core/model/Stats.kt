@@ -72,12 +72,19 @@ interface StatsRepository {
     fun artistPlays(artistId: Long): Flow<Int>
 
     /**
-     * Ids of the albums of the latest listens (counted or skipped), the most recent first, at most [limit].
-     * Listens of deleted tracks and of tracks without an album do not count.
+     * Albums of the latest listens (counted or skipped) with the time of the latest one, the most recent first, at
+     * most [limit]. Listens of deleted tracks, of tracks without an album and of queues started from a playlist do
+     * not count.
      */
-    fun recentAlbumIds(limit: Int = DEFAULT_TOP_LIMIT): Flow<List<Long>>
+    fun recentAlbums(limit: Int = DEFAULT_TOP_LIMIT): Flow<List<RecentAlbum>>
 
     companion object {
         const val DEFAULT_TOP_LIMIT = 5
     }
 }
+
+/** An album of "Continue listening" with the start of its latest listen. */
+data class RecentAlbum(
+    val albumId: Long,
+    val lastListenedAtMs: Long,
+)

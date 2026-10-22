@@ -4,6 +4,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import org.muzzzlo.player.core.database.dao.ListenEventDao
+import org.muzzzlo.player.core.model.RecentAlbum
 import org.muzzzlo.player.core.model.StatsPeriod
 import org.muzzzlo.player.core.model.StatsRepository
 import org.muzzzlo.player.core.model.StatsTotals
@@ -73,5 +74,6 @@ internal class DefaultStatsRepository
 
         override fun artistPlays(artistId: Long): Flow<Int> = dao.observeArtistPlayCount(artistId)
 
-        override fun recentAlbumIds(limit: Int): Flow<List<Long>> = dao.observeRecentAlbumIds(limit)
+        override fun recentAlbums(limit: Int): Flow<List<RecentAlbum>> =
+            dao.observeRecentAlbums(limit).map { rows -> rows.map { RecentAlbum(it.albumId, it.lastListenedAt) } }
     }

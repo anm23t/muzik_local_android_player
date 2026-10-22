@@ -68,6 +68,7 @@ class PlaylistViewModelsTest {
             viewModel.onTrackClicked(9)
 
             assertEquals(listOf(listOf(a, b, c) to 1, listOf(a, b, c) to 0), player.played)
+            assertEquals(listOf(id, id), player.playedFrom)
             assertEquals(listOf(id, id), playlists.played)
         }
 

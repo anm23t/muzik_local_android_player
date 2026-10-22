@@ -28,6 +28,7 @@ import org.muzzzlo.player.core.model.ArtistDiscography
 import org.muzzzlo.player.core.model.CompoundNameProblem
 import org.muzzzlo.player.core.model.CompoundRepository
 import org.muzzzlo.player.core.model.CompoundRules
+import org.muzzzlo.player.core.model.ContinueItem
 import org.muzzzlo.player.core.model.ContinueListening
 import org.muzzzlo.player.core.model.LibraryRepository
 import org.muzzzlo.player.core.model.PlayerController
@@ -60,11 +61,11 @@ private fun PlayerController.currentTrackId(): Flow<Long?> = state.map { it.curr
 /**
  * What the home screen renders.
  *
- * @property continueAlbums tiles of "Continue listening": up to five albums of the latest listens
+ * @property continueItems tiles of "Continue listening": up to five albums and playlists of the latest listens
  * ([ContinueListening]), the album of the restored queue while there is no history. Empty hides the section.
  */
 data class HomeUiState(
-    val continueAlbums: List<Album> = emptyList(),
+    val continueItems: List<ContinueItem> = emptyList(),
     val hasMusic: Boolean = true,
     val isScanning: Boolean = false,
     val scanFailed: Boolean = false,
@@ -78,6 +79,7 @@ class HomeViewModel
         private val library: LibraryRepository,
         stats: StatsRepository,
         player: PlayerController,
+        playlists: PlaylistRepository,
     ) : ViewModel() {
         private val scanning = MutableStateFlow(false)
         private val scanFailed = MutableStateFlow(false)
@@ -88,12 +90,12 @@ class HomeViewModel
                 library.observeAlbums(),
                 library.observeTracks().map { it.isNotEmpty() }.distinctUntilChanged(),
                 currentAlbumId,
-                stats.recentAlbumIds(ContinueListening.MAX_TILES),
+                combine(stats.recentAlbums(ContinueListening.MAX_TILES), playlists.observePlaylists(), ::Pair),
                 combine(scanning, scanFailed) { isScanning, failed -> isScanning to failed },
-            ) { albums, hasMusic, currentId, recent, scan ->
+            ) { albums, hasMusic, currentId, (recent, playlistList), scan ->
                 val queueAlbum = albums.firstOrNull { it.id == currentId }
                 HomeUiState(
-                    ContinueListening.albums(recent, albums, queueAlbum),
+                    ContinueListening.items(recent, albums, playlistList, queueAlbum),
                     hasMusic = hasMusic,
                     isScanning = scan.first,
                     scanFailed = scan.second,

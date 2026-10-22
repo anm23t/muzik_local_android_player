@@ -17,6 +17,7 @@ class FakePlayerController : PlayerController {
     override fun play(
         tracks: List<Track>,
         startIndex: Int,
+        playlistId: Long?,
     ) = Unit
 
     override fun togglePlayPause() = Unit

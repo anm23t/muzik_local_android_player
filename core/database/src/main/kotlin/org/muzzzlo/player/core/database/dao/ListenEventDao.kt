@@ -7,6 +7,12 @@ import androidx.room.Query
 import kotlinx.coroutines.flow.Flow
 import org.muzzzlo.player.core.database.entity.ListenEventEntity
 
+/** An album with the start of its latest listen. */
+data class RecentAlbumRow(
+    val albumId: Long,
+    val lastListenedAt: Long,
+)
+
 /** Listen events of the statistics (DATABASE.md, `listen_event`). */
 @Dao
 interface ListenEventDao {
@@ -123,21 +129,21 @@ interface ListenEventDao {
     fun observeArtistPlayCount(artistId: Long): Flow<Int>
 
     /**
-     * Albums of the latest listens, counted or skipped, the most recent first. Listens of tracks that are gone and
-     * tracks without an album are left out.
+     * Albums of the latest listens, counted or skipped, the most recent first. Listens of tracks that are gone,
+     * tracks without an album and queues started from a playlist are left out.
      */
     @Query(
         """
-        SELECT t.album_id
+        SELECT t.album_id AS albumId, MAX(e.started_at) AS lastListenedAt
         FROM listen_event e
         JOIN track t ON t.id = e.track_id
-        WHERE t.album_id IS NOT NULL
+        WHERE t.album_id IS NOT NULL AND e.playlist_id IS NULL
         GROUP BY t.album_id
         ORDER BY MAX(e.started_at) DESC, MAX(e.id) DESC
         LIMIT :limit
         """,
     )
-    fun observeRecentAlbumIds(limit: Int): Flow<List<Long>>
+    fun observeRecentAlbums(limit: Int): Flow<List<RecentAlbumRow>>
 
     /** Counted listens of tracks that are gone: only the snapshot of their artists is left. */
     @Query(

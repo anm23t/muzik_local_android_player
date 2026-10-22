@@ -102,7 +102,10 @@ val MIGRATION_7_8 =
         }
     }
 
-/** Version 9: `playlist` and `playlist_track` (task 1.1.5). */
+/**
+ * Version 9: `playlist` and `playlist_track`, and `listen_event.playlist_id`, the playlist a listen was started from
+ * (task 1.1.5).
+ */
 val MIGRATION_8_9 =
     object : Migration(8, 9) {
         override fun migrate(db: SupportSQLiteDatabase) {
@@ -121,5 +124,10 @@ val MIGRATION_8_9 =
                     "ON `playlist_track` (`playlist_id`, `position`)",
             )
             db.execSQL("CREATE INDEX IF NOT EXISTS `index_playlist_track_track_id` ON `playlist_track` (`track_id`)")
+            db.execSQL(
+                "ALTER TABLE `listen_event` ADD COLUMN `playlist_id` INTEGER " +
+                    "REFERENCES `playlist`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL",
+            )
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_listen_event_playlist_id` ON `listen_event` (`playlist_id`)")
         }
     }

@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test
 import org.muzzzlo.player.core.database.dao.ArtistPlaysRow
 import org.muzzzlo.player.core.database.dao.ListenEventDao
 import org.muzzzlo.player.core.database.dao.OrphanPlayRow
+import org.muzzzlo.player.core.database.dao.RecentAlbumRow
 import org.muzzzlo.player.core.database.dao.TopAlbumRow
 import org.muzzzlo.player.core.database.dao.TopTrackRow
 import org.muzzzlo.player.core.database.dao.TotalsRow
@@ -126,7 +127,7 @@ class ListenWriterTest {
 
         override fun observeArtistPlayCount(artistId: Long) = emptyFlow<Int>()
 
-        override fun observeRecentAlbumIds(limit: Int) = emptyFlow<List<Long>>()
+        override fun observeRecentAlbums(limit: Int) = emptyFlow<List<RecentAlbumRow>>()
     }
 
     private companion object {

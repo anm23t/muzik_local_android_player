@@ -207,8 +207,11 @@ data class TrackArtistEntity(
 /** One listen (DATABASE.md, `listen_event`); survives the track through the snapshot columns. */
 @Entity(
     tableName = "listen_event",
-    foreignKeys = [ForeignKey(TrackEntity::class, ["id"], ["track_id"], onDelete = ForeignKey.SET_NULL)],
-    indices = [Index("started_at"), Index("track_id")],
+    foreignKeys = [
+        ForeignKey(TrackEntity::class, ["id"], ["track_id"], onDelete = ForeignKey.SET_NULL),
+        ForeignKey(PlaylistEntity::class, ["id"], ["playlist_id"], onDelete = ForeignKey.SET_NULL),
+    ],
+    indices = [Index("started_at"), Index("track_id"), Index("playlist_id")],
 )
 data class ListenEventEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
@@ -221,6 +224,8 @@ data class ListenEventEntity(
     @ColumnInfo(name = "title_snapshot") val titleSnapshot: String,
     /** JSON array of artist names. */
     @ColumnInfo(name = "artists_snapshot") val artistsSnapshot: String,
+    /** The playlist the queue was started from (version 9); a deleted playlist leaves null. */
+    @ColumnInfo(name = "playlist_id") val playlistId: Long? = null,
 )
 
 /** A playlist of the user (DATABASE.md, `playlist`); lives only in the database and in the backup. */

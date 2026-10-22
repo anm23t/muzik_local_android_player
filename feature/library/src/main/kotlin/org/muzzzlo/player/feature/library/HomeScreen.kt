@@ -49,6 +49,7 @@ import org.muzzzlo.player.core.designsystem.component.SectionTitle
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloColors
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloDimens
 import org.muzzzlo.player.core.model.Album
+import org.muzzzlo.player.core.model.ContinueItem
 import org.muzzzlo.player.core.designsystem.R as DesignR
 
 private val audioPermission: String
@@ -77,6 +78,7 @@ fun HomeScreen(
     onOpenSettings: () -> Unit,
     onOpenStats: () -> Unit,
     onOpenPlaylists: () -> Unit,
+    onOpenPlaylist: (Long) -> Unit,
     miniPlayer: @Composable () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel(),
@@ -123,7 +125,7 @@ fun HomeScreen(
                     Modifier.weight(1f),
                 )
             !state.hasMusic -> Notice(stringResource(R.string.library_empty), Modifier.weight(1f))
-            else -> ContinueListening(state.continueAlbums, onOpenAlbum)
+            else -> ContinueListening(state.continueItems, onOpenAlbum, onOpenPlaylist)
         }
         Spacer(Modifier.weight(1f))
         miniPlayer()
@@ -156,10 +158,11 @@ private fun HomeHeader(onOpenSettings: () -> Unit) {
 
 @Composable
 private fun ContinueListening(
-    albums: List<Album>,
+    items: List<ContinueItem>,
     onOpenAlbum: (Long) -> Unit,
+    onOpenPlaylist: (Long) -> Unit,
 ) {
-    if (albums.isEmpty()) return
+    if (items.isEmpty()) return
     Column(verticalArrangement = Arrangement.spacedBy(MuzzzloDimens.ContentGap)) {
         SectionTitle(stringResource(R.string.home_continue_listening), maxLines = 2)
         BoxWithConstraints(Modifier.fillMaxWidth()) {
@@ -167,13 +170,27 @@ private fun ContinueListening(
             val gap = MuzzzloDimens.SectionGap
             val tileWidth = (maxWidth - gap * (TILES_PER_ROW - 1)) / TILES_PER_ROW
             LazyRow(horizontalArrangement = Arrangement.spacedBy(gap)) {
-                items(albums, key = { it.id }) { album ->
-                    CoverTile(
-                        title = album.title,
-                        onClick = { onOpenAlbum(album.id) },
-                        modifier = Modifier.width(tileWidth),
-                        cover = { CoverImage(CoverSource.Album(album.id), it, MuzzzloDimens.TileShape) },
-                    )
+                items(items, key = ::tileKey) { item ->
+                    when (item) {
+                        is ContinueItem.AlbumItem ->
+                            CoverTile(
+                                title = item.album.title,
+                                onClick = { onOpenAlbum(item.album.id) },
+                                modifier = Modifier.width(tileWidth),
+                                cover = { CoverImage(CoverSource.Album(item.album.id), it, MuzzzloDimens.TileShape) },
+                            )
+                        // A playlist shows the cover of its first track, like in the list of playlists.
+                        is ContinueItem.PlaylistItem ->
+                            CoverTile(
+                                title = item.playlist.name,
+                                onClick = { onOpenPlaylist(item.playlist.id) },
+                                modifier = Modifier.width(tileWidth),
+                                cover = {
+                                    val source = item.playlist.firstTrackId?.let { id -> CoverSource.Track(id) }
+                                    CoverImage(source, it, MuzzzloDimens.TileShape)
+                                },
+                            )
+                    }
                 }
             }
         }
@@ -259,3 +276,10 @@ private fun homeNavItems(
             onOpenStats,
         ),
     )
+
+/** Albums and playlists have their own ids; the key keeps them apart. */
+private fun tileKey(item: ContinueItem): String =
+    when (item) {
+        is ContinueItem.AlbumItem -> "album-${item.album.id}"
+        is ContinueItem.PlaylistItem -> "playlist-${item.playlist.id}"
+    }

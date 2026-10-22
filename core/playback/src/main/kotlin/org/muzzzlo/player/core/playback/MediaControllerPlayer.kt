@@ -114,8 +114,9 @@ internal class MediaControllerPlayer
         override fun play(
             tracks: List<Track>,
             startIndex: Int,
+            playlistId: Long?,
         ) = withController { player ->
-            player.setMediaItems(tracks.map(Track::toMediaItem), startIndex, 0)
+            player.setMediaItems(tracks.map { it.toMediaItem(playlistId) }, startIndex, 0)
             player.prepare()
             player.play()
         }

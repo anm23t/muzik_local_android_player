@@ -9,6 +9,7 @@ import org.muzzzlo.player.core.model.Track
 class FakePlayerController : PlayerController {
     override val state = MutableStateFlow(PlayerState())
     val played = mutableListOf<Pair<List<Track>, Int>>()
+    val playedFrom = mutableListOf<Long?>()
     val playedNext = mutableListOf<Track>()
     val addedToQueue = mutableListOf<Track>()
 
@@ -17,8 +18,10 @@ class FakePlayerController : PlayerController {
     override fun play(
         tracks: List<Track>,
         startIndex: Int,
+        playlistId: Long?,
     ) {
         played += tracks to startIndex
+        playedFrom += playlistId
     }
 
     override fun togglePlayPause() = Unit

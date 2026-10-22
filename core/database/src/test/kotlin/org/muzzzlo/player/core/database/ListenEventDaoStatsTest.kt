@@ -15,6 +15,7 @@ import org.muzzzlo.player.core.database.dao.ListenEventDao
 import org.muzzzlo.player.core.database.entity.AlbumEntity
 import org.muzzzlo.player.core.database.entity.ArtistEntity
 import org.muzzzlo.player.core.database.entity.ListenEventEntity
+import org.muzzzlo.player.core.database.entity.PlaylistEntity
 import org.muzzzlo.player.core.database.entity.TrackArtistEntity
 import org.muzzzlo.player.core.database.entity.TrackEntity
 import org.robolectric.RobolectricTestRunner
@@ -84,6 +85,8 @@ class ListenEventDaoStatsTest {
     )
 
     private val all = Long.MIN_VALUE to Long.MAX_VALUE
+
+    private suspend fun recentIds(limit: Int) = dao.observeRecentAlbums(limit).first().map { it.albumId }
 
     @Test
     fun totalsCountOnlyTheRangeAndSeparateSkips() =
@@ -211,7 +214,7 @@ class ListenEventDaoStatsTest {
             listen(b, 20, counted = false, skipped = true)
             listen(c, 30)
             listen(a, 40)
-            assertEquals(listOf(one, three, two), dao.observeRecentAlbumIds(5).first())
+            assertEquals(listOf(one, three, two), recentIds(5))
         }
 
     @Test
@@ -219,7 +222,7 @@ class ListenEventDaoStatsTest {
         runBlocking {
             val albums = (1..4).map { library.insertAlbum(AlbumEntity(title = "A$it", titleKey = "a$it")) }
             albums.forEachIndexed { i, album -> listen(track("t$i", album), i + 1L) }
-            assertEquals(albums.reversed().take(2), dao.observeRecentAlbumIds(2).first())
+            assertEquals(albums.reversed().take(2), recentIds(2))
         }
 
     @Test
@@ -229,13 +232,61 @@ class ListenEventDaoStatsTest {
             listen(track("loose", null), 5)
             listen(null, 6)
             listen(track("a", album), 1)
-            assertEquals(listOf(album), dao.observeRecentAlbumIds(5).first())
+            assertEquals(listOf(album), recentIds(5))
         }
+
+    @Test
+    fun recentAlbumsGiveTheLatestTimeAndSkipPlaylistListens() =
+        runBlocking {
+            val one = library.insertAlbum(AlbumEntity(title = "One", titleKey = "one"))
+            val two = library.insertAlbum(AlbumEntity(title = "Two", titleKey = "two"))
+            val playlist = db.playlistDao().insertPlaylist(PlaylistEntity(name = "Mix", createdAt = 1))
+            val a = track("a", one)
+            val b = track("b", two)
+            listen(a, 10)
+            listen(b, 20)
+            // Heard from the playlist later: neither album moves up, and album two (only heard so) stays where it was.
+            dao.insert(event(a, 30, playlist))
+            dao.insert(event(b, 40, playlist))
+
+            val rows = dao.observeRecentAlbums(5).first()
+            assertEquals(listOf(two, one), rows.map { it.albumId })
+            assertEquals(listOf(20L, 10L), rows.map { it.lastListenedAt })
+        }
+
+    @Test
+    fun deletingAPlaylistKeepsItsListens() =
+        runBlocking {
+            val album = library.insertAlbum(AlbumEntity(title = "One", titleKey = "one"))
+            val playlist = db.playlistDao().insertPlaylist(PlaylistEntity(name = "Mix", createdAt = 1))
+            dao.insert(event(track("a", album), 30, playlist))
+
+            db.playlistDao().deletePlaylist(playlist)
+
+            assertEquals(listOf(album), recentIds(5))
+            assertEquals(1, dao.all().size)
+        }
+
+    private fun event(
+        trackId: Long,
+        at: Long,
+        playlistId: Long,
+    ) = ListenEventEntity(
+        trackId = trackId,
+        startedAt = at,
+        playedMs = 100,
+        durationMs = 1000,
+        counted = true,
+        skipped = false,
+        titleSnapshot = "snap",
+        artistsSnapshot = "[]",
+        playlistId = playlistId,
+    )
 
     @Test
     fun noListensGiveNoAlbums() =
         runBlocking {
-            assertEquals(emptyList<Long>(), dao.observeRecentAlbumIds(5).first())
+            assertEquals(emptyList<Long>(), recentIds(5))
         }
 
     @Test

@@ -20,16 +20,22 @@ class ListenSession(
     private val onFinished: (FinishedListen) -> Unit,
 ) {
     private var track: Track? = null
+    private var playlistId: Long? = null
     private var playing = false
     private var open: OpenListen? = null
 
-    /** The current track changed to [newTrack] (null: the queue is empty); the previous listen ends with [end]. */
+    /**
+     * The current track changed to [newTrack] (null: the queue is empty); the previous listen ends with [end].
+     * [fromPlaylist] is the playlist the new queue item came from.
+     */
     fun onTrackChanged(
         newTrack: Track?,
         end: ListenEnd,
+        fromPlaylist: Long? = null,
     ) {
         finish(end)
         track = newTrack
+        playlistId = fromPlaylist
         if (playing) openListen()
     }
 
@@ -50,16 +56,19 @@ class ListenSession(
         val current = open ?: return
         open = null
         val playedMs = current.playedMs(elapsedMs())
-        if (playedMs > 0) onFinished(FinishedListen(current.track, current.startedAtMs, playedMs, end))
+        if (playedMs > 0) {
+            onFinished(FinishedListen(current.track, current.startedAtMs, playedMs, end, current.playlistId))
+        }
     }
 
     private fun openListen() {
         val current = track ?: return
-        open = OpenListen(current, wallClockMs(), elapsedMs())
+        open = OpenListen(current, playlistId, wallClockMs(), elapsedMs())
     }
 
     private class OpenListen(
         val track: Track,
+        val playlistId: Long?,
         val startedAtMs: Long,
         nowMs: Long,
     ) {

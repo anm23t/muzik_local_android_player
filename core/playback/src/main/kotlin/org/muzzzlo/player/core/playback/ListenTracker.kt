@@ -22,7 +22,8 @@ internal class ListenTracker(
 
     fun start() {
         player.addListener(this)
-        session.onTrackChanged(player.currentMediaItem?.toTrack(), ListenEnd.MANUAL)
+        val item = player.currentMediaItem
+        session.onTrackChanged(item?.toTrack(), ListenEnd.MANUAL, item?.playlistId())
         session.onPlayingChanged(player.isPlaying)
     }
 
@@ -36,7 +37,7 @@ internal class ListenTracker(
         mediaItem: MediaItem?,
         reason: Int,
     ) {
-        session.onTrackChanged(mediaItem?.toTrack(), listenEndOf(reason))
+        session.onTrackChanged(mediaItem?.toTrack(), listenEndOf(reason), mediaItem?.playlistId())
     }
 
     override fun onIsPlayingChanged(isPlaying: Boolean) {

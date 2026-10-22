@@ -21,6 +21,9 @@ data class ListenEvent(
     val skipped: Boolean,
     val titleSnapshot: String,
     val artistsSnapshot: List<String>,
+    /** The playlist the queue was started from, null otherwise; such a listen does not move the album up in
+     * "Continue listening" (task 1.1.5). */
+    val playlistId: Long? = null,
 )
 
 /** How a listen ended. */
@@ -41,6 +44,8 @@ data class FinishedListen(
     val startedAtMs: Long,
     val playedMs: Long,
     val end: ListenEnd,
+    /** The playlist the queue item came from, see [PlayerController.play]. */
+    val playlistId: Long? = null,
 )
 
 /**

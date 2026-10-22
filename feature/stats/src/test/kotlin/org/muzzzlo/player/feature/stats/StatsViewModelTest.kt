@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.muzzzlo.player.core.model.RecentAlbum
 import org.muzzzlo.player.core.model.StatsPeriod
 import org.muzzzlo.player.core.model.StatsRepository
 import org.muzzzlo.player.core.model.StatsTotals
@@ -154,6 +155,6 @@ class StatsViewModelTest {
 
         override fun artistPlays(artistId: Long) = flowOf(0)
 
-        override fun recentAlbumIds(limit: Int) = flowOf(emptyList<Long>())
+        override fun recentAlbums(limit: Int) = flowOf(emptyList<RecentAlbum>())
     }
 }
