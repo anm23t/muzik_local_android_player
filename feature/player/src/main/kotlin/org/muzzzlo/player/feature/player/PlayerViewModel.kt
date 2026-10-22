@@ -1,13 +1,16 @@
 package org.muzzzlo.player.feature.player
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.StateFlow
+import org.muzzzlo.player.core.designsystem.component.AddToPlaylist
 import org.muzzzlo.player.core.designsystem.component.ArtistChoice
 import org.muzzzlo.player.core.designsystem.component.TrackAction
 import org.muzzzlo.player.core.model.LibraryRepository
 import org.muzzzlo.player.core.model.PlayerController
 import org.muzzzlo.player.core.model.PlayerState
+import org.muzzzlo.player.core.model.PlaylistRepository
 import org.muzzzlo.player.core.model.Track
 import javax.inject.Inject
 
@@ -17,6 +20,7 @@ class PlayerViewModel
     constructor(
         private val player: PlayerController,
         private val library: LibraryRepository,
+        private val playlists: PlaylistRepository,
     ) : ViewModel() {
         val state: StateFlow<PlayerState> = player.state
 
@@ -45,6 +49,9 @@ class PlayerViewModel
         suspend fun artistChoices(trackId: Long): List<ArtistChoice> =
             library.artistsOfTrack(trackId).map { ArtistChoice(it.id, it.name, it.photoPath) }
 
+        /** "Add to playlist" of the track menu. */
+        fun addToPlaylist(trackId: Long): AddToPlaylist = playlists.addToPlaylist(viewModelScope, trackId)
+
         /** Item chosen in the track menu. Navigation items are handled by the screen. */
         fun onTrackAction(
             track: Track,
@@ -53,9 +60,8 @@ class PlayerViewModel
             when (action) {
                 TrackAction.PlayNext -> player.playNext(track)
                 TrackAction.AddToQueue -> player.addToQueue(track)
-                TrackAction.OpenQueue, TrackAction.EditTags, TrackAction.GoToArtist -> Unit
-                // Placeholders: playlists, favorites and rating come in 1.1.
-                TrackAction.AddToPlaylist,
+                TrackAction.OpenQueue, TrackAction.EditTags, TrackAction.GoToArtist, TrackAction.AddToPlaylist -> Unit
+                // Placeholders: favorites and rating come in 1.1.6.
                 TrackAction.AddToFavorites,
                 TrackAction.Rate,
                 -> Unit

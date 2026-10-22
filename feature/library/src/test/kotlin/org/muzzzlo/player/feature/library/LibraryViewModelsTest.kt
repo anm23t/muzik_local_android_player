@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import org.muzzzlo.player.core.designsystem.component.ArtistChoice
+import org.muzzzlo.player.core.designsystem.component.PlaylistChoice
 import org.muzzzlo.player.core.designsystem.component.TrackAction
 import org.muzzzlo.player.core.model.Album
 import org.muzzzlo.player.core.model.Artist
@@ -56,6 +57,17 @@ class LibraryViewModelsTest {
     private val player = FakePlayerController()
     private val stats = FakeStats()
 
+    private fun tracksViewModel(
+        lib: LibraryRepository,
+        savedState: SavedStateHandle = SavedStateHandle(),
+        playlists: FakePlaylists = FakePlaylists(),
+    ) = TracksViewModel(lib, player, playlists, savedState)
+
+    private fun albumViewModel(
+        albumId: Long,
+        lib: LibraryRepository = library,
+    ) = AlbumViewModel(lib, player, FakePlaylists(), SavedStateHandle(mapOf(ALBUM_ID_ARG to albumId)))
+
     @BeforeEach
     fun setUp() = Dispatchers.setMain(UnconfinedTestDispatcher())
 
@@ -65,7 +77,7 @@ class LibraryViewModelsTest {
     @ParameterizedTest
     @EnumSource(TrackAction::class)
     fun `only queue actions reach the player`(action: TrackAction) {
-        TracksViewModel(library, player, SavedStateHandle()).onTrackAction(first, action)
+        TracksViewModel(library, player, FakePlaylists(), SavedStateHandle()).onTrackAction(first, action)
 
         assertEquals(if (action == TrackAction.PlayNext) listOf(first) else emptyList<Track>(), player.playedNext)
         assertEquals(if (action == TrackAction.AddToQueue) listOf(first) else emptyList<Track>(), player.addedToQueue)
@@ -75,7 +87,7 @@ class LibraryViewModelsTest {
     fun `the track menu gets the artists of the track in tag order with their photos`() =
         runTest {
             val lib = FakeLibrary(listOf(second), listOf(album), listOf(anna.copy(photoPath = "/p/a.jpg"), bob))
-            val viewModel = TracksViewModel(lib, player, SavedStateHandle())
+            val viewModel = TracksViewModel(lib, player, FakePlaylists(), SavedStateHandle())
 
             assertEquals(
                 listOf(ArtistChoice(7, "A", "/p/a.jpg"), ArtistChoice(8, "B", null)),
@@ -85,9 +97,29 @@ class LibraryViewModelsTest {
         }
 
     @Test
+    fun `add to playlist lists playlists, adds to one and creates a new one`() =
+        runTest {
+            val playlists = FakePlaylists()
+            val mix = playlists.create("Mix")
+            val viewModel = tracksViewModel(library, playlists = playlists)
+            val target = viewModel.addToPlaylist(second.id)
+
+            assertEquals(listOf(PlaylistChoice(mix, "Mix")), target.load())
+            target.onAdd(mix)
+            target.onCreate("  Road   trip ")
+            target.onCreate("   ")
+
+            assertEquals(listOf(second.id), playlists.tracks[mix])
+            val created = playlists.playlists.value.single { it.id != mix }
+            assertEquals("Road trip", created.name)
+            assertEquals(listOf(second.id), playlists.tracks[created.id])
+            assertEquals(2, playlists.playlists.value.size)
+        }
+
+    @Test
     fun `the album card plays the whole album from the tapped track`() =
         runTest {
-            val viewModel = AlbumViewModel(library, player, SavedStateHandle(mapOf(ALBUM_ID_ARG to album.id)))
+            val viewModel = albumViewModel(album.id, library)
             subscribe(viewModel.state)
 
             viewModel.onTrackClicked(1)
@@ -102,7 +134,7 @@ class LibraryViewModelsTest {
         runTest {
             val twoArtists = Album(12, "Duo", listOf("A", "B", "Nobody"), 2020, 1, 10)
             val lib = FakeLibrary(listOf(first), listOf(twoArtists), listOf(anna.copy(photoPath = "/p/a.jpg"), bob))
-            val viewModel = AlbumViewModel(lib, player, SavedStateHandle(mapOf(ALBUM_ID_ARG to twoArtists.id)))
+            val viewModel = albumViewModel(twoArtists.id, lib)
             subscribe(viewModel.state)
 
             assertEquals(listOf("/p/a.jpg", null, null), viewModel.state.value.artistPhotos)
@@ -118,7 +150,7 @@ class LibraryViewModelsTest {
     @Test
     fun `the album card marks the playing track`() =
         runTest {
-            val viewModel = AlbumViewModel(library, player, SavedStateHandle(mapOf(ALBUM_ID_ARG to album.id)))
+            val viewModel = albumViewModel(album.id, library)
             subscribe(viewModel.state)
 
             player.state.value = PlayerState(currentTrack = second)
@@ -129,7 +161,7 @@ class LibraryViewModelsTest {
     @Test
     fun `a tap outside the list does not start playback`() =
         runTest {
-            val viewModel = TracksViewModel(library, player, SavedStateHandle())
+            val viewModel = TracksViewModel(library, player, FakePlaylists(), SavedStateHandle())
             subscribe(viewModel.state)
 
             viewModel.onTrackClicked(5)
@@ -218,7 +250,7 @@ class LibraryViewModelsTest {
     @Test
     fun `a missing album is told apart from a loading one`() =
         runTest {
-            val viewModel = AlbumViewModel(library, player, SavedStateHandle(mapOf(ALBUM_ID_ARG to 999L)))
+            val viewModel = albumViewModel(999L, library)
             assertEquals(false, viewModel.state.value.isLoaded)
             subscribe(viewModel.state)
 
@@ -325,7 +357,7 @@ class LibraryViewModelsTest {
     @Test
     fun `the songs of an artist are titled with their name`() =
         runTest {
-            val viewModel = TracksViewModel(library, player, SavedStateHandle(mapOf(ARTIST_ID_ARG to anna.id)))
+            val viewModel = tracksViewModel(library, SavedStateHandle(mapOf(ARTIST_ID_ARG to anna.id)))
             subscribe(viewModel.state)
 
             assertEquals(listOf(first, second), viewModel.state.value.tracks)
@@ -335,7 +367,7 @@ class LibraryViewModelsTest {
     @Test
     fun `without an artist the list has every track`() =
         runTest {
-            val viewModel = TracksViewModel(library, player, SavedStateHandle(mapOf(ARTIST_ID_ARG to NO_ARTIST)))
+            val viewModel = tracksViewModel(library, SavedStateHandle(mapOf(ARTIST_ID_ARG to NO_ARTIST)))
             subscribe(viewModel.state)
 
             assertEquals(listOf(first, second), viewModel.state.value.tracks)

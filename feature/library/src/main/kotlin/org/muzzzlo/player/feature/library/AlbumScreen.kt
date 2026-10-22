@@ -64,7 +64,14 @@ fun AlbumScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val openMenu =
-        rememberTrackMenu(viewModel::onTrackAction, onOpenQueue, onEditTags, viewModel::artistChoices, onOpenArtistById)
+        rememberTrackMenu(
+            viewModel::onTrackAction,
+            onOpenQueue,
+            onEditTags,
+            viewModel::artistChoices,
+            onOpenArtistById,
+            viewModel::addToPlaylist,
+        )
 
     ScreenFrame(modifier) {
         ScreenHeader(onBack = onBack) { HomeButton(onHome) }

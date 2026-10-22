@@ -111,6 +111,7 @@ private fun QueueList(
             actions = TrackAction.entries - TrackAction.OpenQueue,
             loadArtists = { viewModel.artistChoices(track.id) },
             onOpenArtist = onOpenArtist,
+            addToPlaylist = remember(track.id) { viewModel.addToPlaylist(track.id) },
         )
     }
 

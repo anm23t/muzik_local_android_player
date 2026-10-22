@@ -21,7 +21,7 @@ enum class TrackAction(
     /** Navigation: [TrackActionsMenu] opens the artist card or the artist picker itself. */
     GoToArtist(R.drawable.ic_users, R.string.track_action_go_to_artist),
 
-    /** Placeholder until playlists (1.1). */
+    /** Opens the playlist picker of [TrackActionsMenu]; the ViewModel has nothing to do. */
     AddToPlaylist(R.drawable.ic_list_plus, R.string.track_action_add_to_playlist),
 
     /** Placeholder until favorites (1.1). */

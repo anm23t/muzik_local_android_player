@@ -38,6 +38,12 @@ interface PlaylistRepository {
     /** Creates an empty playlist; [name] must be valid ([PlaylistNames.clean]). Returns its id. */
     suspend fun create(name: String): Long
 
+    /** Creates a playlist named [name] with the tracks in order; returns its id. */
+    suspend fun createWithTracks(
+        name: String,
+        trackIds: List<Long>,
+    ): Long = create(name).also { addTracks(it, trackIds) }
+
     suspend fun rename(
         playlistId: Long,
         name: String,

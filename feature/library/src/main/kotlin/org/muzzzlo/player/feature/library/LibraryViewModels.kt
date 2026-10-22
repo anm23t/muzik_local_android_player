@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.muzzzlo.player.core.designsystem.component.AddToPlaylist
 import org.muzzzlo.player.core.designsystem.component.ArtistChoice
 import org.muzzzlo.player.core.designsystem.component.TrackAction
 import org.muzzzlo.player.core.model.Album
@@ -30,6 +31,7 @@ import org.muzzzlo.player.core.model.CompoundRules
 import org.muzzzlo.player.core.model.ContinueListening
 import org.muzzzlo.player.core.model.LibraryRepository
 import org.muzzzlo.player.core.model.PlayerController
+import org.muzzzlo.player.core.model.PlaylistRepository
 import org.muzzzlo.player.core.model.StatsRepository
 import org.muzzzlo.player.core.model.Track
 import javax.inject.Inject
@@ -376,6 +378,7 @@ class AlbumViewModel
     constructor(
         private val library: LibraryRepository,
         private val player: PlayerController,
+        private val playlists: PlaylistRepository,
         savedState: SavedStateHandle,
     ) : ViewModel() {
         private val albumId: Long = checkNotNull(savedState[ALBUM_ID_ARG])
@@ -405,6 +408,9 @@ class AlbumViewModel
 
         /** Artists of the track for the track menu ("Go to artist"). */
         suspend fun artistChoices(trackId: Long): List<ArtistChoice> = library.artistChoices(trackId)
+
+        /** "Add to playlist" of the track menu. */
+        fun addToPlaylist(trackId: Long): AddToPlaylist = playlists.addToPlaylist(viewModelScope, trackId)
     }
 
 /**
@@ -429,6 +435,7 @@ class TracksViewModel
     constructor(
         private val library: LibraryRepository,
         private val player: PlayerController,
+        private val playlists: PlaylistRepository,
         savedState: SavedStateHandle,
     ) : ViewModel() {
         private val artistId: Long? = savedState.get<Long>(ARTIST_ID_ARG)?.takeIf { it != NO_ARTIST }
@@ -458,6 +465,9 @@ class TracksViewModel
 
         /** Artists of the track for the track menu ("Go to artist"). */
         suspend fun artistChoices(trackId: Long): List<ArtistChoice> = library.artistChoices(trackId)
+
+        /** "Add to playlist" of the track menu. */
+        fun addToPlaylist(trackId: Long): AddToPlaylist = playlists.addToPlaylist(viewModelScope, trackId)
     }
 
 /** Artists of the track as the artist picker shows them. */

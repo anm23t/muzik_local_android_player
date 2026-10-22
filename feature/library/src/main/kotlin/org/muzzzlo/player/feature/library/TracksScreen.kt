@@ -35,7 +35,14 @@ fun TracksScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val openMenu =
-        rememberTrackMenu(viewModel::onTrackAction, onOpenQueue, onEditTags, viewModel::artistChoices, onOpenArtist)
+        rememberTrackMenu(
+            viewModel::onTrackAction,
+            onOpenQueue,
+            onEditTags,
+            viewModel::artistChoices,
+            onOpenArtist,
+            viewModel::addToPlaylist,
+        )
     val unknownArtist = stringResource(R.string.unknown_artist)
 
     ScreenFrame(modifier) {

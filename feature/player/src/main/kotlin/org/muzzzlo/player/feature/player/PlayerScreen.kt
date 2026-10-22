@@ -139,6 +139,7 @@ fun PlayerScreen(
             onDismiss = { menuOpen = false },
             loadArtists = { viewModel.artistChoices(track.id) },
             onOpenArtist = onOpenArtist,
+            addToPlaylist = remember(track.id) { viewModel.addToPlaylist(track.id) },
         )
     }
 }
@@ -334,6 +335,7 @@ fun MiniPlayer(
             onDismiss = { menuOpen = false },
             loadArtists = { viewModel.artistChoices(track.id) },
             onOpenArtist = onOpenArtist,
+            addToPlaylist = remember(track.id) { viewModel.addToPlaylist(track.id) },
         )
     }
     MiniPlayerView(

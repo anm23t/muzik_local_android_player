@@ -17,6 +17,9 @@
     <string name="track_action_go_to_artist">Go to artist</string>
     <string name="artist_picker_title">Choose artist</string>
     <string name="track_action_add_to_playlist">Add to playlist</string>
+    <string name="playlist_new">New playlist</string>
+    <string name="playlist_name">Name</string>
+    <string name="playlist_create">Create</string>
     <string name="track_action_add_to_favorites">Add to favorites</string>
     <string name="track_action_rate">Rate</string>
     <string name="track_action_edit_tags">Edit tags</string>
