@@ -42,11 +42,28 @@ class BackupJsonTest {
                         artists = listOf("A"),
                     ),
                 ),
+            playlists =
+                listOf(
+                    BackupPlaylist(
+                        "Mix \uD83D\uDE97",
+                        5,
+                        9,
+                        List(2) { BackupPlaylistTrack("Song", listOf("A"), 1000) },
+                    ),
+                    BackupPlaylist("Empty", 6, null, emptyList()),
+                ),
         )
 
     @Test
     fun `round trip keeps everything`() {
         assertEquals(sample, BackupJson.decode(BackupJson.encode(sample)))
+    }
+
+    @Test
+    fun `a version 1 file reads with no playlists`() {
+        val v1 = """{"format":"muzzzlo-backup","schemaVersion":1,"marks":[]}"""
+
+        assertEquals(emptyList<BackupPlaylist>(), BackupJson.decode(v1).playlists)
     }
 
     @Test

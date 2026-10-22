@@ -35,6 +35,24 @@ data class BackupTrackMark(
     val favorite: Boolean,
 )
 
+/** A track of a backed up playlist, found again like in [BackupTrackMark]. */
+data class BackupPlaylistTrack(
+    val title: String,
+    val artistTags: List<String>,
+    val durationMs: Long,
+)
+
+/**
+ * A playlist with its tracks in order (schema version 2). [createdAtMs] with [name] tells whether the playlist is
+ * already there on import.
+ */
+data class BackupPlaylist(
+    val name: String,
+    val createdAtMs: Long,
+    val lastPlayedAtMs: Long?,
+    val tracks: List<BackupPlaylistTrack>,
+)
+
 /**
  * Everything the app keeps only in its own storage (ARCHITECTURE.md, section 8). Tags are not here, they live in
  * the files.
@@ -46,6 +64,7 @@ data class BackupData(
     val compounds: List<BackupCompound>,
     val marks: List<BackupTrackMark>,
     val events: List<BackupEvent>,
+    val playlists: List<BackupPlaylist> = emptyList(),
 )
 
 /** A listen event without database ids; the track is found again like in [BackupTrackMark]. */
@@ -62,9 +81,12 @@ data class BackupEvent(
     val key: String get() = "$startedAtMs|$playedMs|$title"
 }
 
-/** Reads and writes the JSON backup. `schemaVersion` is [VERSION]; a newer file is refused, an older one is read. */
+/**
+ * Reads and writes the JSON backup. `schemaVersion` is [VERSION]; a newer file is refused, an older one is read.
+ * Version 2 (task 1.1.5) added `playlists`; a version 1 file reads with none.
+ */
 object BackupJson {
-    const val VERSION = 1
+    const val VERSION = 2
     private const val FORMAT = "muzzzlo-backup"
 
     fun encode(data: BackupData): String =
@@ -109,6 +131,7 @@ object BackupJson {
                             "artists" to it.artists,
                         )
                     },
+                "playlists" to data.playlists.map(::playlistMap),
             ),
             pretty = true,
         )
@@ -152,6 +175,28 @@ object BackupJson {
             compounds = root.items("compounds").map(::compoundOf),
             marks = root.items("marks").map(::markOf),
             events = root.items("events").map(::eventOf),
+            playlists = root.items("playlists").map(::playlistOf),
+        )
+
+    private fun playlistMap(it: BackupPlaylist) =
+        mapOf(
+            "name" to it.name,
+            "createdAt" to it.createdAtMs,
+            "lastPlayedAt" to it.lastPlayedAtMs,
+            "tracks" to
+                it.tracks.map { track ->
+                    mapOf("title" to track.title, "artists" to track.artistTags, "durationMs" to track.durationMs)
+                },
+        )
+
+    private fun playlistOf(it: Map<*, *>) =
+        BackupPlaylist(
+            it.str("name"),
+            it.long("createdAt") ?: 0L,
+            it.long("lastPlayedAt"),
+            it.items("tracks").map { track ->
+                BackupPlaylistTrack(track.str("title"), track.strings("artists"), track.long("durationMs") ?: 0L)
+            },
         )
 
     private fun compoundOf(it: Map<*, *>) =

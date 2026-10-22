@@ -110,6 +110,8 @@
     <string name="settings_backup_file_error">Файл не удалось прочитать или записать.</string>
     <string name="settings_backup_imported">Добавлено: прослушиваний %1$d, оценок и избранного %2$d, написаний исполнителей %3$d, составных имён %4$d.</string>
     <string name="settings_backup_unmatched">Оценок и избранного пропущено: %1$d, этих треков нет в библиотеке.</string>
+    <string name="settings_backup_playlists">Добавлено плейлистов: %1$d.</string>
+    <string name="settings_backup_unmatched_playlist_tracks">Треков плейлистов пропущено: %1$d, этих треков нет в библиотеке.</string>
     <string name="settings_backup_rescan_hint">Пересканируйте библиотеку, чтобы применить написания исполнителей.</string>
     <string name="settings_auto_backup">Автоматическая копия</string>
     <string name="settings_auto_backup_hint">Раз в неделю копия сохраняется в выбранную папку. Хранятся последние 5.</string>

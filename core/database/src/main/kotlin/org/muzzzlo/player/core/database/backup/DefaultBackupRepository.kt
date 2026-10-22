@@ -7,10 +7,12 @@ import org.muzzzlo.player.core.database.MuzzzloDatabase
 import org.muzzzlo.player.core.database.dao.BackupDao
 import org.muzzzlo.player.core.database.dao.LibraryDao
 import org.muzzzlo.player.core.database.dao.ListenEventDao
+import org.muzzzlo.player.core.database.dao.PlaylistDao
 import org.muzzzlo.player.core.database.dao.TrackIdentity
 import org.muzzzlo.player.core.database.entity.ArtistAliasEntity
 import org.muzzzlo.player.core.database.entity.ArtistEntity
 import org.muzzzlo.player.core.database.entity.ListenEventEntity
+import org.muzzzlo.player.core.database.entity.PlaylistEntity
 import org.muzzzlo.player.core.model.AppSettings
 import org.muzzzlo.player.core.model.BackupAlias
 import org.muzzzlo.player.core.model.BackupCompound
@@ -18,6 +20,8 @@ import org.muzzzlo.player.core.model.BackupData
 import org.muzzzlo.player.core.model.BackupEvent
 import org.muzzzlo.player.core.model.BackupImportResult
 import org.muzzzlo.player.core.model.BackupJson
+import org.muzzzlo.player.core.model.BackupPlaylist
+import org.muzzzlo.player.core.model.BackupPlaylistTrack
 import org.muzzzlo.player.core.model.BackupRepository
 import org.muzzzlo.player.core.model.BackupTrackMark
 import org.muzzzlo.player.core.model.CompoundRepository
@@ -25,6 +29,7 @@ import org.muzzzlo.player.core.model.DispatcherProvider
 import org.muzzzlo.player.core.model.Json
 import org.muzzzlo.player.core.model.ListenCsv
 import org.muzzzlo.player.core.model.NameNormalizer
+import org.muzzzlo.player.core.model.PlaylistNames
 import org.muzzzlo.player.core.model.SettingsRepository
 import org.muzzzlo.player.core.model.TrackMatcher
 import java.time.Clock
@@ -43,6 +48,7 @@ class DefaultBackupRepository
         private val library: LibraryDao,
         private val events: ListenEventDao,
         private val backup: BackupDao,
+        private val playlists: PlaylistDao,
         private val compounds: CompoundRepository,
         private val settings: SettingsRepository,
         private val dispatchers: DispatcherProvider,
@@ -86,7 +92,22 @@ class DefaultBackupRepository
                         BackupTrackMark(it.title, tagValues(it), it.durationMs, it.ratingTenths, it.isFavorite)
                     },
                 events = eventsOf(),
+                playlists = playlistsOf(),
             )
+        }
+
+        private suspend fun playlistsOf(): List<BackupPlaylist> {
+            val entries = backup.playlistEntries().groupBy { it.playlistId }
+            return backup.playlists().map { playlist ->
+                BackupPlaylist(
+                    playlist.name,
+                    playlist.createdAt,
+                    playlist.lastPlayedAt,
+                    entries[playlist.id].orEmpty().map {
+                        BackupPlaylistTrack(it.title, stringList(it.artistTagValues), it.durationMs)
+                    },
+                )
+            }
         }
 
         private suspend fun eventsOf(): List<BackupEvent> =
@@ -112,7 +133,45 @@ class DefaultBackupRepository
                 if (track != null && mergeMark(track, mark)) matchedMarks++
             }
             val newEvents = mergeEvents(data.events, matcher)
-            return BackupImportResult(aliases, 0, matchedMarks, newEvents, data.marks.size - matchedMarks)
+            val playlistsResult = mergePlaylists(data.playlists, matcher)
+            return BackupImportResult(
+                aliases = aliases,
+                compounds = 0,
+                marks = matchedMarks,
+                events = newEvents,
+                unmatchedMarks = data.marks.size - matchedMarks,
+                playlists = playlistsResult.first,
+                unmatchedPlaylistTracks = playlistsResult.second,
+            )
+        }
+
+        /**
+         * Adds playlists that are not there yet (same name and creation time); tracks that are not in the library
+         * are dropped. Returns the playlists added and the tracks dropped.
+         */
+        private suspend fun mergePlaylists(
+            incoming: List<BackupPlaylist>,
+            matcher: TrackMatcher<TrackIdentity>,
+        ): Pair<Int, Int> {
+            val known = backup.playlists().mapTo(HashSet()) { it.name to it.createdAt }
+            val fresh =
+                incoming.mapNotNull { playlist ->
+                    PlaylistNames.clean(playlist.name)?.let { playlist.copy(name = it) }
+                }.filter { known.add(it.name to it.createdAtMs) }
+            var unmatched = 0
+            for (playlist in fresh) {
+                val trackIds = playlist.tracks.mapNotNull { matcher.find(it.title, it.artistTags, it.durationMs)?.id }
+                unmatched += playlist.tracks.size - trackIds.size
+                val entity =
+                    PlaylistEntity(
+                        name = playlist.name,
+                        createdAt = playlist.createdAtMs,
+                        lastPlayedAt = playlist.lastPlayedAtMs,
+                    )
+                playlists.append(playlists.insertPlaylist(entity), trackIds)
+            }
+            val added = fresh.size
+            return added to unmatched
         }
 
         private suspend fun mergeAliases(aliases: List<BackupAlias>): Int {

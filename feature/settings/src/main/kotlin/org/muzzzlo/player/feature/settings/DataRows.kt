@@ -135,8 +135,12 @@ private fun BackupMessageDialog(
                     result.compounds,
                 ),
             )
+            if (result.playlists > 0) Text(stringResource(R.string.settings_backup_playlists, result.playlists))
             if (result.unmatchedMarks > 0) {
                 Text(stringResource(R.string.settings_backup_unmatched, result.unmatchedMarks))
+            }
+            if (result.unmatchedPlaylistTracks > 0) {
+                Text(stringResource(R.string.settings_backup_unmatched_playlist_tracks, result.unmatchedPlaylistTracks))
             }
             if (result.aliases > 0) Text(stringResource(R.string.settings_backup_rescan_hint))
         }

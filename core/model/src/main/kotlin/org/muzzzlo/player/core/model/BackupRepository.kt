@@ -1,12 +1,18 @@
 package org.muzzzlo.player.core.model
 
-/** What an import changed; `unmatched` marks and events could not be linked to a track of the library. */
+/**
+ * What an import changed; `unmatched` marks and playlist tracks could not be linked to a track of the library.
+ *
+ * @property playlists playlists added; one that is already there (same name and creation time) is skipped.
+ */
 data class BackupImportResult(
     val aliases: Int,
     val compounds: Int,
     val marks: Int,
     val events: Int,
     val unmatchedMarks: Int,
+    val playlists: Int = 0,
+    val unmatchedPlaylistTracks: Int = 0,
 )
 
 /** Exports and imports the data that lives only in the app (ARCHITECTURE.md, section 8). */

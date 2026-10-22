@@ -7,6 +7,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -20,6 +21,7 @@ import org.muzzzlo.player.core.database.backup.DefaultBackupRepository
 import org.muzzzlo.player.core.database.entity.ArtistAliasEntity
 import org.muzzzlo.player.core.database.entity.ArtistEntity
 import org.muzzzlo.player.core.database.entity.ListenEventEntity
+import org.muzzzlo.player.core.database.entity.PlaylistEntity
 import org.muzzzlo.player.core.database.entity.TrackEntity
 import org.muzzzlo.player.core.model.AppLanguage
 import org.muzzzlo.player.core.model.AppSettings
@@ -58,6 +60,7 @@ class DefaultBackupRepositoryTest {
             database.libraryDao(),
             database.listenEventDao(),
             database.backupDao(),
+            database.playlistDao(),
             compounds,
             settings,
             object : DispatcherProvider {
@@ -192,6 +195,60 @@ class DefaultBackupRepositoryTest {
             assertEquals(1, result.unmatchedMarks)
             assertEquals(0, result.marks)
             other.close()
+        }
+
+    @Test
+    fun `playlists round trip in order with repeats and missing tracks dropped`() =
+        runBlocking {
+            val a = track("A")
+            val b = track("B")
+            val gone = track("Gone")
+            val mix = db.playlistDao().insertPlaylist(PlaylistEntity(name = "Mix", createdAt = 5, lastPlayedAt = 9))
+            db.playlistDao().append(mix, listOf(b, a, gone, b))
+            db.playlistDao().insertPlaylist(PlaylistEntity(name = "Empty", createdAt = 6))
+            val json = repository().exportJson()
+
+            val other = fresh()
+            track("a", target = other)
+            track("b", target = other)
+            val result = repository(other).importJson(json)
+
+            assertEquals(2, result.playlists)
+            assertEquals(1, result.unmatchedPlaylistTracks)
+            val rows = other.playlistDao().observePlaylists().first()
+            assertEquals(listOf("Empty", "Mix"), rows.map { it.name })
+            val imported = rows.single { it.name == "Mix" }
+            assertEquals(9L, imported.lastPlayedAt)
+            assertEquals(5L, imported.createdAt)
+            val titles = other.playlistDao().observeEntries(imported.id).first().map { it.track.title }
+            assertEquals(listOf("b", "a", "b"), titles)
+
+            val second = repository(other).importJson(json)
+            assertEquals(0, second.playlists)
+            assertEquals(2, other.playlistDao().observePlaylists().first().size)
+            other.close()
+        }
+
+    @Test
+    fun `a playlist with the same name but another creation time is added`() =
+        runBlocking {
+            db.playlistDao().insertPlaylist(PlaylistEntity(name = "Mix", createdAt = 5))
+            val json = repository().exportJson()
+            val other = fresh()
+            other.playlistDao().insertPlaylist(PlaylistEntity(name = "Mix", createdAt = 7))
+
+            assertEquals(1, repository(other).importJson(json).playlists)
+            assertEquals(2, other.playlistDao().observePlaylists().first().size)
+            other.close()
+        }
+
+    @Test
+    fun `a version 1 backup without playlists still imports`() =
+        runBlocking {
+            val json = repository().exportJson().replace("\"schemaVersion\": 2", "\"schemaVersion\": 1")
+            assertTrue(json.contains("\"schemaVersion\": 1"))
+
+            assertEquals(0, repository().importJson(json).playlists)
         }
 
     @Test
