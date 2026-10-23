@@ -36,12 +36,18 @@ enum class TrackAction(
     /** Opens the system share sheet; [TrackActionsMenu] does it itself when it knows the track's address. */
     Share(R.drawable.ic_share, R.string.track_action_share),
 
+    /** Only in the menu of the big player: the screen opens the sleep timer dialog. */
+    SleepTimer(R.drawable.ic_moon, R.string.track_action_sleep_timer),
+
     /** Placeholder until the tag editor (0.3.6). */
     EditTags(R.drawable.ic_pencil, R.string.track_action_edit_tags),
     ;
 
     companion object {
-        /** The items of every track menu; the playlist card adds [RemoveFromPlaylist]. */
-        val Default: List<TrackAction> = entries - RemoveFromPlaylist
+        /** The items of every track menu; the playlist card adds [RemoveFromPlaylist], the player [SleepTimer]. */
+        val Default: List<TrackAction> = entries - RemoveFromPlaylist - SleepTimer
+
+        /** The menu of the big player. */
+        val Player: List<TrackAction> = entries - RemoveFromPlaylist
     }
 }

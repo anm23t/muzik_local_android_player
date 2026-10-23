@@ -15,6 +15,7 @@ internal fun PlayerController.onTrackAction(
         TrackAction.PlayNext -> playNext(track)
         TrackAction.AddToQueue -> addToQueue(track)
         TrackAction.OpenQueue, TrackAction.EditTags, TrackAction.GoToArtist, TrackAction.Share -> Unit
+        TrackAction.SleepTimer -> Unit
         TrackAction.AddToPlaylist, TrackAction.RemoveFromPlaylist -> Unit
         // Favorites and rating go through TrackMarksMenu, the menu does not report them.
         TrackAction.AddToFavorites,

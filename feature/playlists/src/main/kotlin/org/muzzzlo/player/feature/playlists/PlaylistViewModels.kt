@@ -194,6 +194,7 @@ class AutoPlaylistViewModel
                 TrackAction.Rate,
                 TrackAction.EditTags,
                 TrackAction.Share,
+                TrackAction.SleepTimer,
                 -> Unit
             }
         }
@@ -304,6 +305,7 @@ class PlaylistViewModel
                 TrackAction.Rate,
                 TrackAction.EditTags,
                 TrackAction.Share,
+                TrackAction.SleepTimer,
                 -> Unit
             }
         }

@@ -29,6 +29,7 @@
     <string name="rating_save">Сохранить</string>
     <string name="rating_clear">Снять оценку</string>
     <string name="track_action_rate">Оценить</string>
+    <string name="track_action_sleep_timer">Таймер сна</string>
     <string name="track_action_share">Поделиться</string>
     <string name="track_action_edit_tags">Редактировать теги</string>
 </resources>
