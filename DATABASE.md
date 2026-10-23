@@ -163,6 +163,7 @@ PK: (`track_id`, `artist_id`). Индекс по `artist_id` для страни
 - Последние альбомы для «Continue listening» (0.6.5, с 1.1.5 со временем): `listen_event` JOIN `track` по `track_id`, `album_id IS NOT NULL`, `playlist_id IS NULL` (прослушивания из плейлиста альбом не поднимают), группировка по `album_id`, `MAX(started_at)`, сортировка по нему по убыванию, `LIMIT 5`.
 - Плейлисты со счётчиком и первым треком (1.1.5): подзапросы к `playlist_track` JOIN `track` с `is_missing = 0`, порядок по `position`, затем `id`.
 - Разделы карточки исполнителя (0.4.11): альбомы исполнителя из `album_artist` и `track_artist`, `LEFT JOIN track` по `album_id` (только `is_missing = 0`, все треки альбома, не только его), `MAX(track_total)`, `MAX(disc_total)`, `MAX(disc_number)`, группировка по `album.id`.
+- Поиск (1.2.4): все старые написания исполнителей `artist_alias` (`LibraryDao.observeAliases`); остальное поиск берёт из тех же списков, что экраны, и сравнивает в памяти (`ARCHITECTURE.md`, раздел 9).
 - Фото исполнителей альбома (0.4.8): `album_artist` JOIN `artist` по `artist_id`, порядок по `position`, поле `artist.photo_uri`.
 
 ## Правила миграций
