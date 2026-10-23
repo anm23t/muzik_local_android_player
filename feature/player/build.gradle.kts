@@ -45,5 +45,6 @@ dependencies {
 
     testImplementation(platform("org.junit:junit-bom:5.11.3"))
     testImplementation(libs.junit5)
+    testImplementation(libs.kotlinx.coroutines.test)
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }

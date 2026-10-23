@@ -34,12 +34,12 @@ import org.muzzzlo.player.core.designsystem.component.CoverCard
 import org.muzzzlo.player.core.designsystem.component.CoverImage
 import org.muzzzlo.player.core.designsystem.component.CoverSource
 import org.muzzzlo.player.core.designsystem.component.MarqueeText
-import org.muzzzlo.player.core.designsystem.component.ProgressBar
 import org.muzzzlo.player.core.designsystem.component.RoundIconButton
 import org.muzzzlo.player.core.designsystem.component.RoundIconButtonSize
 import org.muzzzlo.player.core.designsystem.component.ScreenFrame
 import org.muzzzlo.player.core.designsystem.component.TrackAction
 import org.muzzzlo.player.core.designsystem.component.TrackActionsMenu
+import org.muzzzlo.player.core.designsystem.component.WaveformBar
 import org.muzzzlo.player.core.designsystem.gesture.AxisSwipe
 import org.muzzzlo.player.core.designsystem.gesture.swipeGestures
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloColors
@@ -48,6 +48,8 @@ import org.muzzzlo.player.core.designsystem.theme.MuzzzloTheme
 import org.muzzzlo.player.core.model.PlaybackProblem
 import org.muzzzlo.player.core.model.PlayerState
 import org.muzzzlo.player.core.model.RepeatMode
+import org.muzzzlo.player.core.model.Waveform
+import org.muzzzlo.player.core.model.WaveformPeaks
 import java.util.Locale
 import org.muzzzlo.player.core.designsystem.R as DesignR
 import org.muzzzlo.player.core.designsystem.component.MiniPlayer as MiniPlayerView
@@ -72,8 +74,10 @@ fun PlayerScreen(
     onSheetRelease: (Float) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: PlayerViewModel = hiltViewModel(),
+    waveformViewModel: WaveformViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val peaks by waveformViewModel.peaks.collectAsStateWithLifecycle()
     val track = state.currentTrack
     var menuOpen by remember { mutableStateOf(false) }
     val coverSwipe = rememberCoverSwipe(viewModel) { state }
@@ -118,7 +122,7 @@ fun PlayerScreen(
         Spacer(Modifier.height(MuzzzloDimens.RowGap))
         TrackTitle(state, viewModel::artistChoices, onOpenArtist)
         Spacer(Modifier.height(MuzzzloDimens.ContentGap))
-        Progress(state, viewModel::onSeek)
+        Progress(state, peaks, viewModel::onSeek)
         Spacer(Modifier.height(MuzzzloDimens.SectionGap))
         Controls(state, viewModel)
         Spacer(Modifier.height(MuzzzloDimens.FrameInnerPadding))
@@ -208,12 +212,15 @@ private fun PlaybackProblem.messageRes(): Int =
 @Composable
 private fun Progress(
     state: PlayerState,
+    peaks: WaveformPeaks?,
     onSeek: (Long) -> Unit,
 ) {
     val duration = state.durationMs
+    val levels = remember(peaks) { peaks?.let { p -> { count: Int -> Waveform.bars(p, count) } } }
     Column(Modifier.fillMaxWidth()) {
-        ProgressBar(
+        WaveformBar(
             progress = progressOf(state.positionMs, duration),
+            levels = levels,
             onSeek = { share: Float -> onSeek((share * duration).toLong()) }.takeIf { duration > 0 },
         )
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {

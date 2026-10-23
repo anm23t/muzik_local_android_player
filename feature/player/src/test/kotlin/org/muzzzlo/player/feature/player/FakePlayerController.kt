@@ -1,14 +1,13 @@
 package org.muzzzlo.player.feature.player
 
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import org.muzzzlo.player.core.model.PlayerController
 import org.muzzzlo.player.core.model.PlayerState
 import org.muzzzlo.player.core.model.Track
 
 /** Records the queue calls the ViewModel makes. */
 class FakePlayerController : PlayerController {
-    override val state: StateFlow<PlayerState> = MutableStateFlow(PlayerState())
+    override val state = MutableStateFlow(PlayerState())
     val playedNext = mutableListOf<Track>()
     val addedToQueue = mutableListOf<Track>()
 
