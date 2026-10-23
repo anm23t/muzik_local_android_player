@@ -49,7 +49,6 @@ fun SearchScreen(
     onOpenAlbum: (Long) -> Unit,
     onOpenArtist: (Long) -> Unit,
     onOpenPlaylist: (Long) -> Unit,
-    onOpenQueue: () -> Unit,
     onEditTags: (Long) -> Unit,
     miniPlayer: @Composable () -> Unit,
     modifier: Modifier = Modifier,
@@ -59,7 +58,7 @@ fun SearchScreen(
     val openMenu =
         rememberTrackMenu(
             viewModel::onTrackAction,
-            onOpenQueue,
+            onOpenAlbum,
             onEditTags,
             viewModel::artistChoices,
             onOpenArtist,

@@ -89,6 +89,7 @@ internal fun Notice(
  * Remembers which track has its menu open and shows [TrackActionsMenu] for it.
  * Returns the function that opens the menu.
  *
+ * @param onOpenAlbum opens the card of the album with this id ("Go to album"); null leaves the item out.
  * @param onEditTags opens the tag editor of the track with this id.
  * @param loadArtists artists of the track with this id, for "Go to artist" and its picker.
  * @param onOpenArtist opens the card of the artist with this id ("Go to artist").
@@ -98,7 +99,7 @@ internal fun Notice(
 @Composable
 internal fun rememberTrackMenu(
     onAction: (Track, TrackAction) -> Unit,
-    onOpenQueue: () -> Unit,
+    onOpenAlbum: ((Long) -> Unit)?,
     onEditTags: (Long) -> Unit,
     loadArtists: suspend (Long) -> List<ArtistChoice>,
     onOpenArtist: (Long) -> Unit,
@@ -113,7 +114,6 @@ internal fun rememberTrackMenu(
             onAction = { action ->
                 onAction(track, action)
                 when (action) {
-                    TrackAction.OpenQueue -> onOpenQueue()
                     TrackAction.EditTags -> onEditTags(track.id)
                     else -> Unit
                 }
@@ -124,6 +124,8 @@ internal fun rememberTrackMenu(
             addToPlaylist = remember(track.id) { addToPlaylist(track.id) },
             marks = remember(track.id) { trackMarks(track.id) },
             shareUri = track.uri,
+            albumId = track.albumId,
+            onOpenAlbum = onOpenAlbum,
         )
     }
     return { menuTrack = it }

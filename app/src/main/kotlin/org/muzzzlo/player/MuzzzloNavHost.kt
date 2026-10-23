@@ -151,7 +151,7 @@ fun MuzzzloNavHost() {
             onOpen = sheet::open,
             onSheetDrag = sheet::dragBy,
             onSheetRelease = sheet::release,
-            onOpenQueue = { navController.navigate(ROUTE_QUEUE) },
+            onOpenAlbum = { navController.navigate(albumRoute(it)) },
             onEditTags = openTagEditor,
             onOpenArtist = openArtist,
         )
@@ -195,7 +195,7 @@ fun MuzzzloNavHost() {
                     AutoPlaylistScreen(
                         onBack = { navController.popBackStack() },
                         onHome = { navController.goHome() },
-                        onOpenQueue = { navController.navigate(ROUTE_QUEUE) },
+                        onOpenAlbum = { navController.navigate(albumRoute(it)) },
                         onEditTags = openTagEditor,
                         onOpenArtist = openArtist,
                         miniPlayer = miniPlayer,
@@ -208,7 +208,7 @@ fun MuzzzloNavHost() {
                     PlaylistScreen(
                         onBack = { navController.popBackStack() },
                         onHome = { navController.goHome() },
-                        onOpenQueue = { navController.navigate(ROUTE_QUEUE) },
+                        onOpenAlbum = { navController.navigate(albumRoute(it)) },
                         onEditTags = openTagEditor,
                         onOpenArtist = openArtist,
                         miniPlayer = miniPlayer,
@@ -220,7 +220,6 @@ fun MuzzzloNavHost() {
                         onOpenAlbum = { navController.navigate(albumRoute(it)) },
                         onOpenArtist = openArtist,
                         onOpenPlaylist = { navController.navigate("playlist/$it") },
-                        onOpenQueue = { navController.navigate(ROUTE_QUEUE) },
                         onEditTags = openTagEditor,
                         miniPlayer = miniPlayer,
                     )
@@ -286,7 +285,6 @@ fun MuzzzloNavHost() {
                         onHome = { goHome() },
                         onOpenArtist = { navController.navigate(artistRoute(it)) },
                         onOpenArtistById = openArtist,
-                        onOpenQueue = { navController.navigate(ROUTE_QUEUE) },
                         onEditTags = openTagEditor,
                         onEditAlbumTags = { navController.navigate(batchTagEditorRoute(it)) },
                         miniPlayer = miniPlayer,
@@ -295,7 +293,7 @@ fun MuzzzloNavHost() {
                 composable(ROUTE_TRACKS, arguments = artistArguments.take(1)) {
                     TracksScreen(
                         onBack = { navController.popBackStack() },
-                        onOpenQueue = { navController.navigate(ROUTE_QUEUE) },
+                        onOpenAlbum = { navController.navigate(albumRoute(it)) },
                         onEditTags = openTagEditor,
                         onOpenArtist = openArtist,
                         miniPlayer = miniPlayer,
@@ -306,6 +304,7 @@ fun MuzzzloNavHost() {
                         onBack = { navController.popBackStack() },
                         onEditTags = openTagEditor,
                         onOpenArtist = openArtist,
+                        onOpenAlbum = { navController.navigate(albumRoute(it)) },
                     )
                 }
                 composable(
@@ -376,6 +375,7 @@ private fun PlayerLayer(
             onOpenArtists = { fromPlayer(ROUTE_ARTISTS) },
             onOpenAlbums = { fromPlayer(ROUTE_ALBUMS) },
             onOpenArtist = { fromPlayer(artistRoute(it)) },
+            onOpenAlbum = { fromPlayer(albumRoute(it)) },
             onHome = goHome,
             onEditTags = { fromPlayer(tagEditorRoute(it)) },
             onSheetDrag = sheet::dragBy,

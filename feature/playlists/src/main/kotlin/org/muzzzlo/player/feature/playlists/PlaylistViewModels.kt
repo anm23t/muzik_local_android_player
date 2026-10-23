@@ -186,7 +186,7 @@ class AutoPlaylistViewModel
                 TrackAction.PlayNext -> player.playNext(track)
                 TrackAction.AddToQueue -> player.addToQueue(track)
                 // Navigation, pickers, favorites and rating are handled by the screen and the menu.
-                TrackAction.OpenQueue,
+                TrackAction.GoToAlbum,
                 TrackAction.GoToArtist,
                 TrackAction.AddToPlaylist,
                 TrackAction.RemoveFromPlaylist,
@@ -298,7 +298,7 @@ class PlaylistViewModel
                 TrackAction.AddToQueue -> player.addToQueue(entry.track)
                 TrackAction.RemoveFromPlaylist -> viewModelScope.launch { playlists.removeEntry(entry.entryId) }
                 // Navigation, pickers, favorites and rating are handled by the screen and the menu.
-                TrackAction.OpenQueue,
+                TrackAction.GoToAlbum,
                 TrackAction.GoToArtist,
                 TrackAction.AddToPlaylist,
                 TrackAction.AddToFavorites,

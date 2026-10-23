@@ -14,7 +14,7 @@
     <string name="designsystem_open_player">Open player</string>
     <string name="track_action_play_next">Play next</string>
     <string name="track_action_add_to_queue">Add to queue</string>
-    <string name="track_action_open_queue">Open queue</string>
+    <string name="track_action_go_to_album">Go to album</string>
     <string name="track_action_go_to_artist">Go to artist</string>
     <string name="artist_picker_title">Choose artist</string>
     <string name="track_action_add_to_playlist">Add to playlist</string>

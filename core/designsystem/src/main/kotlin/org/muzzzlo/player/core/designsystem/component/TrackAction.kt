@@ -15,8 +15,11 @@ enum class TrackAction(
     PlayNext(R.drawable.ic_list_start, R.string.track_action_play_next),
     AddToQueue(R.drawable.ic_list_end, R.string.track_action_add_to_queue),
 
-    /** Navigation: the screen opens the queue, the ViewModel has nothing to do. */
-    OpenQueue(R.drawable.ic_list_music, R.string.track_action_open_queue),
+    /**
+     * Navigation: [TrackActionsMenu] opens the album card itself (task 1.2.10, instead of "Open queue", which has a
+     * button of its own in the player). Shown only for a track with an album and outside its album card.
+     */
+    GoToAlbum(R.drawable.ic_disc, R.string.track_action_go_to_album),
 
     /** Navigation: [TrackActionsMenu] opens the artist card or the artist picker itself. */
     GoToArtist(R.drawable.ic_users, R.string.track_action_go_to_artist),

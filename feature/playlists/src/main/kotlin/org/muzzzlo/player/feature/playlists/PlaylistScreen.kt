@@ -64,7 +64,7 @@ import org.muzzzlo.player.core.designsystem.R as DesignR
 fun PlaylistScreen(
     onBack: () -> Unit,
     onHome: () -> Unit,
-    onOpenQueue: () -> Unit,
+    onOpenAlbum: (Long) -> Unit,
     onEditTags: (Long) -> Unit,
     onOpenArtist: (Long) -> Unit,
     miniPlayer: @Composable () -> Unit,
@@ -100,7 +100,6 @@ fun PlaylistScreen(
             onAction = { action ->
                 viewModel.onTrackAction(entry, action)
                 when (action) {
-                    TrackAction.OpenQueue -> onOpenQueue()
                     TrackAction.EditTags -> onEditTags(entry.track.id)
                     else -> Unit
                 }
@@ -112,6 +111,8 @@ fun PlaylistScreen(
             addToPlaylist = remember(entry.entryId) { viewModel.addToPlaylist(entry.track.id) },
             marks = remember(entry.entryId) { viewModel.trackMarks(entry.track.id) },
             shareUri = entry.track.uri,
+            albumId = entry.track.albumId,
+            onOpenAlbum = onOpenAlbum,
         )
     }
 

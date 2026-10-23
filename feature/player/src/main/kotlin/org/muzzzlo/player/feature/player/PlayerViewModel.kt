@@ -66,7 +66,7 @@ class PlayerViewModel
             when (action) {
                 TrackAction.PlayNext -> player.playNext(track)
                 TrackAction.AddToQueue -> player.addToQueue(track)
-                TrackAction.OpenQueue, TrackAction.EditTags, TrackAction.GoToArtist, TrackAction.Share -> Unit
+                TrackAction.GoToAlbum, TrackAction.EditTags, TrackAction.GoToArtist, TrackAction.Share -> Unit
                 TrackAction.AddToPlaylist, TrackAction.RemoveFromPlaylist -> Unit
                 // The screen opens the sleep timer dialog.
                 TrackAction.SleepTimer -> Unit

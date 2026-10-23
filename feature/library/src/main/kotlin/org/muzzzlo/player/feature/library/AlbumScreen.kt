@@ -57,7 +57,6 @@ fun AlbumScreen(
     onHome: () -> Unit,
     onOpenArtist: (String) -> Unit,
     onOpenArtistById: (Long) -> Unit,
-    onOpenQueue: () -> Unit,
     onEditTags: (Long) -> Unit,
     onEditAlbumTags: (Long) -> Unit,
     miniPlayer: @Composable () -> Unit,
@@ -69,7 +68,8 @@ fun AlbumScreen(
     val openMenu =
         rememberTrackMenu(
             viewModel::onTrackAction,
-            onOpenQueue,
+            // The album card is already open.
+            null,
             onEditTags,
             viewModel::artistChoices,
             onOpenArtistById,

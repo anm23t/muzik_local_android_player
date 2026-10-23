@@ -14,7 +14,7 @@
     <string name="designsystem_open_player">Открыть плеер</string>
     <string name="track_action_play_next">Играть следующим</string>
     <string name="track_action_add_to_queue">Добавить в очередь</string>
-    <string name="track_action_open_queue">Открыть очередь</string>
+    <string name="track_action_go_to_album">Перейти к альбому</string>
     <string name="track_action_go_to_artist">К исполнителю</string>
     <string name="artist_picker_title">Выберите исполнителя</string>
     <string name="track_action_add_to_playlist">Добавить в плейлист</string>

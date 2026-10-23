@@ -30,7 +30,7 @@ import org.muzzzlo.player.core.model.Track
 fun AutoPlaylistScreen(
     onBack: () -> Unit,
     onHome: () -> Unit,
-    onOpenQueue: () -> Unit,
+    onOpenAlbum: (Long) -> Unit,
     onEditTags: (Long) -> Unit,
     onOpenArtist: (Long) -> Unit,
     miniPlayer: @Composable () -> Unit,
@@ -46,7 +46,6 @@ fun AutoPlaylistScreen(
             onAction = { action ->
                 viewModel.onTrackAction(track, action)
                 when (action) {
-                    TrackAction.OpenQueue -> onOpenQueue()
                     TrackAction.EditTags -> onEditTags(track.id)
                     else -> Unit
                 }
@@ -57,6 +56,8 @@ fun AutoPlaylistScreen(
             addToPlaylist = remember(track.id) { viewModel.addToPlaylist(track.id) },
             marks = remember(track.id) { viewModel.trackMarks(track.id) },
             shareUri = track.uri,
+            albumId = track.albumId,
+            onOpenAlbum = onOpenAlbum,
         )
     }
 

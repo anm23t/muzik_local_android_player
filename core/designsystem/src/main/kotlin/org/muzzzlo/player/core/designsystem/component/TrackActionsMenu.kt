@@ -20,8 +20,8 @@ import org.muzzzlo.player.core.designsystem.theme.MuzzzloColors
  * Menu of actions for one track. Not in the mockup: built from the sort dialog
  * (DESIGN.md, section 7). The menu closes itself after a choice through [onDismiss].
  *
- * @param actions items to show; the queue screen leaves out [TrackAction.OpenQueue], the playlist card adds
- * [TrackAction.RemoveFromPlaylist].
+ * @param actions items to show; the playlist card adds [TrackAction.RemoveFromPlaylist], the player
+ * [TrackAction.SleepTimer].
  * @param artists names of the artists, shown under the title.
  * @param loadArtists loads the artists of the track with their photos when the menu opens. "Go to artist" is shown
  * only with [onOpenArtist] and at least one artist: one artist opens at once (by id), several open
@@ -32,6 +32,8 @@ import org.muzzzlo.player.core.designsystem.theme.MuzzzloColors
  * not shown. [onAction] does not receive them.
  * @param shareUri the `content://` address of the track's file; makes "Share" open the system share sheet, without it
  * the item is not shown. [onAction] does not receive it.
+ * @param albumId the album of the track; with [onOpenAlbum] makes "Go to album" open its card, without either the
+ * item is not shown. [onAction] does not receive it.
  */
 @Composable
 fun TrackActionsMenu(
@@ -46,6 +48,8 @@ fun TrackActionsMenu(
     addToPlaylist: AddToPlaylist? = null,
     marks: TrackMarksMenu? = null,
     shareUri: String? = null,
+    albumId: Long? = null,
+    onOpenAlbum: ((Long) -> Unit)? = null,
 ) {
     val context = LocalContext.current
     var step by remember { mutableStateOf(MenuStep.Actions) }
@@ -67,41 +71,73 @@ fun TrackActionsMenu(
             onDismiss = onDismiss,
         )
     if (replaced) return
+    val canOpenAlbum = albumId != null && onOpenAlbum != null
     val canOpenArtist = onOpenArtist != null && artistChoices.isNotEmpty()
+    val optional = optionalActions(canOpenArtist, canOpenAlbum, addToPlaylist != null, marks != null, shareUri != null)
+    val direct =
+        directActions(
+            onFavorite = { marks?.onFavorite?.invoke(!markState.isFavorite) },
+            onAlbum = { albumId?.let { onOpenAlbum?.invoke(it) } },
+            onShare = { shareUri?.let { context.shareTracks(listOf(it)) } },
+        )
     MuzzzloDialog(title = title, onDismiss = onDismiss, modifier = modifier) {
         ArtistsLine(artists)
-        val optional = optionalActions(canOpenArtist, addToPlaylist != null, marks != null, shareUri != null)
         actions.filter { it !in OPTIONAL_ACTIONS || it in optional }.forEach { action ->
             ActionRow(
                 icon = action.icon,
                 text = stringResource(labelOf(action, markState.isFavorite)),
                 onClick = {
-                    val tap = if (action == TrackAction.GoToArtist) ArtistTap.of(artistChoices) else ArtistTap.Nothing
-                    val next = stepAfter(action, tap)
-                    when {
-                        action == TrackAction.AddToFavorites -> {
-                            onDismiss()
-                            marks?.onFavorite?.invoke(!markState.isFavorite)
-                        }
-                        action == TrackAction.Share -> {
-                            onDismiss()
-                            shareUri?.let { context.shareTracks(listOf(it)) }
-                        }
-                        next != null -> {
-                            if (action == TrackAction.AddToPlaylist) onAction(action)
-                            step = next
-                        }
-                        else -> {
-                            onDismiss()
-                            onAction(action)
-                            if (tap is ArtistTap.Open) onOpenArtist?.invoke(tap.artist.id)
-                        }
-                    }
+                    onActionTap(action, artistChoices, direct, onDismiss, onAction, onOpenArtist) { step = it }
                 },
             )
         }
     }
 }
+
+/**
+ * A tap on [action]: an action of [direct] runs after the menu closes, an action with a picker opens its step, any
+ * other goes to [onAction] (and "Go to artist" of a single artist opens the card).
+ */
+private fun onActionTap(
+    action: TrackAction,
+    artistChoices: List<ArtistChoice>,
+    direct: Map<TrackAction, () -> Unit>,
+    onDismiss: () -> Unit,
+    onAction: (TrackAction) -> Unit,
+    onOpenArtist: ((Long) -> Unit)?,
+    openStep: (MenuStep) -> Unit,
+) {
+    val tap = if (action == TrackAction.GoToArtist) ArtistTap.of(artistChoices) else ArtistTap.Nothing
+    val next = stepAfter(action, tap)
+    val run = direct[action]
+    when {
+        run != null -> {
+            onDismiss()
+            run()
+        }
+        next != null -> {
+            if (action == TrackAction.AddToPlaylist) onAction(action)
+            openStep(next)
+        }
+        else -> {
+            onDismiss()
+            onAction(action)
+            if (tap is ArtistTap.Open) onOpenArtist?.invoke(tap.artist.id)
+        }
+    }
+}
+
+/** The actions the menu carries out itself after closing, without [TrackActionsMenu]'s `onAction` or a picker. */
+private fun directActions(
+    onFavorite: () -> Unit,
+    onAlbum: () -> Unit,
+    onShare: () -> Unit,
+): Map<TrackAction, () -> Unit> =
+    mapOf(
+        TrackAction.AddToFavorites to onFavorite,
+        TrackAction.GoToAlbum to onAlbum,
+        TrackAction.Share to onShare,
+    )
 
 /** Which dialog of the menu is open: the actions, or a picker that replaced them. */
 private enum class MenuStep { Actions, Artists, Playlists, NewPlaylist, Rating }
@@ -156,6 +192,7 @@ private fun stepAfter(
 
 private val OPTIONAL_ACTIONS =
     setOf(
+        TrackAction.GoToAlbum,
         TrackAction.GoToArtist,
         TrackAction.AddToPlaylist,
         TrackAction.AddToFavorites,
@@ -166,12 +203,14 @@ private val OPTIONAL_ACTIONS =
 /** The actions of [OPTIONAL_ACTIONS] that the screen has given the menu what they need for. */
 private fun optionalActions(
     canOpenArtist: Boolean,
+    canOpenAlbum: Boolean,
     canAddToPlaylist: Boolean,
     canMark: Boolean,
     canShare: Boolean,
 ): Set<TrackAction> =
     buildSet {
         if (canOpenArtist) add(TrackAction.GoToArtist)
+        if (canOpenAlbum) add(TrackAction.GoToAlbum)
         if (canAddToPlaylist) add(TrackAction.AddToPlaylist)
         if (canMark) addAll(listOf(TrackAction.AddToFavorites, TrackAction.Rate))
         if (canShare) add(TrackAction.Share)

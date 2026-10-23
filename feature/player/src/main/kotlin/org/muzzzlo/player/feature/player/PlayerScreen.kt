@@ -68,6 +68,7 @@ fun PlayerScreen(
     onOpenArtists: () -> Unit,
     onOpenAlbums: () -> Unit,
     onOpenArtist: (Long) -> Unit,
+    onOpenAlbum: (Long) -> Unit,
     onHome: () -> Unit,
     onEditTags: (Long) -> Unit,
     onSheetDrag: (Float) -> Unit,
@@ -152,7 +153,6 @@ fun PlayerScreen(
             onAction = { action ->
                 viewModel.onTrackAction(track, action)
                 when (action) {
-                    TrackAction.OpenQueue -> onOpenQueue()
                     TrackAction.EditTags -> onEditTags(track.id)
                     TrackAction.SleepTimer -> sleepDialogOpen = true
                     else -> Unit
@@ -165,6 +165,8 @@ fun PlayerScreen(
             addToPlaylist = remember(track.id) { viewModel.addToPlaylist(track.id) },
             marks = remember(track.id) { viewModel.trackMarks(track.id) },
             shareUri = track.uri,
+            albumId = track.albumId,
+            onOpenAlbum = onOpenAlbum,
         )
     }
 }
@@ -327,7 +329,7 @@ private fun playerNavItems(
 @Composable
 fun MiniPlayer(
     onOpen: () -> Unit,
-    onOpenQueue: () -> Unit,
+    onOpenAlbum: (Long) -> Unit,
     onEditTags: (Long) -> Unit,
     onOpenArtist: (Long) -> Unit,
     onSheetDrag: (Float) -> Unit,
@@ -355,7 +357,6 @@ fun MiniPlayer(
             onAction = { action ->
                 viewModel.onTrackAction(track, action)
                 when (action) {
-                    TrackAction.OpenQueue -> onOpenQueue()
                     TrackAction.EditTags -> onEditTags(track.id)
                     else -> Unit
                 }
@@ -366,6 +367,8 @@ fun MiniPlayer(
             addToPlaylist = remember(track.id) { viewModel.addToPlaylist(track.id) },
             marks = remember(track.id) { viewModel.trackMarks(track.id) },
             shareUri = track.uri,
+            albumId = track.albumId,
+            onOpenAlbum = onOpenAlbum,
         )
     }
     MiniPlayerView(

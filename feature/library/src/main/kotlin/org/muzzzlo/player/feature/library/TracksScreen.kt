@@ -26,7 +26,7 @@ import org.muzzzlo.player.core.designsystem.theme.MuzzzloDimens
 @Composable
 fun TracksScreen(
     onBack: () -> Unit,
-    onOpenQueue: () -> Unit,
+    onOpenAlbum: (Long) -> Unit,
     onEditTags: (Long) -> Unit,
     onOpenArtist: (Long) -> Unit,
     miniPlayer: @Composable () -> Unit,
@@ -37,7 +37,7 @@ fun TracksScreen(
     val openMenu =
         rememberTrackMenu(
             viewModel::onTrackAction,
-            onOpenQueue,
+            onOpenAlbum,
             onEditTags,
             viewModel::artistChoices,
             onOpenArtist,

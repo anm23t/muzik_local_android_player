@@ -67,6 +67,7 @@ fun QueueScreen(
     onBack: () -> Unit,
     onEditTags: (Long) -> Unit,
     onOpenArtist: (Long) -> Unit,
+    onOpenAlbum: (Long) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: PlayerViewModel = hiltViewModel(),
 ) {
@@ -84,7 +85,7 @@ fun QueueScreen(
         if (state.queue.isEmpty()) {
             Text(stringResource(R.string.queue_empty), Modifier.padding(24.dp))
         } else {
-            QueueList(state.queue, state.currentIndex, viewModel, onEditTags, onOpenArtist)
+            QueueList(state.queue, state.currentIndex, viewModel, onEditTags, onOpenArtist, onOpenAlbum)
         }
     }
 }
@@ -97,6 +98,7 @@ private fun QueueList(
     viewModel: PlayerViewModel,
     onEditTags: (Long) -> Unit,
     onOpenArtist: (Long) -> Unit,
+    onOpenAlbum: (Long) -> Unit,
 ) {
     val rowHeightPx = with(LocalDensity.current) { RowHeight.toPx() }
     var draggingIndex by remember { mutableIntStateOf(-1) }
@@ -111,13 +113,13 @@ private fun QueueList(
                 if (action == TrackAction.EditTags) onEditTags(track.id)
             },
             onDismiss = { menuTrack = null },
-            // The queue is already open.
-            actions = TrackAction.Default - TrackAction.OpenQueue,
             loadArtists = { viewModel.artistChoices(track.id) },
             onOpenArtist = onOpenArtist,
             addToPlaylist = remember(track.id) { viewModel.addToPlaylist(track.id) },
             marks = remember(track.id) { viewModel.trackMarks(track.id) },
             shareUri = track.uri,
+            albumId = track.albumId,
+            onOpenAlbum = onOpenAlbum,
         )
     }
 
