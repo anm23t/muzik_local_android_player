@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.muzzzlo.player.core.designsystem.component.AddToPlaylist
 import org.muzzzlo.player.core.designsystem.component.ArtistChoice
@@ -26,11 +27,14 @@ import org.muzzzlo.player.core.model.LibraryRepository
 import org.muzzzlo.player.core.model.PlayerController
 import org.muzzzlo.player.core.model.Playlist
 import org.muzzzlo.player.core.model.PlaylistEntry
+import org.muzzzlo.player.core.model.PlaylistImport
 import org.muzzzlo.player.core.model.PlaylistNames
 import org.muzzzlo.player.core.model.PlaylistOrder
 import org.muzzzlo.player.core.model.PlaylistRepository
+import org.muzzzlo.player.core.model.PlaylistTransfer
 import org.muzzzlo.player.core.model.Track
 import org.muzzzlo.player.core.model.TrackMarksRepository
+import java.io.IOException
 import javax.inject.Inject
 
 /** Navigation argument of the playlist card. */
@@ -50,28 +54,62 @@ data class AutoPlaylistSummary(
     val firstTrackId: Long?,
 )
 
+/** The result of an import or export of a playlist file, shown in a dialog until dismissed. */
+sealed interface PlaylistFileMessage {
+    data class Imported(
+        val result: PlaylistImport,
+    ) : PlaylistFileMessage
+
+    data object Exported : PlaylistFileMessage
+
+    /** The file could not be opened, read or written. */
+    data object FileError : PlaylistFileMessage
+}
+
+/** Runs a file operation; a file failure becomes [PlaylistFileMessage.FileError], anything else goes on up. */
+private suspend fun fileTask(action: suspend () -> PlaylistFileMessage): PlaylistFileMessage =
+    try {
+        action()
+    } catch (_: IOException) {
+        PlaylistFileMessage.FileError
+    } catch (_: SecurityException) {
+        PlaylistFileMessage.FileError
+    }
+
 /** What the list of playlists renders: the automatic playlists first, then the user's own. */
 data class PlaylistListUiState(
     val playlists: List<Playlist> = emptyList(),
     val auto: List<AutoPlaylistSummary> = emptyList(),
     val isLoaded: Boolean = false,
+    val busy: Boolean = false,
+    val message: PlaylistFileMessage? = null,
 )
 
-/** The list of playlists (button "Playlists" of the home screen) and the "New playlist" button. */
+/** A running import or export and its result. */
+private data class FileState(
+    val busy: Boolean = false,
+    val message: PlaylistFileMessage? = null,
+)
+
+/** The list of playlists (button "Playlists" of the home screen), "New playlist" and the import of M3U files. */
 @HiltViewModel
 class PlaylistListViewModel
     @Inject
     constructor(
         private val playlists: PlaylistRepository,
         autoPlaylists: AutoPlaylistRepository,
+        private val transfer: PlaylistTransfer,
     ) : ViewModel() {
+        private val file = MutableStateFlow(FileState())
+
         val state: StateFlow<PlaylistListUiState> =
             combine(
                 playlists.observePlaylists(),
                 combine(AutoPlaylist.entries.map { kind -> autoPlaylists.observeTracks(kind).map { kind to it } }) {
                     it.map { (kind, tracks) -> AutoPlaylistSummary(kind, tracks.size, tracks.firstOrNull()?.id) }
                 },
-            ) { user, auto -> PlaylistListUiState(user, auto, isLoaded = true) }
+                file,
+            ) { user, auto, file -> PlaylistListUiState(user, auto, isLoaded = true, file.busy, file.message) }
                 .stateIn(this, PlaylistListUiState())
 
         /** Creates an empty playlist; a blank name does nothing. */
@@ -79,6 +117,21 @@ class PlaylistListViewModel
             val clean = PlaylistNames.clean(name) ?: return
             viewModelScope.launch { playlists.create(clean) }
         }
+
+        /** The user picked an M3U file; [fallbackName] names the playlist when the file name gives none. */
+        fun onImport(
+            uri: String,
+            fallbackName: String,
+        ) {
+            if (file.value.busy) return
+            file.value = FileState(busy = true)
+            viewModelScope.launch {
+                val message = fileTask { PlaylistFileMessage.Imported(transfer.import(uri, fallbackName)) }
+                file.value = FileState(message = message)
+            }
+        }
+
+        fun onMessageDismissed() = file.update { it.copy(message = null) }
     }
 
 /** Navigation argument of the card of an automatic playlist: [AutoPlaylist.key]. */
@@ -175,11 +228,12 @@ data class PlaylistUiState(
     val entries: List<PlaylistEntry> = emptyList(),
     val currentTrackId: Long? = null,
     val isLoaded: Boolean = false,
+    val message: PlaylistFileMessage? = null,
 ) {
     val tracks: List<Track> get() = entries.map { it.track }
 }
 
-/** The playlist card: play, reorder, remove entries, rename and delete the playlist. */
+/** The playlist card: play, reorder, remove entries, rename, delete and export the playlist. */
 @HiltViewModel
 class PlaylistViewModel
     @Inject
@@ -188,6 +242,7 @@ class PlaylistViewModel
         private val library: LibraryRepository,
         private val player: PlayerController,
         private val marks: TrackMarksRepository,
+        private val transfer: PlaylistTransfer,
         savedState: SavedStateHandle,
     ) : ViewModel() {
         private val playlistId: Long = checkNotNull(savedState[PLAYLIST_ID_ARG])
@@ -195,14 +250,17 @@ class PlaylistViewModel
         /** Order shown while a move is being saved, so the row does not jump back for a frame. */
         private val pendingOrder = MutableStateFlow<List<Long>?>(null)
 
+        private val file = MutableStateFlow(FileState())
+
         val state: StateFlow<PlaylistUiState> =
             combine(
                 playlists.observePlaylist(playlistId),
                 playlists.observeEntries(playlistId),
                 pendingOrder,
                 player.state.map { it.currentTrack?.id }.distinctUntilChanged(),
-            ) { playlist, entries, pending, current ->
-                PlaylistUiState(playlist, ordered(entries, pending), current, isLoaded = true)
+                file,
+            ) { playlist, entries, pending, current, file ->
+                PlaylistUiState(playlist, ordered(entries, pending), current, isLoaded = true, file.message)
             }.stateIn(this, PlaylistUiState())
 
         /** The "Play" button: the whole playlist from the first track. */
@@ -258,6 +316,22 @@ class PlaylistViewModel
         fun onDelete() {
             viewModelScope.launch { playlists.delete(playlistId) }
         }
+
+        /** The user chose where to save the playlist as M3U8. */
+        fun onExport(uri: String) {
+            if (file.value.busy) return
+            file.value = FileState(busy = true)
+            viewModelScope.launch {
+                val message =
+                    fileTask {
+                        transfer.export(playlistId, uri)
+                        PlaylistFileMessage.Exported
+                    }
+                file.value = FileState(message = message)
+            }
+        }
+
+        fun onMessageDismissed() = file.update { it.copy(message = null) }
 
         /** Artists of the track for the track menu ("Go to artist"). */
         suspend fun artistChoices(trackId: Long): List<ArtistChoice> =

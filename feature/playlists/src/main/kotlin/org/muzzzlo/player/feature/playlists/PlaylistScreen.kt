@@ -1,5 +1,7 @@
 package org.muzzzlo.player.feature.playlists
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -53,7 +55,7 @@ import org.muzzzlo.player.core.designsystem.R as DesignR
 /**
  * Playlist card. Not in the mockup: the album card (4:311) with the cover of the first track, the name, the number
  * of tracks and "Play"; track rows (4:337, 4:361) with covers as in "Songs" and a drag handle; the pencil button
- * (as on the album card) opens "Rename" and "Delete playlist" (DESIGN.md, section 7).
+ * (as on the album card) opens "Rename", "Export M3U8" and "Delete playlist" (DESIGN.md, section 7).
  *
  * @param onOpenArtist opens the card of the artist with this id (track menu).
  * @param miniPlayer the mini player of `feature:player`, passed in by the app.
@@ -73,12 +75,18 @@ fun PlaylistScreen(
     var dialog by rememberSaveable { mutableStateOf(PlaylistDialog.None) }
     var menuEntry by remember { mutableStateOf<PlaylistEntry?>(null) }
     val playlist = state.playlist
+    val exportFile =
+        rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument(PLAYLIST_EXPORT_TYPE)) { uri ->
+            if (uri != null) viewModel.onExport(uri.toString())
+        }
+    state.message?.let { PlaylistFileDialog(it, viewModel::onMessageDismissed) }
     if (playlist != null) {
         PlaylistDialogs(
             dialog = dialog,
             playlist = playlist,
             onChange = { dialog = it },
             onRename = viewModel::onRename,
+            onExport = { exportFile.launch("${playlist.name}.m3u8") },
             onDelete = {
                 viewModel.onDelete()
                 onBack()
@@ -275,6 +283,7 @@ private fun PlaylistDialogs(
     playlist: Playlist,
     onChange: (PlaylistDialog) -> Unit,
     onRename: (String) -> Unit,
+    onExport: () -> Unit,
     onDelete: () -> Unit,
 ) {
     val close = { onChange(PlaylistDialog.None) }
@@ -286,6 +295,14 @@ private fun PlaylistDialogs(
                     icon = DesignR.drawable.ic_pencil,
                     text = stringResource(R.string.playlist_rename),
                     onClick = { onChange(PlaylistDialog.Rename) },
+                )
+                ActionRow(
+                    icon = DesignR.drawable.ic_upload,
+                    text = stringResource(R.string.playlist_export),
+                    onClick = {
+                        close()
+                        onExport()
+                    },
                 )
                 ActionRow(
                     icon = DesignR.drawable.ic_trash,

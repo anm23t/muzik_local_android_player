@@ -23,4 +23,26 @@
     <string name="playlist_empty">The playlist is empty. Add tracks with “Add to playlist” in the menu of a track.</string>
     <string name="playlist_not_found">This playlist is gone</string>
     <string name="playlist_reorder">Drag to move</string>
+    <string name="playlist_import">Import M3U playlist</string>
+    <string name="playlist_import_fallback_name">Imported playlist</string>
+    <string name="playlist_import_title">Playlist imported</string>
+    <string name="playlist_import_nothing">None of the tracks of this file are in the library, so no playlist was created.</string>
+    <plurals name="playlist_import_added">
+        <item quantity="one">The playlist “%1$s” was created with %2$d track.</item>
+        <item quantity="other">The playlist “%1$s” was created with %2$d tracks.</item>
+    </plurals>
+    <plurals name="playlist_import_unmatched">
+        <item quantity="one">%d entry was not found in the library:</item>
+        <item quantity="other">%d entries were not found in the library:</item>
+    </plurals>
+    <plurals name="playlist_import_more">
+        <item quantity="one">and %d more</item>
+        <item quantity="other">and %d more</item>
+    </plurals>
+    <string name="playlist_import_open">Open playlist</string>
+    <string name="playlist_export">Export M3U8</string>
+    <string name="playlist_export_title">Playlist exported</string>
+    <string name="playlist_export_done">The playlist was saved as an M3U8 file.</string>
+    <string name="playlist_file_error_title">File error</string>
+    <string name="playlist_file_error">The file could not be opened or written. Try another file or folder.</string>
 </resources>

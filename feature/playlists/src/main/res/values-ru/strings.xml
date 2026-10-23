@@ -25,4 +25,32 @@
     <string name="playlist_empty">Плейлист пуст. Добавляйте треки пунктом «Добавить в плейлист» в меню трека.</string>
     <string name="playlist_not_found">Этого плейлиста больше нет</string>
     <string name="playlist_reorder">Перетащите, чтобы переместить</string>
+    <string name="playlist_import">Импорт плейлиста M3U</string>
+    <string name="playlist_import_fallback_name">Импортированный плейлист</string>
+    <string name="playlist_import_title">Плейлист импортирован</string>
+    <string name="playlist_import_nothing">Ни одного трека из этого файла нет в библиотеке, поэтому плейлист не создан.</string>
+    <plurals name="playlist_import_added">
+        <item quantity="one">Создан плейлист «%1$s», %2$d трек.</item>
+        <item quantity="few">Создан плейлист «%1$s», %2$d трека.</item>
+        <item quantity="many">Создан плейлист «%1$s», %2$d треков.</item>
+        <item quantity="other">Создан плейлист «%1$s», %2$d трека.</item>
+    </plurals>
+    <plurals name="playlist_import_unmatched">
+        <item quantity="one">%d запись не найдена в библиотеке:</item>
+        <item quantity="few">%d записи не найдены в библиотеке:</item>
+        <item quantity="many">%d записей не найдено в библиотеке:</item>
+        <item quantity="other">%d записи не найдены в библиотеке:</item>
+    </plurals>
+    <plurals name="playlist_import_more">
+        <item quantity="one">и ещё %d</item>
+        <item quantity="few">и ещё %d</item>
+        <item quantity="many">и ещё %d</item>
+        <item quantity="other">и ещё %d</item>
+    </plurals>
+    <string name="playlist_import_open">Открыть плейлист</string>
+    <string name="playlist_export">Экспорт в M3U8</string>
+    <string name="playlist_export_title">Плейлист экспортирован</string>
+    <string name="playlist_export_done">Плейлист сохранён в файл M3U8.</string>
+    <string name="playlist_file_error_title">Ошибка файла</string>
+    <string name="playlist_file_error">Файл не удалось открыть или записать. Попробуйте другой файл или папку.</string>
 </resources>

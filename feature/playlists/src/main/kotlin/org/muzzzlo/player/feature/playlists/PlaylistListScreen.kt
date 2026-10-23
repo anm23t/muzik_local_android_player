@@ -1,5 +1,7 @@
 package org.muzzzlo.player.feature.playlists
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -29,7 +31,8 @@ import org.muzzzlo.player.core.designsystem.R as DesignR
 /**
  * List of playlists. Not in the mockup: the album list (15:3, 25:555) with the playlist name, its number of tracks
  * and the cover of its first track; the plus button in the header (15:114) creates a playlist (DESIGN.md, section 7).
- * "Favorites" and "Top songs" are the first two rows, built like the others.
+ * "Favorites" and "Top songs" are the first two rows, built like the others. The download button left of the plus
+ * imports an M3U or M3U8 file chosen with the system picker (task 1.2.5).
  *
  * @param miniPlayer the mini player of `feature:player`, passed in by the app.
  */
@@ -44,6 +47,12 @@ fun PlaylistListScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     var creating by rememberSaveable { mutableStateOf(false) }
+    val fallbackName = stringResource(R.string.playlist_import_fallback_name)
+    val importFile =
+        rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+            if (uri != null) viewModel.onImport(uri.toString(), fallbackName)
+        }
+    state.message?.let { PlaylistFileDialog(it, viewModel::onMessageDismissed, onOpenPlaylist) }
     if (creating) {
         PlaylistNameDialog(
             title = stringResource(DesignR.string.playlist_new),
@@ -54,6 +63,11 @@ fun PlaylistListScreen(
     }
     ScreenFrame(modifier) {
         ScreenHeader(onBack) {
+            RoundIconButton(
+                icon = DesignR.drawable.ic_download,
+                contentDescription = stringResource(R.string.playlist_import),
+                onClick = { if (!state.busy) importFile.launch(PLAYLIST_FILE_TYPES) },
+            )
             RoundIconButton(
                 icon = DesignR.drawable.ic_plus,
                 contentDescription = stringResource(DesignR.string.playlist_new),

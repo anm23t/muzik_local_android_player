@@ -29,6 +29,7 @@ class PlaylistViewModelsTest {
     private val playlists = FakePlaylists(listOf(a, b, c).associateBy { it.id })
     private val autoPlaylists = FakeAutoPlaylists()
     private val player = FakePlayerController()
+    private val transfer = FakePlaylistTransfer()
 
     @BeforeEach
     fun setUp() = Dispatchers.setMain(UnconfinedTestDispatcher())
@@ -38,7 +39,7 @@ class PlaylistViewModelsTest {
 
     private fun TestScope.card(playlistId: Long): PlaylistViewModel {
         val savedState = SavedStateHandle(mapOf(PLAYLIST_ID_ARG to playlistId))
-        val viewModel = PlaylistViewModel(playlists, FakeLibrary(), player, FakeTrackMarks(), savedState)
+        val viewModel = PlaylistViewModel(playlists, FakeLibrary(), player, FakeTrackMarks(), transfer, savedState)
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.state.collect {} }
         return viewModel
     }
@@ -49,7 +50,7 @@ class PlaylistViewModelsTest {
     @Test
     fun `the list shows playlists and creates one with a clean name`() =
         runTest {
-            val viewModel = PlaylistListViewModel(playlists, autoPlaylists)
+            val viewModel = PlaylistListViewModel(playlists, autoPlaylists, transfer)
             backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.state.collect {} }
 
             viewModel.onCreate("  Road \n trip ")
@@ -71,7 +72,7 @@ class PlaylistViewModelsTest {
     fun `the list puts the automatic playlists first with their size and first cover`() =
         runTest {
             autoPlaylists.tracks.value = mapOf(AutoPlaylist.Favorites to listOf(c, a))
-            val viewModel = PlaylistListViewModel(playlists, autoPlaylists)
+            val viewModel = PlaylistListViewModel(playlists, autoPlaylists, transfer)
             backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.state.collect {} }
 
             assertEquals(
@@ -223,5 +224,55 @@ class PlaylistViewModelsTest {
 
             assertEquals(listOf(a, a), viewModel.state.value.tracks)
             assertEquals(listOf("Mix", "Other"), playlists.playlists.value.map { it.name })
+        }
+
+    @Test
+    fun `import shows its result until dismissed`() =
+        runTest {
+            val viewModel = PlaylistListViewModel(playlists, autoPlaylists, transfer)
+            backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.state.collect {} }
+
+            viewModel.onImport("content://doc/1", "Playlist")
+
+            assertEquals(listOf("content://doc/1" to "Playlist"), transfer.imports)
+            assertEquals(PlaylistFileMessage.Imported(transfer.importResult), viewModel.state.value.message)
+            viewModel.onMessageDismissed()
+            assertNull(viewModel.state.value.message)
+        }
+
+    @Test
+    fun `unreadable import file becomes a file error`() =
+        runTest {
+            transfer.failing = true
+            val viewModel = PlaylistListViewModel(playlists, autoPlaylists, transfer)
+            backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.state.collect {} }
+
+            viewModel.onImport("content://doc/1", "Playlist")
+
+            assertEquals(PlaylistFileMessage.FileError, viewModel.state.value.message)
+            assertEquals(false, viewModel.state.value.busy)
+        }
+
+    @Test
+    fun `export writes this playlist and reports it`() =
+        runTest {
+            val id = mix(a, b)
+            val viewModel = card(id)
+
+            viewModel.onExport("content://doc/out")
+
+            assertEquals(listOf(id to "content://doc/out"), transfer.exports)
+            assertEquals(PlaylistFileMessage.Exported, viewModel.state.value.message)
+        }
+
+    @Test
+    fun `export without access becomes a file error`() =
+        runTest {
+            transfer.failing = true
+            val viewModel = card(mix(a))
+
+            viewModel.onExport("content://doc/out")
+
+            assertEquals(PlaylistFileMessage.FileError, viewModel.state.value.message)
         }
 }
