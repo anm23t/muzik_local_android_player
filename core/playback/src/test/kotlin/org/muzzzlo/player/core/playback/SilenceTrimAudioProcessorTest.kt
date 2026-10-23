@@ -122,11 +122,14 @@ class SilenceTrimAudioProcessorTest {
     @Test
     fun `the chain reports the dropped frames to the sink`() {
         val trim = track(enabled = true)
-        val chain = TrimChain(trim, ReplayGainAudioProcessor())
+        val chain = TrimChain(trim, ReplayGainAudioProcessor(), EqualizerAudioProcessor())
         trim.process16(0, 0, 500)
 
         assertEquals(2, chain.skippedOutputFrameCount)
-        assertEquals(listOf(trim::class, ReplayGainAudioProcessor::class), chain.audioProcessors.map { it::class })
+        assertEquals(
+            listOf(trim::class, ReplayGainAudioProcessor::class, EqualizerAudioProcessor::class),
+            chain.audioProcessors.map { it::class },
+        )
     }
 
     private fun track(

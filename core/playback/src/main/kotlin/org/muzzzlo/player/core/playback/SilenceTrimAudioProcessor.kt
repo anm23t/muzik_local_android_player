@@ -157,15 +157,16 @@ internal class SilenceTrimAudioProcessor : BaseAudioProcessor() {
 }
 
 /**
- * The processors of the audio sink in the order they run: silence trimming, then ReplayGain. Playback speed is not
+ * The processors of the audio sink in the order they run: silence trimming, ReplayGain, the equalizer. Speed is not
  * supported. The sink adds the frames dropped by [trim] to the playback position.
  */
 @UnstableApi
 internal class TrimChain(
     private val trim: SilenceTrimAudioProcessor,
     private val replayGain: ReplayGainAudioProcessor,
+    private val equalizer: EqualizerAudioProcessor,
 ) : DefaultAudioSink.AudioProcessorChain {
-    override fun getAudioProcessors(): Array<AudioProcessor> = arrayOf(trim, replayGain)
+    override fun getAudioProcessors(): Array<AudioProcessor> = arrayOf(trim, replayGain, equalizer)
 
     override fun applyPlaybackParameters(playbackParameters: PlaybackParameters): PlaybackParameters =
         PlaybackParameters.DEFAULT

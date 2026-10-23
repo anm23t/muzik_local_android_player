@@ -48,6 +48,7 @@ internal fun Format.withReplayGain(stream: ReplayGainStream): Format =
  *   tracks are its neighbours for [org.muzzzlo.player.core.model.ReplayGainMode.AUTO].
  * - silence: [silenceTrim] drops the silence at the start and the end of a track; the sink adds the dropped frames to
  *   its position ([TrimChain]).
+ * - equalizer: [equalizer] runs after ReplayGain, with the same clip protection setting.
  * - ALAC: decoded by [AlacAudioRenderer] (bundled Apple decoder) instead of MediaCodec, with the same gapless and
  *   ReplayGain handling.
  */
@@ -64,6 +65,9 @@ internal class AudioRenderersFactory(
     /** Drops the silence at the start and the end of each track while enabled. */
     val silenceTrim = SilenceTrimAudioProcessor()
 
+    /** The 10-band equalizer; neutral until the settings turn it on. */
+    val equalizer = EqualizerAudioProcessor(clipProtection = replayGainSettings.clipProtection)
+
     override fun buildAudioSink(
         context: Context,
         enableFloatOutput: Boolean,
@@ -73,7 +77,7 @@ internal class AudioRenderersFactory(
             DefaultAudioSink.Builder(context)
                 .setEnableFloatOutput(enableFloatOutput)
                 .setEnableAudioTrackPlaybackParams(enableAudioTrackPlaybackParams)
-                .setAudioProcessorChain(TrimChain(silenceTrim, replayGain))
+                .setAudioProcessorChain(TrimChain(silenceTrim, replayGain, equalizer))
                 .build(),
             replayGain,
             silenceTrim,

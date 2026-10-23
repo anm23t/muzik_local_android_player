@@ -48,6 +48,19 @@ class PlaybackService : MediaSessionService() {
         // One quick DataStore read so the very first track already follows the settings.
         val initial = runBlocking { settings.settings.first() }
         val renderers = List(DECKS) { AudioRenderersFactory(this, initial.gapless, initial.replayGain) }
+        renderers.forEach { it.equalizer.settings = initial.equalizer }
+        scope.launch {
+            // Both decks play through their own equalizer, so a crossfade keeps the same sound.
+            settings.settings
+                .map { it.equalizer to it.replayGain.clipProtection }
+                .distinctUntilChanged()
+                .collect { (equalizer, clipProtection) ->
+                    renderers.forEach {
+                        it.equalizer.settings = equalizer
+                        it.equalizer.clipProtection = clipProtection
+                    }
+                }
+        }
         scope.launch {
             settings.settings.map { it.gapless }.distinctUntilChanged().collect { gapless ->
                 renderers.forEach { it.gapless = gapless }
