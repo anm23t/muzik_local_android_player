@@ -276,6 +276,7 @@ class DefaultBackupRepository
             settings.setPlaybackBehavior(incoming.playbackBehavior)
             settings.setStats(incoming.stats)
             settings.setTheme(incoming.theme)
+            settings.setWaveform(incoming.waveform)
         }
 
         private fun tagValues(track: TrackIdentity) = stringList(track.artistTagValues)

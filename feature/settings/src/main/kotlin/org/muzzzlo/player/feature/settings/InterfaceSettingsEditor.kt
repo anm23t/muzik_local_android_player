@@ -15,4 +15,6 @@ class InterfaceSettingsEditor(
         closeDialog()
         save { setTheme(theme) }
     }
+
+    fun onWaveformChanged(enabled: Boolean) = save { setWaveform(enabled) }
 }

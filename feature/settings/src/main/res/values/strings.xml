@@ -134,4 +134,6 @@
     <string name="settings_theme_window_hint">Screens in a rounded frame with borders</string>
     <string name="settings_theme_huge">Huge</string>
     <string name="settings_theme_huge_hint">No frame and no borders, content close to the screen edges</string>
+    <string name="settings_waveform">Waveform</string>
+    <string name="settings_waveform_hint">The player shows the shape of the track instead of a plain progress bar. Each track is analysed once.</string>
 </resources>

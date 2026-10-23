@@ -36,6 +36,7 @@ enum class InterfaceTheme {
  * @property playbackBehavior audio focus, headset and silence handling.
  * @property stats the listen threshold and the private mode of the statistics.
  * @property theme framing of the screens.
+ * @property waveform the big player shows the waveform of the track instead of the plain progress bar.
  */
 data class AppSettings(
     val excludedFolders: Set<String> = emptySet(),
@@ -50,6 +51,7 @@ data class AppSettings(
     val playbackBehavior: PlaybackBehaviorSettings = PlaybackBehaviorSettings(),
     val stats: StatsSettings = StatsSettings(),
     val theme: InterfaceTheme = InterfaceTheme.WINDOW,
+    val waveform: Boolean = true,
 ) {
     companion object {
         const val DEFAULT_MIN_TRACK_SECONDS = 30
@@ -96,4 +98,6 @@ interface SettingsRepository {
     suspend fun setStats(settings: StatsSettings)
 
     suspend fun setTheme(theme: InterfaceTheme)
+
+    suspend fun setWaveform(enabled: Boolean)
 }

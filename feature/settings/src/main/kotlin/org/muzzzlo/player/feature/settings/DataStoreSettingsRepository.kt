@@ -115,6 +115,10 @@ class DataStoreSettingsRepository
             store.edit { it[THEME] = theme.name }
         }
 
+        override suspend fun setWaveform(enabled: Boolean) {
+            store.edit { it[WAVEFORM] = enabled }
+        }
+
         internal companion object {
             val EXCLUDED_FOLDERS = stringSetPreferencesKey("excluded_folders")
             val MIN_TRACK_SECONDS = intPreferencesKey("min_track_seconds")
@@ -136,6 +140,7 @@ class DataStoreSettingsRepository
             val STATS_THRESHOLD_MINUTES = intPreferencesKey("stats_threshold_minutes")
             val STATS_PRIVATE_MODE = booleanPreferencesKey("stats_private_mode")
             val THEME = stringPreferencesKey("theme")
+            val WAVEFORM = booleanPreferencesKey("waveform")
 
             fun toSettings(preferences: Preferences): AppSettings {
                 val defaults = AppSettings()
@@ -166,6 +171,7 @@ class DataStoreSettingsRepository
                             privateMode = preferences[STATS_PRIVATE_MODE] ?: defaults.stats.privateMode,
                         ).clamped(),
                     theme = InterfaceTheme.entries.firstOrNull { it.name == preferences[THEME] } ?: defaults.theme,
+                    waveform = preferences[WAVEFORM] ?: defaults.waveform,
                 )
             }
 

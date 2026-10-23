@@ -374,6 +374,8 @@ private class FakeSettings : SettingsRepository {
 
     override suspend fun setPlaybackBehavior(settings: PlaybackBehaviorSettings) = Unit
 
+    override suspend fun setWaveform(enabled: Boolean) = Unit
+
     override suspend fun setTheme(theme: InterfaceTheme) = Unit
 
     override suspend fun setStats(settings: StatsSettings) = Unit

@@ -65,6 +65,7 @@ class DataStoreSettingsRepositoryTest {
             val stats = StatsSettings(thresholdPercent = 70, thresholdMinutes = 2, privateMode = true)
             repository.setStats(stats)
             repository.setTheme(InterfaceTheme.HUGE)
+            repository.setWaveform(false)
 
             val expected =
                 AppSettings(
@@ -80,6 +81,7 @@ class DataStoreSettingsRepositoryTest {
                     playbackBehavior = behavior,
                     stats = stats,
                     theme = InterfaceTheme.HUGE,
+                    waveform = false,
                 )
             assertEquals(expected, repository.settings.first())
         }

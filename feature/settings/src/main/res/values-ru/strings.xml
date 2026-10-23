@@ -138,4 +138,6 @@
     <string name="settings_theme_window_hint">Экраны в скруглённой рамке с границами</string>
     <string name="settings_theme_huge">Huge</string>
     <string name="settings_theme_huge_hint">Без рамки и границ, содержимое ближе к краям экрана</string>
+    <string name="settings_waveform">Волна</string>
+    <string name="settings_waveform_hint">Плеер показывает форму трека вместо простой полосы. Каждый трек разбирается один раз.</string>
 </resources>

@@ -35,6 +35,7 @@ internal object BackupSettingsJson {
             "statsThresholdMinutes" to s.stats.thresholdMinutes,
             "statsPrivateMode" to s.stats.privateMode,
             "theme" to s.theme.name,
+            "waveform" to s.waveform,
         )
 
     /** A missing, unknown or out of range value reads as the default, like the settings repository does. */
@@ -66,6 +67,7 @@ internal object BackupSettingsJson {
                     privateMode = m["statsPrivateMode"] as? Boolean ?: d.stats.privateMode,
                 ).clamped(),
             theme = enumOf(m["theme"], d.theme),
+            waveform = m["waveform"] as? Boolean ?: d.waveform,
         )
     }
 

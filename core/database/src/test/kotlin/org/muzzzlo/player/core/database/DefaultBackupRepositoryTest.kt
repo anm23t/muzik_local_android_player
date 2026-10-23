@@ -325,6 +325,10 @@ class DefaultBackupRepositoryTest {
             state.value = state.value.copy(playbackBehavior = settings)
         }
 
+        override suspend fun setWaveform(enabled: Boolean) {
+            state.value = state.value.copy(waveform = enabled)
+        }
+
         override suspend fun setTheme(theme: InterfaceTheme) {
             state.value = state.value.copy(theme = theme)
         }

@@ -19,6 +19,7 @@ class BackupJsonTest {
                     playbackBehavior = PlaybackBehaviorSettings(transientFocus = TransientFocusAction.PAUSE),
                     stats = StatsSettings(thresholdPercent = 30, thresholdMinutes = 2, privateMode = true),
                     theme = InterfaceTheme.HUGE,
+                    waveform = false,
                 ),
             aliases = listOf(BackupAlias("tyler", "Tyler", "Tyler, The Creator")),
             compounds =

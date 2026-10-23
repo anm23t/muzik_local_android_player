@@ -116,6 +116,12 @@ fun SettingsScreen(
             )
             ThemeRow(settings.theme) { viewModel.onDialogRequested(SettingsDialog.Theme) }
             SwitchRow(
+                text = stringResource(R.string.settings_waveform),
+                checked = settings.waveform,
+                onCheckedChange = viewModel.ui::onWaveformChanged,
+                secondary = stringResource(R.string.settings_waveform_hint),
+            )
+            SwitchRow(
                 text = stringResource(R.string.settings_dynamic_accent),
                 checked = settings.dynamicAccent,
                 onCheckedChange = viewModel::onDynamicAccentChanged,

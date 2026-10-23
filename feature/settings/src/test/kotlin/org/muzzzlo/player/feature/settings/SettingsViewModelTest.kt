@@ -71,6 +71,13 @@ class SettingsViewModelTest {
     }
 
     @Test
+    fun `the waveform switch saves the setting`() {
+        viewModel.ui.onWaveformChanged(false)
+
+        assertEquals(false, settings.state.value.waveform)
+    }
+
+    @Test
     fun `quick steps build on each other and the dialog stays open`() {
         settings.saveOnly = false
         viewModel.onDialogRequested(SettingsDialog.Preamp)
@@ -191,6 +198,10 @@ class SettingsViewModelTest {
 
         override suspend fun setPlaybackBehavior(settings: PlaybackBehaviorSettings) {
             state.value = state.value.copy(playbackBehavior = settings)
+        }
+
+        override suspend fun setWaveform(enabled: Boolean) {
+            state.value = state.value.copy(waveform = enabled)
         }
 
         override suspend fun setTheme(theme: InterfaceTheme) {
