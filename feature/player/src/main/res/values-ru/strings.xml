@@ -20,4 +20,15 @@
     <string name="player_problem_missing">Файл не найден или не открывается</string>
     <string name="player_problem_unsupported">Этот формат не поддерживается на устройстве</string>
     <string name="player_problem_other">Этот трек не удаётся воспроизвести</string>
+    <string name="sleep_timer_off">Выключить таймер</string>
+    <string name="sleep_timer_end_of_track">До конца трека</string>
+    <string name="sleep_timer_end_short">до конца трека</string>
+    <string name="sleep_timer_running">Пауза через %1$s.</string>
+    <string name="sleep_timer_running_end_of_track">Пауза в конце текущего трека.</string>
+    <plurals name="sleep_timer_minutes">
+        <item quantity="one">%d минута</item>
+        <item quantity="few">%d минуты</item>
+        <item quantity="many">%d минут</item>
+        <item quantity="other">%d минуты</item>
+    </plurals>
 </resources>

@@ -75,9 +75,12 @@ fun PlayerScreen(
     modifier: Modifier = Modifier,
     viewModel: PlayerViewModel = hiltViewModel(),
     waveformViewModel: WaveformViewModel = hiltViewModel(),
+    sleepTimerViewModel: SleepTimerViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val peaks by waveformViewModel.peaks.collectAsStateWithLifecycle()
+    val sleepTimer by sleepTimerViewModel.state.collectAsStateWithLifecycle()
+    var sleepDialogOpen by remember { mutableStateOf(false) }
     val track = state.currentTrack
     var menuOpen by remember { mutableStateOf(false) }
     val coverSwipe = rememberCoverSwipe(viewModel) { state }
@@ -119,7 +122,12 @@ fun PlayerScreen(
                 cover = { CoverImage(track?.let { CoverSource.Track(it.id) }, it, MuzzzloDimens.MiniPlayerShape) },
             )
         }
-        Spacer(Modifier.height(MuzzzloDimens.RowGap))
+        val timer = sleepTimer
+        if (timer == null) {
+            Spacer(Modifier.height(MuzzzloDimens.RowGap))
+        } else {
+            SleepTimerBadge(timer, onClick = { sleepDialogOpen = true }, Modifier.align(Alignment.CenterHorizontally))
+        }
         TrackTitle(state, viewModel::artistChoices, onOpenArtist)
         Spacer(Modifier.height(MuzzzloDimens.ContentGap))
         Progress(state, peaks, viewModel::onSeek)
@@ -127,6 +135,15 @@ fun PlayerScreen(
         Controls(state, viewModel)
         Spacer(Modifier.height(MuzzzloDimens.FrameInnerPadding))
         BottomNav(playerNavItems(onOpenArtists, onOpenAlbums, onOpenQueue, onHome))
+    }
+    if (sleepDialogOpen) {
+        SleepTimerDialog(
+            timer = sleepTimer,
+            onMinutes = sleepTimerViewModel::onMinutesChosen,
+            onEndOfTrack = sleepTimerViewModel::onEndOfTrackChosen,
+            onCancel = sleepTimerViewModel::onCancel,
+            onDismiss = { sleepDialogOpen = false },
+        )
     }
     if (menuOpen && track != null) {
         TrackActionsMenu(
@@ -137,10 +154,12 @@ fun PlayerScreen(
                 when (action) {
                     TrackAction.OpenQueue -> onOpenQueue()
                     TrackAction.EditTags -> onEditTags(track.id)
+                    TrackAction.SleepTimer -> sleepDialogOpen = true
                     else -> Unit
                 }
             },
             onDismiss = { menuOpen = false },
+            actions = TrackAction.Player,
             loadArtists = { viewModel.artistChoices(track.id) },
             onOpenArtist = onOpenArtist,
             addToPlaylist = remember(track.id) { viewModel.addToPlaylist(track.id) },

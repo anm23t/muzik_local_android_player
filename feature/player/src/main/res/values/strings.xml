@@ -20,4 +20,13 @@
     <string name="player_problem_missing">This file is missing or cannot be opened</string>
     <string name="player_problem_unsupported">This format is not supported on this device</string>
     <string name="player_problem_other">This track cannot be played</string>
+    <string name="sleep_timer_off">Turn off timer</string>
+    <string name="sleep_timer_end_of_track">End of current track</string>
+    <string name="sleep_timer_end_short">end of track</string>
+    <string name="sleep_timer_running">Playback pauses in %1$s.</string>
+    <string name="sleep_timer_running_end_of_track">Playback pauses at the end of the current track.</string>
+    <plurals name="sleep_timer_minutes">
+        <item quantity="one">%d minute</item>
+        <item quantity="other">%d minutes</item>
+    </plurals>
 </resources>
