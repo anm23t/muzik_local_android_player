@@ -48,6 +48,9 @@ object MuzzzloDimens {
     val WaveformHeight = 32.dp
     val WaveformBarWidth = 3.dp
     val WaveformBarGap = 2.dp
+
+    // Band of the equalizer (task 1.2.8, no mockup): the track is as thick as the player progress bar.
+    val BandSliderHeight = 160.dp
     val BorderWidth = 1.dp
     val PrimaryButtonGlow = 12.dp
     val DialogShadowBlur = 48.dp
