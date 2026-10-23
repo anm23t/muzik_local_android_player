@@ -3,13 +3,16 @@ package org.muzzzlo.player.feature.stats
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
 import org.muzzzlo.player.core.designsystem.component.AlbumRow
+import org.muzzzlo.player.core.designsystem.component.ArtistPhoto
 import org.muzzzlo.player.core.designsystem.component.ArtistRow
 import org.muzzzlo.player.core.designsystem.component.CoverImage
 import org.muzzzlo.player.core.designsystem.component.CoverSource
 import org.muzzzlo.player.core.designsystem.component.TrackRow
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloColors
+import org.muzzzlo.player.core.designsystem.theme.MuzzzloDimens
 import org.muzzzlo.player.core.model.TopAlbum
 import org.muzzzlo.player.core.model.TopArtist
 import org.muzzzlo.player.core.model.TopTrack
@@ -62,5 +65,9 @@ internal fun TopArtistRow(
     ArtistRow(
         name = "${artist.name} · ${playsText(artist.plays)}",
         onClick = { onOpenArtist(artist.artistId, artist.name) },
+        photo =
+            artist.photoPath?.let { path ->
+                @Composable { photoModifier: Modifier -> ArtistPhoto(path, MuzzzloDimens.ArtistPhoto, photoModifier) }
+            },
     )
 }

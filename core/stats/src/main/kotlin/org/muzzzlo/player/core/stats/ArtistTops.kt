@@ -41,7 +41,7 @@ internal fun mergeTopArtists(
         val known = byKey[key]
         byKey[key] =
             if (known == null) {
-                TopArtist(row.artistId, row.name, row.plays, row.playedMs)
+                TopArtist(row.artistId, row.name, row.plays, row.playedMs, row.photoPath)
             } else {
                 known.copy(plays = known.plays + row.plays, playedMs = known.playedMs + row.playedMs)
             }

@@ -37,10 +37,12 @@ class ListenEventDaoStatsTest {
     @After
     fun tearDown() = db.close()
 
-    private suspend fun artist(name: String) =
-        library.insertArtist(
-            ArtistEntity(name = name, nameKey = name.lowercase()),
-        )
+    private suspend fun artist(
+        name: String,
+        photo: String? = null,
+    ) = library.insertArtist(
+        ArtistEntity(name = name, nameKey = name.lowercase(), photoUri = photo),
+    )
 
     private suspend fun track(
         title: String,
@@ -188,6 +190,16 @@ class ListenEventDaoStatsTest {
             listen(solo, 2)
             val plays = dao.observeArtistPlays(all.first, all.second).first().associate { it.name to it.plays }
             assertEquals(mapOf("X" to 2, "Y" to 1), plays)
+        }
+
+    @Test
+    fun artistPlaysCarryThePhotoOfTheArtistCard() =
+        runBlocking {
+            val x = artist("X", photo = "/files/x.jpg")
+            val y = artist("Y")
+            listen(track("duet", null, x, y), 1)
+            val photos = dao.observeArtistPlays(all.first, all.second).first().associate { it.name to it.photoPath }
+            assertEquals(mapOf("X" to "/files/x.jpg", "Y" to null), photos)
         }
 
     @Test

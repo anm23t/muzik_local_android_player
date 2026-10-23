@@ -85,7 +85,8 @@ interface ListenEventDao {
     /** Counted listens per artist: a listen goes to every artist of the track (`track_artist`). */
     @Query(
         """
-        SELECT ar.id AS artistId, ar.name AS name, COUNT(*) AS plays, SUM(e.played_ms) AS playedMs
+        SELECT ar.id AS artistId, ar.name AS name, COUNT(*) AS plays, SUM(e.played_ms) AS playedMs,
+            ar.photo_uri AS photoPath
         FROM listen_event e
         JOIN track_artist ta ON ta.track_id = e.track_id
         JOIN artist ar ON ar.id = ta.artist_id
@@ -187,6 +188,8 @@ data class ArtistPlaysRow(
     val name: String,
     val plays: Int,
     val playedMs: Long,
+    /** The photo the user gave the artist (`artist.photo_uri`), null without one. */
+    val photoPath: String? = null,
 )
 
 data class OrphanPlayRow(

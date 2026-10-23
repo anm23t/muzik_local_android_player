@@ -36,6 +36,16 @@ class ArtistTopsTest {
     }
 
     @Test
+    fun theLibraryArtistKeepsItsPhotoWhenOrphansJoinIt() {
+        val linked = listOf(ArtistPlaysRow(1, "Daft Punk", 2, 200, "/files/dp.jpg"))
+        val orphans = listOf(OrphanPlayRow("[\"daft punk\"]", 50))
+
+        val top = mergeTopArtists(linked, orphans, 5)
+
+        assertEquals(listOf(TopArtist(1, "Daft Punk", 3, 250, "/files/dp.jpg")), top)
+    }
+
+    @Test
     fun repeatedNameInOneSnapshotCountsOnce() {
         val top = mergeTopArtists(emptyList(), listOf(OrphanPlayRow("[\"A\",\"a\"]", 10)), 5)
         assertEquals(listOf(TopArtist(null, "A", 1, 10)), top)

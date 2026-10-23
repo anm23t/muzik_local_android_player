@@ -28,12 +28,15 @@ data class TopAlbum(
 /**
  * An artist in a top. Every artist of a track gets the listen, so "A; B" counts for A and for B and never as a
  * separate "A; B" row. [artistId] is null when the artist exists only in snapshots of deleted tracks.
+ *
+ * @property photoPath the photo of the artist card; null without one and for artists of deleted tracks only.
  */
 data class TopArtist(
     val artistId: Long?,
     val name: String,
     val plays: Int,
     val playedMs: Long,
+    val photoPath: String? = null,
 )
 
 /** Totals of a period. A skipped listen is not counted ([ListenEvent.skipped]), so the two numbers do not overlap. */
