@@ -1,6 +1,7 @@
 package org.muzzzlo.player.feature.player
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -48,16 +49,17 @@ import org.muzzzlo.player.core.designsystem.component.CoverImage
 import org.muzzzlo.player.core.designsystem.component.CoverSource
 import org.muzzzlo.player.core.designsystem.component.TrackAction
 import org.muzzzlo.player.core.designsystem.component.TrackActionsMenu
-import org.muzzzlo.player.core.designsystem.component.TrackMenuButton
 import org.muzzzlo.player.core.designsystem.gesture.dragTargetIndex
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloDimens
 import org.muzzzlo.player.core.model.Track
+import org.muzzzlo.player.core.designsystem.R as DesignR
 
 private val RowHeight = 64.dp
 
 /**
- * Playback queue: tap to jump, drag the handle to reorder, cross to remove. Every track shows its own cover on the
- * left, as in the "Songs" lists: a queue mixes albums (task 1.1.3).
+ * Playback queue: tap to jump, long press for the track menu (no "more" button, to keep the row free; task 1.2.3),
+ * drag the handle to reorder, cross to remove. Every track shows its own cover on the left, as in the "Songs" lists:
+ * a queue mixes albums (task 1.1.3).
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -87,6 +89,7 @@ fun QueueScreen(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun QueueList(
     queue: List<Track>,
@@ -128,7 +131,11 @@ private fun QueueList(
                         .fillMaxWidth()
                         .height(RowHeight)
                         .graphicsLayer { translationY = if (isDragged) dragOffset else 0f }
-                        .clickable { viewModel.onQueueItemClicked(index) },
+                        .combinedClickable(
+                            onLongClickLabel = stringResource(DesignR.string.designsystem_track_menu),
+                            onLongClick = { menuTrack = track },
+                            onClick = { viewModel.onQueueItemClicked(index) },
+                        ),
             ) {
                 Row(Modifier.padding(start = 16.dp), verticalAlignment = Alignment.CenterVertically) {
                     CoverImage(
@@ -145,7 +152,6 @@ private fun QueueList(
                             overflow = TextOverflow.Ellipsis,
                         )
                     }
-                    TrackMenuButton(onClick = { menuTrack = track })
                     IconButton({ viewModel.onQueueItemRemoved(index) }) {
                         Icon(Icons.Filled.Close, stringResource(R.string.queue_remove))
                     }
