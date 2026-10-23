@@ -6,7 +6,9 @@ import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import org.muzzzlo.player.core.model.PlayerController
+import org.muzzzlo.player.core.model.SleepTimer
 import org.muzzzlo.player.core.model.WaveformRepository
+import org.muzzzlo.player.core.playback.DefaultSleepTimer
 import org.muzzzlo.player.core.playback.DefaultWaveformRepository
 import org.muzzzlo.player.core.playback.MediaControllerPlayer
 import javax.inject.Singleton
@@ -21,4 +23,8 @@ internal abstract class PlaybackModule {
     @UnstableApi
     @Binds
     abstract fun waveforms(impl: DefaultWaveformRepository): WaveformRepository
+
+    @Binds
+    @Singleton
+    abstract fun sleepTimer(impl: DefaultSleepTimer): SleepTimer
 }

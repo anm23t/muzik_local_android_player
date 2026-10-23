@@ -59,6 +59,22 @@ internal class CrossfadePlayer(
 
     private val fadeTick = Runnable { onFadeTick() }
 
+    /** Share of the volume left by the fade of the sleep timer ([SleepTimerDriver]); 1 when no timer fades. */
+    var sleepVolume: Float = 1f
+        set(value) {
+            field = value.coerceIn(0f, 1f)
+            applyVolumes()
+        }
+
+    /**
+     * Where the current track stops being heard alone, in ms from its start: the start of its planned crossfade,
+     * otherwise its end; null while the length is unknown. The sleep timer fades out before it.
+     */
+    val trackEndMs: Long?
+        get() =
+            plan?.key?.timing?.startAtMs?.takeIf { plan?.key?.deck === active }
+                ?: active.duration.takeIf { it != C.TIME_UNSET && it > 0 }
+
     /** Crossfade settings; a change applies to the track that plays now if its overlap has not started yet. */
     var crossfade: CrossfadeSettings = CrossfadeSettings()
         set(value) {
@@ -245,7 +261,7 @@ internal class CrossfadePlayer(
     }
 
     private fun applyVolumes() {
-        val base = volume * duck
+        val base = volume * duck * sleepVolume
         val current = fade
         if (current == null) {
             active.volume = base

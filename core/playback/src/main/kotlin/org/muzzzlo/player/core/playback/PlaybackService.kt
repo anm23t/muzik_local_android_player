@@ -25,6 +25,7 @@ import kotlinx.coroutines.runBlocking
 import org.muzzzlo.player.core.model.ListenRecorder
 import org.muzzzlo.player.core.model.PlaybackBehaviorSettings
 import org.muzzzlo.player.core.model.SettingsRepository
+import org.muzzzlo.player.core.model.SleepTimer
 import javax.inject.Inject
 
 /**
@@ -38,9 +39,12 @@ class PlaybackService : MediaSessionService() {
 
     @Inject lateinit var listenRecorder: ListenRecorder
 
+    @Inject lateinit var sleepTimer: SleepTimer
+
     private var session: MediaSession? = null
     private var headsetResumer: HeadsetResumer? = null
     private var listenTracker: ListenTracker? = null
+    private var sleepTimerDriver: SleepTimerDriver? = null
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     override fun onCreate() {
@@ -83,6 +87,9 @@ class PlaybackService : MediaSessionService() {
         resumer.start()
         headsetResumer = resumer
         listenTracker = ListenTracker(player, listenRecorder).also(ListenTracker::start)
+        val driver = SleepTimerDriver(player, sleepTimer, Handler(Looper.getMainLooper())).also(SleepTimerDriver::start)
+        sleepTimerDriver = driver
+        scope.launch(Dispatchers.Main) { sleepTimer.mode.collect(driver::onModeChanged) }
         applyBehavior(initial.playbackBehavior, player, renderers, resumer)
         scope.launch(Dispatchers.Main) {
             settings.settings.map { it.playbackBehavior }.distinctUntilChanged().collect {
@@ -149,6 +156,10 @@ class PlaybackService : MediaSessionService() {
     override fun onDestroy() {
         listenTracker?.stop()
         listenTracker = null
+        sleepTimerDriver?.stop()
+        sleepTimerDriver = null
+        // The timer belongs to this playback; a new service starts without one.
+        sleepTimer.cancel()
         headsetResumer?.stop()
         headsetResumer = null
         session?.run {
