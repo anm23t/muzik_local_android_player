@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test
 import org.muzzzlo.player.core.model.AppLanguage
 import org.muzzzlo.player.core.model.AppSettings
 import org.muzzzlo.player.core.model.CrossfadeSettings
+import org.muzzzlo.player.core.model.EqualizerSettings
 import org.muzzzlo.player.core.model.InterfaceTheme
 import org.muzzzlo.player.core.model.LibraryFolder
 import org.muzzzlo.player.core.model.LibraryMaintenance
@@ -202,6 +203,10 @@ class SettingsViewModelTest {
 
         override suspend fun setWaveform(enabled: Boolean) {
             state.value = state.value.copy(waveform = enabled)
+        }
+
+        override suspend fun setEqualizer(settings: EqualizerSettings) {
+            if (saveOnly) state.value = state.value.copy(equalizer = settings.clamped())
         }
 
         override suspend fun setTheme(theme: InterfaceTheme) {

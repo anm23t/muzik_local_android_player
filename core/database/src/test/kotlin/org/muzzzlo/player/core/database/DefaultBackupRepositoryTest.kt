@@ -30,6 +30,7 @@ import org.muzzzlo.player.core.model.CompoundRepository
 import org.muzzzlo.player.core.model.CompoundRule
 import org.muzzzlo.player.core.model.CrossfadeSettings
 import org.muzzzlo.player.core.model.DispatcherProvider
+import org.muzzzlo.player.core.model.EqualizerSettings
 import org.muzzzlo.player.core.model.InterfaceTheme
 import org.muzzzlo.player.core.model.PlaybackBehaviorSettings
 import org.muzzzlo.player.core.model.ReplayGainSettings
@@ -327,6 +328,10 @@ class DefaultBackupRepositoryTest {
 
         override suspend fun setWaveform(enabled: Boolean) {
             state.value = state.value.copy(waveform = enabled)
+        }
+
+        override suspend fun setEqualizer(settings: EqualizerSettings) {
+            state.value = state.value.copy(equalizer = settings)
         }
 
         override suspend fun setTheme(theme: InterfaceTheme) {

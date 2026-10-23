@@ -36,6 +36,10 @@ internal object BackupSettingsJson {
             "statsPrivateMode" to s.stats.privateMode,
             "theme" to s.theme.name,
             "waveform" to s.waveform,
+            "equalizerEnabled" to s.equalizer.enabled,
+            "equalizerPreset" to s.equalizer.preset.name,
+            "equalizerCustomDb" to s.equalizer.customDb,
+            "equalizerPreampDb" to s.equalizer.preampDb,
         )
 
     /** A missing, unknown or out of range value reads as the default, like the settings repository does. */
@@ -68,6 +72,7 @@ internal object BackupSettingsJson {
                 ).clamped(),
             theme = enumOf(m["theme"], d.theme),
             waveform = m["waveform"] as? Boolean ?: d.waveform,
+            equalizer = equalizerOf(m, d.equalizer),
         )
     }
 
@@ -79,6 +84,16 @@ internal object BackupSettingsJson {
         preampDb = (m["replayGainPreampDb"] as? Number)?.toFloat() ?: d.preampDb,
         untaggedGainDb = (m["replayGainUntaggedDb"] as? Number)?.toFloat() ?: d.untaggedGainDb,
         clipProtection = m["replayGainClipProtection"] as? Boolean ?: d.clipProtection,
+    ).clamped()
+
+    private fun equalizerOf(
+        m: Map<*, *>,
+        d: EqualizerSettings,
+    ) = EqualizerSettings(
+        enabled = m["equalizerEnabled"] as? Boolean ?: d.enabled,
+        preset = enumOf(m["equalizerPreset"], d.preset),
+        customDb = (m["equalizerCustomDb"] as? List<*>)?.map { (it as? Number)?.toFloat() ?: 0f } ?: d.customDb,
+        preampDb = (m["equalizerPreampDb"] as? Number)?.toFloat() ?: d.preampDb,
     ).clamped()
 
     private fun playbackBehaviorOf(

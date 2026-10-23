@@ -28,6 +28,7 @@ import org.muzzzlo.player.core.model.AudioFormat
 import org.muzzzlo.player.core.model.CoverEdit
 import org.muzzzlo.player.core.model.CrossfadeSettings
 import org.muzzzlo.player.core.model.EmbeddedPicture
+import org.muzzzlo.player.core.model.EqualizerSettings
 import org.muzzzlo.player.core.model.FileTags
 import org.muzzzlo.player.core.model.InterfaceTheme
 import org.muzzzlo.player.core.model.LibraryRepository
@@ -375,6 +376,8 @@ private class FakeSettings : SettingsRepository {
     override suspend fun setPlaybackBehavior(settings: PlaybackBehaviorSettings) = Unit
 
     override suspend fun setWaveform(enabled: Boolean) = Unit
+
+    override suspend fun setEqualizer(settings: EqualizerSettings) = Unit
 
     override suspend fun setTheme(theme: InterfaceTheme) = Unit
 

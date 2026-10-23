@@ -4,6 +4,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import org.muzzzlo.player.core.model.AppLanguage
 import org.muzzzlo.player.core.model.AppSettings
 import org.muzzzlo.player.core.model.CrossfadeSettings
+import org.muzzzlo.player.core.model.EqualizerSettings
 import org.muzzzlo.player.core.model.InterfaceTheme
 import org.muzzzlo.player.core.model.PlaybackBehaviorSettings
 import org.muzzzlo.player.core.model.ReplayGainSettings
@@ -42,6 +43,8 @@ class FakeSettings : SettingsRepository {
     override suspend fun setPlaybackBehavior(settings: PlaybackBehaviorSettings) = Unit
 
     override suspend fun setStats(settings: StatsSettings) = Unit
+
+    override suspend fun setEqualizer(settings: EqualizerSettings) = Unit
 
     override suspend fun setTheme(theme: InterfaceTheme) = Unit
 }

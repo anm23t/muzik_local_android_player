@@ -37,6 +37,7 @@ enum class InterfaceTheme {
  * @property stats the listen threshold and the private mode of the statistics.
  * @property theme framing of the screens.
  * @property waveform the big player shows the waveform of the track instead of the plain progress bar.
+ * @property equalizer the 10-band equalizer of playback.
  */
 data class AppSettings(
     val excludedFolders: Set<String> = emptySet(),
@@ -52,6 +53,7 @@ data class AppSettings(
     val stats: StatsSettings = StatsSettings(),
     val theme: InterfaceTheme = InterfaceTheme.WINDOW,
     val waveform: Boolean = true,
+    val equalizer: EqualizerSettings = EqualizerSettings(),
 ) {
     companion object {
         const val DEFAULT_MIN_TRACK_SECONDS = 30
@@ -100,4 +102,7 @@ interface SettingsRepository {
     suspend fun setTheme(theme: InterfaceTheme)
 
     suspend fun setWaveform(enabled: Boolean)
+
+    /** Stores [settings] with the decibel values clamped ([EqualizerSettings.clamped]). */
+    suspend fun setEqualizer(settings: EqualizerSettings)
 }

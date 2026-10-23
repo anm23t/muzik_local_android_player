@@ -20,6 +20,7 @@ class BackupJsonTest {
                     stats = StatsSettings(thresholdPercent = 30, thresholdMinutes = 2, privateMode = true),
                     theme = InterfaceTheme.HUGE,
                     waveform = false,
+                    equalizer = EqualizerSettings(true, EqualizerPreset.CUSTOM, List(10) { it * 0.5f - 2f }, -1.5f),
                 ),
             aliases = listOf(BackupAlias("tyler", "Tyler", "Tyler, The Creator")),
             compounds =
@@ -85,12 +86,15 @@ class BackupJsonTest {
     fun `missing settings read as defaults and bad values are clamped`() {
         val text =
             """{"format":"muzzzlo-backup","schemaVersion":1,""" +
-                """"settings":{"crossfadeSeconds":99,"language":"KLINGON","id3v2VersionForNewTags":5,"theme":"NEON"}}"""
+                """"settings":{"crossfadeSeconds":99,"language":"KLINGON","id3v2VersionForNewTags":5,""" +
+                """"theme":"NEON",""" +
+                """"equalizerPreset":"LOUD","equalizerCustomDb":[40,"x"],"equalizerPreampDb":-30}}"""
         val settings = BackupJson.decode(text).settings
         assertEquals(CrossfadeSettings.MAX_SECONDS, settings.crossfade.seconds)
         assertEquals(AppLanguage.SYSTEM, settings.language)
         assertEquals(AppSettings().id3v2VersionForNewTags, settings.id3v2VersionForNewTags)
         assertEquals(InterfaceTheme.WINDOW, settings.theme)
+        assertEquals(EqualizerSettings(customDb = listOf(12f) + List(9) { 0f }, preampDb = -12f), settings.equalizer)
     }
 
     @Test

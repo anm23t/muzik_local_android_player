@@ -15,6 +15,8 @@ import kotlinx.coroutines.flow.map
 import org.muzzzlo.player.core.model.AppLanguage
 import org.muzzzlo.player.core.model.AppSettings
 import org.muzzzlo.player.core.model.CrossfadeSettings
+import org.muzzzlo.player.core.model.EqualizerPreset
+import org.muzzzlo.player.core.model.EqualizerSettings
 import org.muzzzlo.player.core.model.InterfaceTheme
 import org.muzzzlo.player.core.model.PlaybackBehaviorSettings
 import org.muzzzlo.player.core.model.ReplayGainMode
@@ -119,6 +121,16 @@ class DataStoreSettingsRepository
             store.edit { it[WAVEFORM] = enabled }
         }
 
+        override suspend fun setEqualizer(settings: EqualizerSettings) {
+            val clamped = settings.clamped()
+            store.edit {
+                it[EQUALIZER_ENABLED] = clamped.enabled
+                it[EQUALIZER_PRESET] = clamped.preset.name
+                it[EQUALIZER_CUSTOM_DB] = clamped.customDb.joinToString(",")
+                it[EQUALIZER_PREAMP_DB] = clamped.preampDb
+            }
+        }
+
         internal companion object {
             val EXCLUDED_FOLDERS = stringSetPreferencesKey("excluded_folders")
             val MIN_TRACK_SECONDS = intPreferencesKey("min_track_seconds")
@@ -141,6 +153,12 @@ class DataStoreSettingsRepository
             val STATS_PRIVATE_MODE = booleanPreferencesKey("stats_private_mode")
             val THEME = stringPreferencesKey("theme")
             val WAVEFORM = booleanPreferencesKey("waveform")
+            val EQUALIZER_ENABLED = booleanPreferencesKey("equalizer_enabled")
+            val EQUALIZER_PRESET = stringPreferencesKey("equalizer_preset")
+
+            /** Gains of the custom curve in dB, comma separated, one per band. */
+            val EQUALIZER_CUSTOM_DB = stringPreferencesKey("equalizer_custom_db")
+            val EQUALIZER_PREAMP_DB = floatPreferencesKey("equalizer_preamp_db")
 
             fun toSettings(preferences: Preferences): AppSettings {
                 val defaults = AppSettings()
@@ -172,8 +190,22 @@ class DataStoreSettingsRepository
                         ).clamped(),
                     theme = InterfaceTheme.entries.firstOrNull { it.name == preferences[THEME] } ?: defaults.theme,
                     waveform = preferences[WAVEFORM] ?: defaults.waveform,
+                    equalizer = equalizerOf(preferences, defaults.equalizer),
                 )
             }
+
+            private fun equalizerOf(
+                preferences: Preferences,
+                defaults: EqualizerSettings,
+            ) = EqualizerSettings(
+                enabled = preferences[EQUALIZER_ENABLED] ?: defaults.enabled,
+                preset =
+                    EqualizerPreset.entries.firstOrNull { it.name == preferences[EQUALIZER_PRESET] } ?: defaults.preset,
+                customDb =
+                    preferences[EQUALIZER_CUSTOM_DB]?.split(',')?.map { it.trim().toFloatOrNull() ?: 0f }
+                        ?: defaults.customDb,
+                preampDb = preferences[EQUALIZER_PREAMP_DB] ?: defaults.preampDb,
+            ).clamped()
 
             private fun playbackBehaviorOf(
                 preferences: Preferences,

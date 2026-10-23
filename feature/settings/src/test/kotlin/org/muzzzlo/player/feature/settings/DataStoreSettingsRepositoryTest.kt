@@ -19,6 +19,8 @@ import org.junit.jupiter.params.provider.CsvSource
 import org.muzzzlo.player.core.model.AppLanguage
 import org.muzzzlo.player.core.model.AppSettings
 import org.muzzzlo.player.core.model.CrossfadeSettings
+import org.muzzzlo.player.core.model.EqualizerPreset
+import org.muzzzlo.player.core.model.EqualizerSettings
 import org.muzzzlo.player.core.model.InterfaceTheme
 import org.muzzzlo.player.core.model.PlaybackBehaviorSettings
 import org.muzzzlo.player.core.model.ReplayGainMode
@@ -66,6 +68,8 @@ class DataStoreSettingsRepositoryTest {
             repository.setStats(stats)
             repository.setTheme(InterfaceTheme.HUGE)
             repository.setWaveform(false)
+            val equalizer = EqualizerSettings(true, EqualizerPreset.CUSTOM, List(10) { it - 4.5f }, preampDb = -3.5f)
+            repository.setEqualizer(equalizer)
 
             val expected =
                 AppSettings(
@@ -82,6 +86,7 @@ class DataStoreSettingsRepositoryTest {
                     stats = stats,
                     theme = InterfaceTheme.HUGE,
                     waveform = false,
+                    equalizer = equalizer,
                 )
             assertEquals(expected, repository.settings.first())
         }
@@ -165,6 +170,9 @@ class DataStoreSettingsRepositoryTest {
                 it[DataStoreSettingsRepository.STATS_THRESHOLD_PERCENT] = 0
                 it[DataStoreSettingsRepository.STATS_THRESHOLD_MINUTES] = 600
                 it[DataStoreSettingsRepository.THEME] = "NEON"
+                it[DataStoreSettingsRepository.EQUALIZER_PRESET] = "DUBSTEP"
+                it[DataStoreSettingsRepository.EQUALIZER_CUSTOM_DB] = "99,x,0.3"
+                it[DataStoreSettingsRepository.EQUALIZER_PREAMP_DB] = -40f
             }
             val settings = repository.settings.first()
             assertEquals(4, settings.id3v2VersionForNewTags)
@@ -175,6 +183,10 @@ class DataStoreSettingsRepositoryTest {
             assertEquals(TransientFocusAction.DUCK, settings.playbackBehavior.transientFocus)
             assertEquals(StatsSettings(thresholdPercent = 10, thresholdMinutes = 10), settings.stats)
             assertEquals(InterfaceTheme.WINDOW, settings.theme)
+            assertEquals(
+                EqualizerSettings(customDb = listOf(12f, 0f, 0.5f) + List(7) { 0f }, preampDb = -12f),
+                settings.equalizer,
+            )
         }
 
     @Test
