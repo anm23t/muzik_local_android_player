@@ -38,7 +38,7 @@ The default red is not adjusted.
 The column exists since schema version 1, no migration is needed. Values:
 
 - `NULL`: not computed yet (or reset because the cover may have changed);
-- `0` (transparent ARGB): computed, no suitable color, the default red is used;
+- `0` (transparent ARGB): computed, no cover (or no visible pixels), the default red is used;
 - any other value: the adjusted accent (ARGB, opaque).
 
 ## Numbers chosen in 0.3.8
@@ -51,6 +51,19 @@ The column exists since schema version 1, no migration is needed. Values:
 - The color change is animated over 400 ms, inside `MuzzzloTheme`. `LocalAccent` is a regular (not static)
   composition local, so each frame redraws only the components that read the accent.
 - Tracks without an album keep their color in memory only, keyed by the cover file path.
+
+## Neutral accent (1.2.2)
+
+Owner's report: black and white covers fell back to the red, which often did not fit them, while sepia and faded
+covers passed the `Score` filter (it drops only chroma below 5) and gave a dull grey tint. Now:
+
+- `Score` returns up to 4 candidates, and the first with HCT chroma of at least 16 wins;
+- with no such candidate the cover is colorless and gets a pure grey by its average tone (L*): tone 90 for a black
+  cover down to tone 60 for a white one, linearly. Both ends keep 3:1 against `#121212`. White on a grey above about
+  tone 61 is below 3:1, but no white icon sits on the accent fill (accented buttons put the icon on
+  `accent-container`); Material components get a black `onPrimary` on a light accent;
+- the red stays for tracks without a cover and when the dynamic accent is off;
+- schema version 11 drops every cached color so that albums are computed again with these rules.
 
 ## Settings flag
 

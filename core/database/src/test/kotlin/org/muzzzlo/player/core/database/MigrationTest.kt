@@ -228,6 +228,24 @@ class MigrationTest {
         }
     }
 
+    @Test
+    fun `10 to 11 drops every cached accent`() {
+        helper.createDatabase(DB_NAME, 10).use { db ->
+            db.execSQL(
+                "INSERT INTO album (id, title, title_key, accent_color) " +
+                    "VALUES (1, 'Grey', 'grey', 0), (2, 'Blue', 'blue', -14531363), (3, 'New', 'new', NULL)",
+            )
+        }
+
+        helper.runMigrationsAndValidate(DB_NAME, 11, true, MIGRATION_10_11).use { db ->
+            db.query("SELECT COUNT(*), COUNT(accent_color) FROM album").use {
+                it.moveToFirst()
+                assertEquals(3, it.getInt(0))
+                assertEquals(0, it.getInt(1))
+            }
+        }
+    }
+
     private companion object {
         const val DB_NAME = "migration-test.db"
     }

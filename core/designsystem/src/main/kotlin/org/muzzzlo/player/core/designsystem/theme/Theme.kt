@@ -11,6 +11,7 @@ import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 
 /** Default accent: the red of the mockup (DESIGN.md, section 2). */
 val DefaultAccent = Color(0xFFCD253E)
@@ -39,6 +40,9 @@ object MuzzzloColors {
  * animation, so it is not a static local: only the components that read it are redrawn.
  */
 val LocalAccent = compositionLocalOf { AccentColors.from(DefaultAccent) }
+
+/** Above this luminance white on the accent is below 3:1, so content on it turns black. */
+private const val LIGHT_ACCENT_LUMINANCE = 0.3f
 
 /** Duration of the accent change when the playing track changes (DESIGN.md, section 4: 300 to 500 ms). */
 const val ACCENT_ANIMATION_MS = 400
@@ -73,11 +77,16 @@ object MuzzzloTheme {
         get() = LocalAccent.current
 }
 
+/** Content color on an accent fill: black on a light neutral accent, white otherwise. */
+private fun onAccentOf(accent: Color): Color =
+    if (accent.luminance() > LIGHT_ACCENT_LUMINANCE) MuzzzloColors.Background else MuzzzloColors.TextPrimary
+
 /** Material 3 scheme for components that are still Material (for example the queue until 1.0.1). */
 private fun colorSchemeFor(accent: AccentColors) =
     darkColorScheme(
         primary = accent.accent,
-        onPrimary = MuzzzloColors.TextPrimary,
+        // A neutral accent of a colorless cover can be almost white (DESIGN.md, section 4).
+        onPrimary = onAccentOf(accent.accent),
         primaryContainer = accent.container,
         onPrimaryContainer = MuzzzloColors.TextPrimary,
         // Neutral instead of the Material defaults, for example the inactive slider track.

@@ -143,3 +143,14 @@ val MIGRATION_9_10 =
             db.execSQL("UPDATE `track` SET `favorited_at` = 0 WHERE `is_favorite` = 1")
         }
     }
+
+/**
+ * Version 11: no new columns. The accent rules changed (task 1.2.2: a colorless cover gets a neutral grey instead of
+ * the red or a dull tint), so every cached `album.accent_color` is dropped and computed again on the next play.
+ */
+val MIGRATION_10_11 =
+    object : Migration(10, 11) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("UPDATE `album` SET `accent_color` = NULL")
+        }
+    }
