@@ -83,6 +83,17 @@ class LibraryDaoTest {
         }
 
     @Test
+    fun `all aliases are observed for the search`() =
+        runBlocking {
+            val jay = dao.artistId("Jay-Z", "jay-z")
+            dao.insertAlias(ArtistAliasEntity(aliasKey = "jay z", aliasDisplay = "Jay Z", artistId = jay))
+            dao.insertAlias(ArtistAliasEntity(aliasKey = "jayz", aliasDisplay = "JayZ", artistId = jay))
+            val aliases = dao.observeAliases().first()
+            assertEquals(listOf("Jay Z", "JayZ"), aliases.map { it.aliasDisplay })
+            assertTrue(aliases.all { it.artistId == jay })
+        }
+
+    @Test
     fun `tracks of an artist include tracks of their albums but not missing ones`() =
         runBlocking {
             val anna = dao.artistId("Anna", "anna")

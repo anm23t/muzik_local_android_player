@@ -310,6 +310,10 @@ interface LibraryDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAlias(alias: ArtistAliasEntity)
 
+    /** Every old spelling of every artist, for the search (task 1.2.4). */
+    @Query("SELECT * FROM artist_alias ORDER BY artist_id, alias_key")
+    fun observeAliases(): Flow<List<ArtistAliasEntity>>
+
     @Query("SELECT * FROM artist_alias WHERE alias_key IN (:keys)")
     suspend fun aliasesByKeys(keys: List<String>): List<ArtistAliasEntity>
 

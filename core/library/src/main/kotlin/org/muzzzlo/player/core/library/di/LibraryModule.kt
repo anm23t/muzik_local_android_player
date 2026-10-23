@@ -13,6 +13,7 @@ import org.muzzzlo.player.core.library.DefaultCoverRepository
 import org.muzzzlo.player.core.library.DefaultLibraryMaintenance
 import org.muzzzlo.player.core.library.DefaultLibraryRepository
 import org.muzzzlo.player.core.library.DefaultPlaylistRepository
+import org.muzzzlo.player.core.library.DefaultSearchRepository
 import org.muzzzlo.player.core.library.DefaultTrackMarksRepository
 import org.muzzzlo.player.core.library.DefaultTrackTagRepository
 import org.muzzzlo.player.core.library.MediaStoreTrackFiles
@@ -26,6 +27,7 @@ import org.muzzzlo.player.core.model.CoverRepository
 import org.muzzzlo.player.core.model.LibraryMaintenance
 import org.muzzzlo.player.core.model.LibraryRepository
 import org.muzzzlo.player.core.model.PlaylistRepository
+import org.muzzzlo.player.core.model.SearchRepository
 import org.muzzzlo.player.core.model.TrackMarksRepository
 import org.muzzzlo.player.core.model.TrackTagRepository
 import javax.inject.Singleton
@@ -39,6 +41,10 @@ internal abstract class LibraryModule {
 
     @Binds
     abstract fun trackFiles(impl: MediaStoreTrackFiles): TrackFiles
+
+    @Binds
+    @Singleton
+    abstract fun search(impl: DefaultSearchRepository): SearchRepository
 
     @Binds
     @Singleton
