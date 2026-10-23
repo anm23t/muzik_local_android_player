@@ -43,6 +43,11 @@ object MuzzzloDimens {
     val RadioStroke = 1.5.dp
     val ProgressThick = 8.dp
     val ProgressThin = 2.dp
+
+    // Waveform of the big player (task 1.2.7, no mockup): as tall as a pill button, bars as thin as the border gaps.
+    val WaveformHeight = 32.dp
+    val WaveformBarWidth = 3.dp
+    val WaveformBarGap = 2.dp
     val BorderWidth = 1.dp
     val PrimaryButtonGlow = 12.dp
     val DialogShadowBlur = 48.dp

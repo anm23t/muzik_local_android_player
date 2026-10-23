@@ -31,6 +31,9 @@ object MuzzzloColors {
     /** Border of the empty artist photo (mockup node 23:478). */
     val PhotoPlaceholderBorder = TextPrimary.copy(alpha = 0.2f)
 
+    /** Not yet played bars of the waveform (task 1.2.7, no mockup): brighter than [Outline] so the shape shows. */
+    val WaveformRest = TextPrimary.copy(alpha = 0.25f)
+
     /** Shadow of dialogs (mockup node 15:111). */
     val DialogShadow = Color.Black.copy(alpha = 0.6f)
 }

@@ -40,24 +40,11 @@ fun ProgressBar(
     val shown = (dragShare ?: progress).coerceIn(0f, 1f)
     val shape = if (thin) RectangleShape else MuzzzloDimens.PillShape
     val height = if (thin) MuzzzloDimens.ProgressThin else MuzzzloDimens.ProgressThick
-    val seek by rememberUpdatedState(onSeek)
     val gestures =
         if (onSeek == null) {
             Modifier
         } else {
-            Modifier
-                .pointerInput(Unit) {
-                    detectTapGestures { seek?.invoke(shareOf(it.x, size.width)) }
-                }.pointerInput(Unit) {
-                    detectHorizontalDragGestures(
-                        onDragStart = { dragShare = shareOf(it.x, size.width) },
-                        onDragEnd = {
-                            dragShare?.let { share -> seek?.invoke(share) }
-                            dragShare = null
-                        },
-                        onDragCancel = { dragShare = null },
-                    ) { change, _ -> dragShare = shareOf(change.position.x, size.width) }
-                }.padding(vertical = MuzzzloDimens.RowPadding)
+            Modifier.seekInput(onSeek) { dragShare = it }.padding(vertical = MuzzzloDimens.RowPadding)
         }
     Box(modifier.fillMaxWidth().then(gestures)) {
         Box(
@@ -75,6 +62,36 @@ fun ProgressBar(
                     .background(MuzzzloTheme.accent.accent),
             )
         }
+    }
+}
+
+/**
+ * A tap seeks to its place, a horizontal drag shows its place through [onDrag] and seeks when released (null when
+ * the drag ends). Shared by [ProgressBar] and [WaveformBar].
+ */
+@Composable
+internal fun Modifier.seekInput(
+    onSeek: (Float) -> Unit,
+    onDrag: (Float?) -> Unit,
+): Modifier {
+    val seek by rememberUpdatedState(onSeek)
+    val drag by rememberUpdatedState(onDrag)
+    var dragShare by remember { mutableStateOf<Float?>(null) }
+    return pointerInput(Unit) {
+        detectTapGestures { seek(shareOf(it.x, size.width)) }
+    }.pointerInput(Unit) {
+        fun show(share: Float?) {
+            dragShare = share
+            drag(share)
+        }
+        detectHorizontalDragGestures(
+            onDragStart = { show(shareOf(it.x, size.width)) },
+            onDragEnd = {
+                dragShare?.let { share -> seek(share) }
+                show(null)
+            },
+            onDragCancel = { show(null) },
+        ) { change, _ -> show(shareOf(change.position.x, size.width)) }
     }
 }
 
