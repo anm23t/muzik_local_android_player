@@ -46,6 +46,7 @@ import org.muzzzlo.player.feature.playlists.AutoPlaylistScreen
 import org.muzzzlo.player.feature.playlists.PLAYLIST_ID_ARG
 import org.muzzzlo.player.feature.playlists.PlaylistListScreen
 import org.muzzzlo.player.feature.playlists.PlaylistScreen
+import org.muzzzlo.player.feature.settings.EqualizerScreen
 import org.muzzzlo.player.feature.settings.FoldersScreen
 import org.muzzzlo.player.feature.settings.QuarantineScreen
 import org.muzzzlo.player.feature.settings.SettingsScreen
@@ -68,6 +69,7 @@ private const val ROUTE_SETTINGS = "settings"
 private const val ROUTE_STATS = "stats"
 private const val ROUTE_SEARCH = "search"
 private const val ROUTE_SETTINGS_FOLDERS = "settingsFolders"
+private const val ROUTE_SETTINGS_EQUALIZER = "settingsEqualizer"
 private const val ROUTE_SETTINGS_QUARANTINE = "settingsQuarantine"
 private const val ROUTE_ARTIST = "artist?$ARTIST_ID_ARG={$ARTIST_ID_ARG}&$ARTIST_NAME_ARG={$ARTIST_NAME_ARG}"
 private const val ROUTE_QUEUE = "queue"
@@ -262,8 +264,10 @@ fun MuzzzloNavHost() {
                         onOpenFolders = { navController.navigate(ROUTE_SETTINGS_FOLDERS) },
                         onOpenQuarantine = { navController.navigate(ROUTE_SETTINGS_QUARANTINE) },
                         onOpenCompoundNames = { navController.navigate(ROUTE_COMPOUND_NAMES) },
+                        onOpenEqualizer = { navController.navigate(ROUTE_SETTINGS_EQUALIZER) },
                     )
                 }
+                composable(ROUTE_SETTINGS_EQUALIZER) { EqualizerScreen(onBack = { navController.popBackStack() }) }
                 composable(ROUTE_SETTINGS_FOLDERS) { FoldersScreen(onBack = { navController.popBackStack() }) }
                 composable(ROUTE_SETTINGS_QUARANTINE) { QuarantineScreen(onBack = { navController.popBackStack() }) }
                 composable(ROUTE_ARTIST, arguments = artistArguments) {

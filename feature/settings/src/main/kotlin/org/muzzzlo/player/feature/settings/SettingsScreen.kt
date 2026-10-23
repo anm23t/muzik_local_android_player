@@ -23,6 +23,7 @@ import org.muzzzlo.player.core.designsystem.theme.MuzzzloColors
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloDimens
 import org.muzzzlo.player.core.model.AppLanguage
 import org.muzzzlo.player.core.model.AppSettings
+import org.muzzzlo.player.core.model.EqualizerSettings
 import org.muzzzlo.player.core.model.ReplayGainSettings
 
 /**
@@ -35,6 +36,7 @@ fun SettingsScreen(
     onOpenFolders: () -> Unit,
     onOpenQuarantine: () -> Unit,
     onOpenCompoundNames: () -> Unit,
+    onOpenEqualizer: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
@@ -91,6 +93,11 @@ fun SettingsScreen(
                 secondary = stringResource(R.string.settings_gapless_hint),
             )
             ReplayGainRows(settings.replayGain, viewModel)
+            ValueRow(
+                text = stringResource(R.string.settings_equalizer),
+                onClick = onOpenEqualizer,
+                value = equalizerSummary(settings.equalizer),
+            )
             CrossfadeRows(settings.crossfade, viewModel)
             PlaybackBehaviorRows(settings.playbackBehavior, viewModel)
 
@@ -178,13 +185,21 @@ fun SettingsScreen(
 }
 
 @Composable
-private fun GroupTitle(title: Int) {
+internal fun GroupTitle(title: Int) {
     Text(
         text = stringResource(title),
         style = MaterialTheme.typography.titleMedium,
         color = MuzzzloColors.TextSecondary,
     )
 }
+
+@Composable
+private fun equalizerSummary(equalizer: EqualizerSettings): String =
+    if (equalizer.enabled) {
+        stringResource(equalizerPresetLabel(equalizer.preset))
+    } else {
+        stringResource(R.string.settings_equalizer_off)
+    }
 
 @Composable
 private fun foldersSummary(settings: AppSettings): String? =

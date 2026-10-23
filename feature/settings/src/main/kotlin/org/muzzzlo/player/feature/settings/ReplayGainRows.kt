@@ -103,7 +103,7 @@ private fun modeNote(mode: ReplayGainMode): String? =
     }
 
 @Composable
-private fun decibelLabel(db: Float): String {
+internal fun decibelLabel(db: Float): String {
     val locale = LocalConfiguration.current.locales[0]
     return stringResource(R.string.settings_decibels, formatDecibels(db, locale))
 }

@@ -140,4 +140,24 @@
     <string name="settings_theme_huge_hint">Без рамки и границ, содержимое ближе к краям экрана</string>
     <string name="settings_waveform">Волна</string>
     <string name="settings_waveform_hint">Плеер показывает форму трека вместо простой полосы. Каждый трек разбирается один раз.</string>
+    <string name="settings_equalizer">Эквалайзер</string>
+    <string name="settings_equalizer_enabled">Включить эквалайзер</string>
+    <string name="settings_equalizer_hint">Десять полос от 31 Гц до 16 кГц для всех треков, после ReplayGain.</string>
+    <string name="settings_equalizer_preamp">Предусилитель</string>
+    <string name="settings_equalizer_clipping_on">Защита от клиппинга ReplayGain включена: звук становится тише настолько, насколько поднята кривая, и не искажается.</string>
+    <string name="settings_equalizer_clipping_off">Защита от клиппинга ReplayGain выключена: сильное усиление может искажать громкую музыку.</string>
+    <string name="settings_equalizer_reset">Сбросить до ровной</string>
+    <string name="settings_equalizer_band">Полоса %1$s Гц</string>
+    <string name="settings_equalizer_kilohertz">%1$dк</string>
+    <string name="settings_equalizer_off">Выкл.</string>
+    <string name="equalizer_preset_flat">Ровно</string>
+    <string name="equalizer_preset_bass">Басы</string>
+    <string name="equalizer_preset_treble">Верха</string>
+    <string name="equalizer_preset_vocal">Голос</string>
+    <string name="equalizer_preset_rock">Рок</string>
+    <string name="equalizer_preset_pop">Поп</string>
+    <string name="equalizer_preset_jazz">Джаз</string>
+    <string name="equalizer_preset_classical">Классика</string>
+    <string name="equalizer_preset_electronic">Электроника</string>
+    <string name="equalizer_preset_custom">Свой</string>
 </resources>
