@@ -25,6 +25,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import org.muzzzlo.player.core.designsystem.theme.FrameInsets
+import org.muzzzlo.player.core.designsystem.theme.FrameStyle
+import org.muzzzlo.player.core.designsystem.theme.LocalFrameStyle
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloColors
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloDimens
 
@@ -33,6 +35,7 @@ import org.muzzzlo.player.core.designsystem.theme.MuzzzloDimens
  * The outer padding adapts to the device: system bars, cutouts and the keyboard push the frame in,
  * narrow screens use smaller paddings ([FrameInsets]).
  * The frame reads the raw window insets, so parents must not pad for them again: the keyboard would count twice.
+ * In [FrameStyle.Huge] there is no frame: the content keeps [FrameInsets.HugeInner] from the screen edges.
  *
  * @param outlined draws the border; the home screen (28:620) keeps the paddings of the frame without it.
  */
@@ -46,8 +49,10 @@ fun ScreenFrame(
     val width = LocalConfiguration.current.screenWidthDp.dp
     val density = LocalDensity.current
     val insets = WindowInsets.systemBars.union(WindowInsets.displayCutout).union(WindowInsets.ime)
+    val style = LocalFrameStyle.current
+    val border = outlined && style == FrameStyle.Window
 
-    fun side(px: Int) = FrameInsets.outer(with(density) { px.toDp() }, width)
+    fun side(px: Int) = FrameInsets.outer(with(density) { px.toDp() }, width, style)
     Box(
         modifier
             .fillMaxSize()
@@ -66,10 +71,10 @@ fun ScreenFrame(
                 .background(MuzzzloColors.Background)
                 .border(
                     MuzzzloDimens.BorderWidth,
-                    if (outlined) MuzzzloColors.Outline else MuzzzloColors.Background,
+                    if (border) MuzzzloColors.Outline else MuzzzloColors.Background,
                     MuzzzloDimens.FrameShape,
                 )
-                .padding(FrameInsets.inner(width)),
+                .padding(FrameInsets.inner(width, style)),
             verticalArrangement = Arrangement.spacedBy(spacing),
             content = content,
         )

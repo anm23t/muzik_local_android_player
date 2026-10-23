@@ -28,4 +28,16 @@ class FrameInsetsTest {
         assertEquals(24.dp, FrameInsets.inner(411.dp))
         assertEquals(16.dp, FrameInsets.inner(359.dp))
     }
+
+    @Test
+    fun `huge style has no frame padding, only the system inset`() {
+        assertEquals(0.dp, FrameInsets.outer(0.dp, 411.dp, FrameStyle.Huge))
+        assertEquals(30.dp, FrameInsets.outer(30.dp, 320.dp, FrameStyle.Huge))
+    }
+
+    @Test
+    fun `huge style keeps content 12 dp from the edges on any width`() {
+        assertEquals(12.dp, FrameInsets.inner(411.dp, FrameStyle.Huge))
+        assertEquals(12.dp, FrameInsets.inner(320.dp, FrameStyle.Huge))
+    }
 }

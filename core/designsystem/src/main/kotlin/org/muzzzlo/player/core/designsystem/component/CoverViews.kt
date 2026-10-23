@@ -19,6 +19,8 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
+import org.muzzzlo.player.core.designsystem.theme.FrameStyle
+import org.muzzzlo.player.core.designsystem.theme.LocalFrameStyle
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloColors
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloDimens
 
@@ -66,7 +68,8 @@ fun CoverTile(
 
 /**
  * Cover inside an elevated card with a border: the big cover of the player (1:3, card 24, cover 284x288)
- * and the cover of the album card (4:311).
+ * and the cover of the album card (4:311). In [FrameStyle.Huge] there is no card: the cover fills the place,
+ * rounded by [shape].
  *
  * @param shape corners of the card; the cover inside is rounded by [coverShape].
  * @param inset space between the card edge and the cover.
@@ -80,6 +83,13 @@ fun CoverCard(
     inset: Dp = MuzzzloDimens.SectionGap,
     cover: (@Composable (Modifier) -> Unit)? = null,
 ) {
+    if (LocalFrameStyle.current == FrameStyle.Huge) {
+        Box(modifier.clip(shape)) {
+            val coverModifier = Modifier.fillMaxSize().clip(shape)
+            if (cover != null) cover(coverModifier) else CoverPlaceholder(coverModifier, shape)
+        }
+        return
+    }
     Box(
         modifier
             .clip(shape)

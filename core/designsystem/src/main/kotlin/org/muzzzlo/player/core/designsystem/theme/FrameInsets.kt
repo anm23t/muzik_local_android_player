@@ -11,15 +11,31 @@ object FrameInsets {
     private val CompactOuter = 16.dp
     private val CompactInner = 16.dp
 
-    /** Space between the screen edge and the frame: the design value, or the system bar/cutout if it is larger. */
+    /** Space between the screen edge (or the system bars) and the content in [FrameStyle.Huge]. */
+    val HugeInner = 12.dp
+
+    /**
+     * Space between the screen edge and the frame: the design value, or the system bar/cutout if it is larger.
+     * [FrameStyle.Huge] has no frame, only the system inset.
+     */
     fun outer(
         systemInset: Dp,
         screenWidth: Dp,
+        style: FrameStyle = FrameStyle.Window,
     ): Dp {
+        if (style == FrameStyle.Huge) return systemInset
         val design = if (screenWidth < CompactWidth) CompactOuter else MuzzzloDimens.FrameOuterPadding
         return maxOf(design, systemInset)
     }
 
     /** Space between the frame border and its content. */
-    fun inner(screenWidth: Dp): Dp = if (screenWidth < CompactWidth) CompactInner else MuzzzloDimens.FrameInnerPadding
+    fun inner(
+        screenWidth: Dp,
+        style: FrameStyle = FrameStyle.Window,
+    ): Dp =
+        when {
+            style == FrameStyle.Huge -> HugeInner
+            screenWidth < CompactWidth -> CompactInner
+            else -> MuzzzloDimens.FrameInnerPadding
+        }
 }

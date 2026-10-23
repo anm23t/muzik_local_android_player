@@ -52,15 +52,17 @@ const val ACCENT_ANIMATION_MS = 400
  *
  * @param accent accent color; everything "red" in the interface follows it. A new value fades in over
  *   [ACCENT_ANIMATION_MS] (DESIGN.md, section 4).
+ * @param frameStyle framing of the screens ([LocalFrameStyle]).
  */
 @Composable
 fun MuzzzloTheme(
     accent: Color = DefaultAccent,
+    frameStyle: FrameStyle = FrameStyle.Window,
     content: @Composable () -> Unit,
 ) {
     val animated by animateColorAsState(accent, tween(ACCENT_ANIMATION_MS), label = "accent")
     val accentColors = remember(animated) { AccentColors.from(animated) }
-    CompositionLocalProvider(LocalAccent provides accentColors) {
+    CompositionLocalProvider(LocalAccent provides accentColors, LocalFrameStyle provides frameStyle) {
         MaterialTheme(
             colorScheme = colorSchemeFor(accentColors),
             typography = MuzzzloTypography,
@@ -75,6 +77,11 @@ object MuzzzloTheme {
         @Composable
         @ReadOnlyComposable
         get() = LocalAccent.current
+
+    val frameStyle: FrameStyle
+        @Composable
+        @ReadOnlyComposable
+        get() = LocalFrameStyle.current
 }
 
 /** Content color on an accent fill: black on a light neutral accent, white otherwise. */
