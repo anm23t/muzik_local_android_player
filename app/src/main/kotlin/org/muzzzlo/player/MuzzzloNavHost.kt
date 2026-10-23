@@ -36,6 +36,7 @@ import org.muzzzlo.player.feature.library.ArtistScreen
 import org.muzzzlo.player.feature.library.CompoundNamesScreen
 import org.muzzzlo.player.feature.library.HomeScreen
 import org.muzzzlo.player.feature.library.NO_ARTIST
+import org.muzzzlo.player.feature.library.SearchScreen
 import org.muzzzlo.player.feature.library.TracksScreen
 import org.muzzzlo.player.feature.player.MiniPlayer
 import org.muzzzlo.player.feature.player.PlayerScreen
@@ -65,6 +66,7 @@ private const val ROUTE_ARTIST_CHECK = "artistCheck"
 private const val ROUTE_COMPOUND_NAMES = "compoundNames"
 private const val ROUTE_SETTINGS = "settings"
 private const val ROUTE_STATS = "stats"
+private const val ROUTE_SEARCH = "search"
 private const val ROUTE_SETTINGS_FOLDERS = "settingsFolders"
 private const val ROUTE_SETTINGS_QUARANTINE = "settingsQuarantine"
 private const val ROUTE_ARTIST = "artist?$ARTIST_ID_ARG={$ARTIST_ID_ARG}&$ARTIST_NAME_ARG={$ARTIST_NAME_ARG}"
@@ -169,6 +171,7 @@ fun MuzzzloNavHost() {
                         onOpenAlbum = { navController.navigate(albumRoute(it)) },
                         onOpenTracks = { navController.navigate(tracksRoute()) },
                         onOpenSettings = { navController.navigate(ROUTE_SETTINGS) },
+                        onOpenSearch = { navController.navigate(ROUTE_SEARCH) },
                         onOpenStats = { navController.navigate(ROUTE_STATS) },
                         onOpenPlaylists = { navController.navigate(ROUTE_PLAYLISTS) },
                         onOpenPlaylist = { navController.navigate("playlist/$it") },
@@ -206,6 +209,17 @@ fun MuzzzloNavHost() {
                         onOpenQueue = { navController.navigate(ROUTE_QUEUE) },
                         onEditTags = openTagEditor,
                         onOpenArtist = openArtist,
+                        miniPlayer = miniPlayer,
+                    )
+                }
+                composable(ROUTE_SEARCH) {
+                    SearchScreen(
+                        onBack = { navController.popBackStack() },
+                        onOpenAlbum = { navController.navigate(albumRoute(it)) },
+                        onOpenArtist = openArtist,
+                        onOpenPlaylist = { navController.navigate("playlist/$it") },
+                        onOpenQueue = { navController.navigate(ROUTE_QUEUE) },
+                        onEditTags = openTagEditor,
                         miniPlayer = miniPlayer,
                     )
                 }

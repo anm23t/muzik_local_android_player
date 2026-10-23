@@ -2,6 +2,7 @@
 <resources>
     <string name="designsystem_track_menu">Действия с треком</string>
     <string name="designsystem_close">Закрыть</string>
+    <string name="designsystem_clear_search">Очистить поиск</string>
     <string name="designsystem_remove_value">Убрать %1$s</string>
     <string name="designsystem_split_value">Разбить %1$s</string>
     <string name="designsystem_move_value_up">Поднять %1$s выше</string>

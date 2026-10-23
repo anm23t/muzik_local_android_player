@@ -22,6 +22,7 @@
     <string name="home_continue_listening">Продолжить прослушивание?</string>
     <string name="home_all_songs">Все песни</string>
     <string name="home_settings">Настройки</string>
+    <string name="home_search">Поиск</string>
     <string name="nav_artists">Исполнители</string>
     <string name="nav_albums">Альбомы</string>
     <string name="nav_playlists">Плейлисты</string>
@@ -114,4 +115,11 @@
     <string name="check_compound_names">Составные имена</string>
 
     <string name="tracks_title">Все песни</string>
+
+    <!-- Search (1.2.4) -->
+    <string name="search_placeholder">Песни, альбомы, исполнители</string>
+    <string name="search_hint">Ищите по названию, исполнителю, альбому или плейлисту</string>
+    <string name="search_nothing_found">Ничего не найдено</string>
+    <string name="search_songs">Песни</string>
+    <string name="search_show_all">Показать все</string>
 </resources>

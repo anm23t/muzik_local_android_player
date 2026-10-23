@@ -630,7 +630,7 @@ class LibraryViewModelsTest {
         override fun recentAlbums(limit: Int) = recent
     }
 
-    private class FakeLibrary(
+    internal class FakeLibrary(
         tracks: List<Track>,
         albums: List<Album>,
         artists: List<Artist>,

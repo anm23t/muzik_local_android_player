@@ -2,6 +2,7 @@
 <resources>
     <string name="designsystem_track_menu">Track actions</string>
     <string name="designsystem_close">Close</string>
+    <string name="designsystem_clear_search">Clear search</string>
     <string name="designsystem_remove_value">Remove %1$s</string>
     <string name="designsystem_split_value">Split %1$s</string>
     <string name="designsystem_move_value_up">Move %1$s up</string>

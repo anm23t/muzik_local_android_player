@@ -76,6 +76,7 @@ fun HomeScreen(
     onOpenAlbum: (Long) -> Unit,
     onOpenTracks: () -> Unit,
     onOpenSettings: () -> Unit,
+    onOpenSearch: () -> Unit,
     onOpenStats: () -> Unit,
     onOpenPlaylists: () -> Unit,
     onOpenPlaylist: (Long) -> Unit,
@@ -102,7 +103,7 @@ fun HomeScreen(
     LaunchedEffect(granted) { if (granted) viewModel.onScanRequested() }
 
     ScreenFrame(modifier, spacing = MuzzzloDimens.SectionGap, outlined = false) {
-        HomeHeader(onOpenSettings)
+        HomeHeader(onOpenSearch, onOpenSettings)
         // Not in the mockup: the list of all tracks has no other entry point (DESIGN.md, section 7).
         if (granted && state.hasMusic) {
             PillButton(text = stringResource(R.string.home_all_songs), onClick = onOpenTracks)
@@ -134,7 +135,10 @@ fun HomeScreen(
 }
 
 @Composable
-private fun HomeHeader(onOpenSettings: () -> Unit) {
+private fun HomeHeader(
+    onOpenSearch: () -> Unit,
+    onOpenSettings: () -> Unit,
+) {
     Row(
         Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(MuzzzloDimens.ContentGap),
@@ -147,6 +151,12 @@ private fun HomeHeader(onOpenSettings: () -> Unit) {
             color = MuzzzloColors.TextPrimary,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
+        )
+        // Not in the mockup (task 1.2.4, DESIGN.md, section 7): the same round button as the gear.
+        RoundIconButton(
+            icon = DesignR.drawable.ic_search,
+            contentDescription = stringResource(R.string.home_search),
+            onClick = onOpenSearch,
         )
         RoundIconButton(
             icon = DesignR.drawable.ic_settings,

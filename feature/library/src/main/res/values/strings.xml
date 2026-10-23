@@ -20,6 +20,7 @@
     <string name="home_continue_listening">Continue listening</string>
     <string name="home_all_songs">All songs</string>
     <string name="home_settings">Settings</string>
+    <string name="home_search">Search</string>
     <string name="nav_artists">Artists</string>
     <string name="nav_albums">Albums</string>
     <string name="nav_playlists">Playlists</string>
@@ -106,4 +107,11 @@
     <string name="check_compound_names">Compound names</string>
 
     <string name="tracks_title">All songs</string>
+
+    <!-- Search (1.2.4) -->
+    <string name="search_placeholder">Songs, albums, artists</string>
+    <string name="search_hint">Search by title, artist, album or playlist</string>
+    <string name="search_nothing_found">Nothing found</string>
+    <string name="search_songs">Songs</string>
+    <string name="search_show_all">Show all</string>
 </resources>
