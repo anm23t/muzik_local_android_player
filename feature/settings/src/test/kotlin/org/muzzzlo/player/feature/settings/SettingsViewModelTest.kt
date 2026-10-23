@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test
 import org.muzzzlo.player.core.model.AppLanguage
 import org.muzzzlo.player.core.model.AppSettings
 import org.muzzzlo.player.core.model.CrossfadeSettings
+import org.muzzzlo.player.core.model.InterfaceTheme
 import org.muzzzlo.player.core.model.LibraryFolder
 import org.muzzzlo.player.core.model.LibraryMaintenance
 import org.muzzzlo.player.core.model.LibraryRepository
@@ -57,6 +58,15 @@ class SettingsViewModelTest {
         viewModel.onReplayGainModeChosen(ReplayGainMode.ALBUM)
 
         assertEquals(ReplayGainMode.ALBUM, settings.state.value.replayGain.mode)
+        assertNull(viewModel.state.value.dialog)
+    }
+
+    @Test
+    fun `choosing a theme saves it and closes the dialog`() {
+        viewModel.onDialogRequested(SettingsDialog.Theme)
+        viewModel.ui.onThemeChosen(InterfaceTheme.HUGE)
+
+        assertEquals(InterfaceTheme.HUGE, settings.state.value.theme)
         assertNull(viewModel.state.value.dialog)
     }
 
@@ -181,6 +191,10 @@ class SettingsViewModelTest {
 
         override suspend fun setPlaybackBehavior(settings: PlaybackBehaviorSettings) {
             state.value = state.value.copy(playbackBehavior = settings)
+        }
+
+        override suspend fun setTheme(theme: InterfaceTheme) {
+            state.value = state.value.copy(theme = theme)
         }
 
         override suspend fun setStats(settings: StatsSettings) {

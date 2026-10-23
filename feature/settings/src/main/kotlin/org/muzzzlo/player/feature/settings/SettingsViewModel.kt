@@ -28,6 +28,7 @@ enum class SettingsDialog {
     MinLength,
     Id3Version,
     Language,
+    Theme,
     ReplayGainMode,
     Preamp,
     UntaggedGain,
@@ -64,6 +65,13 @@ class SettingsViewModel
     ) : ViewModel() {
         private val local = MutableStateFlow(SettingsUiState())
         val state: StateFlow<SettingsUiState> = local.asStateFlow()
+
+        /** Theme and waveform of the "Interface" group. */
+        val ui =
+            InterfaceSettingsEditor(
+                save = { action -> viewModelScope.launch { repository.action() } },
+                closeDialog = { local.update { it.copy(dialog = null) } },
+            )
 
         /** Changes of the statistics section. */
         val stats =

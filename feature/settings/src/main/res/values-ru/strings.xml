@@ -133,4 +133,9 @@
 
     <string name="settings_footer_version">WUZZZIK %1$s</string>
     <string name="settings_footer_developer">Разработчик: anm23t</string>
+    <string name="settings_theme">Тема</string>
+    <string name="settings_theme_window">Window</string>
+    <string name="settings_theme_window_hint">Экраны в скруглённой рамке с границами</string>
+    <string name="settings_theme_huge">Huge</string>
+    <string name="settings_theme_huge_hint">Без рамки и границ, содержимое ближе к краям экрана</string>
 </resources>

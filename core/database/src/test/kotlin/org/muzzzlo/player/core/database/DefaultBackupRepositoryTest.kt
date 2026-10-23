@@ -30,6 +30,7 @@ import org.muzzzlo.player.core.model.CompoundRepository
 import org.muzzzlo.player.core.model.CompoundRule
 import org.muzzzlo.player.core.model.CrossfadeSettings
 import org.muzzzlo.player.core.model.DispatcherProvider
+import org.muzzzlo.player.core.model.InterfaceTheme
 import org.muzzzlo.player.core.model.PlaybackBehaviorSettings
 import org.muzzzlo.player.core.model.ReplayGainSettings
 import org.muzzzlo.player.core.model.SettingsRepository
@@ -322,6 +323,10 @@ class DefaultBackupRepositoryTest {
 
         override suspend fun setPlaybackBehavior(settings: PlaybackBehaviorSettings) {
             state.value = state.value.copy(playbackBehavior = settings)
+        }
+
+        override suspend fun setTheme(theme: InterfaceTheme) {
+            state.value = state.value.copy(theme = theme)
         }
 
         override suspend fun setStats(settings: StatsSettings) {

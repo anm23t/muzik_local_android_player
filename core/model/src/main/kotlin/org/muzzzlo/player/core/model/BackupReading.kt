@@ -34,6 +34,7 @@ internal object BackupSettingsJson {
             "statsThresholdPercent" to s.stats.thresholdPercent,
             "statsThresholdMinutes" to s.stats.thresholdMinutes,
             "statsPrivateMode" to s.stats.privateMode,
+            "theme" to s.theme.name,
         )
 
     /** A missing, unknown or out of range value reads as the default, like the settings repository does. */
@@ -64,6 +65,7 @@ internal object BackupSettingsJson {
                     thresholdMinutes = m.long("statsThresholdMinutes")?.toInt() ?: d.stats.thresholdMinutes,
                     privateMode = m["statsPrivateMode"] as? Boolean ?: d.stats.privateMode,
                 ).clamped(),
+            theme = enumOf(m["theme"], d.theme),
         )
     }
 

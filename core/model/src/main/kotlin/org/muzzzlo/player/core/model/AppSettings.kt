@@ -10,6 +10,15 @@ enum class AppLanguage(val tag: String?) {
 }
 
 /**
+ * How screens are framed (task 1.2.6): [WINDOW] is the rounded window with borders of the mockup, [HUGE] drops the
+ * frame and the inner borders and keeps the content 12 dp from the screen edges.
+ */
+enum class InterfaceTheme {
+    WINDOW,
+    HUGE,
+}
+
+/**
  * The settings of the app (ARCHITECTURE.md, section 9). The default values live here, in one place; a later task
  * adds its own fields with defaults.
  *
@@ -26,6 +35,7 @@ enum class AppLanguage(val tag: String?) {
  * @property crossfade overlap of the end of a track with the start of the next one.
  * @property playbackBehavior audio focus, headset and silence handling.
  * @property stats the listen threshold and the private mode of the statistics.
+ * @property theme framing of the screens.
  */
 data class AppSettings(
     val excludedFolders: Set<String> = emptySet(),
@@ -39,6 +49,7 @@ data class AppSettings(
     val crossfade: CrossfadeSettings = CrossfadeSettings(),
     val playbackBehavior: PlaybackBehaviorSettings = PlaybackBehaviorSettings(),
     val stats: StatsSettings = StatsSettings(),
+    val theme: InterfaceTheme = InterfaceTheme.WINDOW,
 ) {
     companion object {
         const val DEFAULT_MIN_TRACK_SECONDS = 30
@@ -83,4 +94,6 @@ interface SettingsRepository {
 
     /** Stores [settings] with the threshold clamped ([StatsSettings.clamped]). */
     suspend fun setStats(settings: StatsSettings)
+
+    suspend fun setTheme(theme: InterfaceTheme)
 }

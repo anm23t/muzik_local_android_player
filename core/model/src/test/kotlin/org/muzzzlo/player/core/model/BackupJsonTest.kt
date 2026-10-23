@@ -18,6 +18,7 @@ class BackupJsonTest {
                     crossfade = CrossfadeSettings(seconds = 5, withinAlbum = true),
                     playbackBehavior = PlaybackBehaviorSettings(transientFocus = TransientFocusAction.PAUSE),
                     stats = StatsSettings(thresholdPercent = 30, thresholdMinutes = 2, privateMode = true),
+                    theme = InterfaceTheme.HUGE,
                 ),
             aliases = listOf(BackupAlias("tyler", "Tyler", "Tyler, The Creator")),
             compounds =
@@ -83,11 +84,12 @@ class BackupJsonTest {
     fun `missing settings read as defaults and bad values are clamped`() {
         val text =
             """{"format":"muzzzlo-backup","schemaVersion":1,""" +
-                """"settings":{"crossfadeSeconds":99,"language":"KLINGON","id3v2VersionForNewTags":5}}"""
+                """"settings":{"crossfadeSeconds":99,"language":"KLINGON","id3v2VersionForNewTags":5,"theme":"NEON"}}"""
         val settings = BackupJson.decode(text).settings
         assertEquals(CrossfadeSettings.MAX_SECONDS, settings.crossfade.seconds)
         assertEquals(AppLanguage.SYSTEM, settings.language)
         assertEquals(AppSettings().id3v2VersionForNewTags, settings.id3v2VersionForNewTags)
+        assertEquals(InterfaceTheme.WINDOW, settings.theme)
     }
 
     @Test

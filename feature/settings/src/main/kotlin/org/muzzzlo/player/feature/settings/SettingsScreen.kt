@@ -114,6 +114,7 @@ fun SettingsScreen(
                 onClick = { viewModel.onDialogRequested(SettingsDialog.Language) },
                 value = languageLabel(settings.language),
             )
+            ThemeRow(settings.theme) { viewModel.onDialogRequested(SettingsDialog.Theme) }
             SwitchRow(
                 text = stringResource(R.string.settings_dynamic_accent),
                 checked = settings.dynamicAccent,
@@ -132,6 +133,7 @@ fun SettingsScreen(
             )
         SettingsDialog.Id3Version -> Id3Dialog(settings, viewModel::onId3VersionChosen, viewModel::onDialogDismissed)
         SettingsDialog.Language -> LanguageDialog(settings, viewModel::onLanguageChosen, viewModel::onDialogDismissed)
+        SettingsDialog.Theme -> ThemeDialog(settings.theme, viewModel.ui::onThemeChosen, viewModel::onDialogDismissed)
         SettingsDialog.ReplayGainMode ->
             ReplayGainModeDialog(settings.replayGain, viewModel::onReplayGainModeChosen, viewModel::onDialogDismissed)
         SettingsDialog.Preamp ->

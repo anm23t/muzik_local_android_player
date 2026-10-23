@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.map
 import org.muzzzlo.player.core.model.AppLanguage
 import org.muzzzlo.player.core.model.AppSettings
 import org.muzzzlo.player.core.model.CrossfadeSettings
+import org.muzzzlo.player.core.model.InterfaceTheme
 import org.muzzzlo.player.core.model.PlaybackBehaviorSettings
 import org.muzzzlo.player.core.model.ReplayGainMode
 import org.muzzzlo.player.core.model.ReplayGainSettings
@@ -110,6 +111,10 @@ class DataStoreSettingsRepository
             }
         }
 
+        override suspend fun setTheme(theme: InterfaceTheme) {
+            store.edit { it[THEME] = theme.name }
+        }
+
         internal companion object {
             val EXCLUDED_FOLDERS = stringSetPreferencesKey("excluded_folders")
             val MIN_TRACK_SECONDS = intPreferencesKey("min_track_seconds")
@@ -130,6 +135,7 @@ class DataStoreSettingsRepository
             val STATS_THRESHOLD_PERCENT = intPreferencesKey("stats_threshold_percent")
             val STATS_THRESHOLD_MINUTES = intPreferencesKey("stats_threshold_minutes")
             val STATS_PRIVATE_MODE = booleanPreferencesKey("stats_private_mode")
+            val THEME = stringPreferencesKey("theme")
 
             fun toSettings(preferences: Preferences): AppSettings {
                 val defaults = AppSettings()
@@ -159,6 +165,7 @@ class DataStoreSettingsRepository
                             thresholdMinutes = preferences[STATS_THRESHOLD_MINUTES] ?: defaults.stats.thresholdMinutes,
                             privateMode = preferences[STATS_PRIVATE_MODE] ?: defaults.stats.privateMode,
                         ).clamped(),
+                    theme = InterfaceTheme.entries.firstOrNull { it.name == preferences[THEME] } ?: defaults.theme,
                 )
             }
 

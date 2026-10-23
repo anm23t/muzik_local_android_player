@@ -19,6 +19,7 @@ import org.junit.jupiter.params.provider.CsvSource
 import org.muzzzlo.player.core.model.AppLanguage
 import org.muzzzlo.player.core.model.AppSettings
 import org.muzzzlo.player.core.model.CrossfadeSettings
+import org.muzzzlo.player.core.model.InterfaceTheme
 import org.muzzzlo.player.core.model.PlaybackBehaviorSettings
 import org.muzzzlo.player.core.model.ReplayGainMode
 import org.muzzzlo.player.core.model.ReplayGainSettings
@@ -63,6 +64,7 @@ class DataStoreSettingsRepositoryTest {
             repository.setPlaybackBehavior(behavior)
             val stats = StatsSettings(thresholdPercent = 70, thresholdMinutes = 2, privateMode = true)
             repository.setStats(stats)
+            repository.setTheme(InterfaceTheme.HUGE)
 
             val expected =
                 AppSettings(
@@ -77,6 +79,7 @@ class DataStoreSettingsRepositoryTest {
                     crossfade = CrossfadeSettings(seconds = 6, withinAlbum = true),
                     playbackBehavior = behavior,
                     stats = stats,
+                    theme = InterfaceTheme.HUGE,
                 )
             assertEquals(expected, repository.settings.first())
         }
@@ -159,6 +162,7 @@ class DataStoreSettingsRepositoryTest {
                 it[DataStoreSettingsRepository.TRANSIENT_FOCUS] = "SHOUT"
                 it[DataStoreSettingsRepository.STATS_THRESHOLD_PERCENT] = 0
                 it[DataStoreSettingsRepository.STATS_THRESHOLD_MINUTES] = 600
+                it[DataStoreSettingsRepository.THEME] = "NEON"
             }
             val settings = repository.settings.first()
             assertEquals(4, settings.id3v2VersionForNewTags)
@@ -168,6 +172,7 @@ class DataStoreSettingsRepositoryTest {
             assertEquals(CrossfadeSettings(seconds = 12), settings.crossfade)
             assertEquals(TransientFocusAction.DUCK, settings.playbackBehavior.transientFocus)
             assertEquals(StatsSettings(thresholdPercent = 10, thresholdMinutes = 10), settings.stats)
+            assertEquals(InterfaceTheme.WINDOW, settings.theme)
         }
 
     @Test

@@ -275,6 +275,7 @@ class DefaultBackupRepository
             settings.setCrossfade(incoming.crossfade)
             settings.setPlaybackBehavior(incoming.playbackBehavior)
             settings.setStats(incoming.stats)
+            settings.setTheme(incoming.theme)
         }
 
         private fun tagValues(track: TrackIdentity) = stringList(track.artistTagValues)

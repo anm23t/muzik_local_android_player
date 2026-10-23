@@ -17,8 +17,10 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.muzzzlo.player.core.designsystem.component.LocalCoverLoader
+import org.muzzzlo.player.core.designsystem.theme.FrameStyle
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloTheme
 import org.muzzzlo.player.core.model.AppLanguage
+import org.muzzzlo.player.core.model.InterfaceTheme
 import org.muzzzlo.player.core.model.PlayerController
 import org.muzzzlo.player.core.model.SettingsRepository
 import org.muzzzlo.player.feature.settings.LocaleContext
@@ -56,10 +58,13 @@ class MainActivity : ComponentActivity() {
             // The playback notification needs this permission; playback works without it.
             requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 0)
         }
+        val themes = settings.settings.map { it.theme.toFrameStyle() }.distinctUntilChanged()
         setContent {
             val accent by accentViewModel.accent.collectAsStateWithLifecycle()
+            // Nothing is drawn until the theme is read (one DataStore read), so the frame does not jump at start.
+            val frameStyle = themes.collectAsStateWithLifecycle(null).value ?: return@setContent
             CompositionLocalProvider(LocalCoverLoader provides coverLoader) {
-                MuzzzloTheme(accent) {
+                MuzzzloTheme(accent, frameStyle) {
                     MuzzzloNavHost()
                     UpdatePrompts()
                 }
@@ -67,3 +72,9 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+
+private fun InterfaceTheme.toFrameStyle(): FrameStyle =
+    when (this) {
+        InterfaceTheme.WINDOW -> FrameStyle.Window
+        InterfaceTheme.HUGE -> FrameStyle.Huge
+    }
