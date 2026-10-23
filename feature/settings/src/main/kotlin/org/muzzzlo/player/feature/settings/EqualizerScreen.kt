@@ -1,15 +1,18 @@
 package org.muzzzlo.player.feature.settings
 
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -94,11 +97,21 @@ private fun PresetChips(
     chosen: EqualizerPreset,
     onChosen: (EqualizerPreset) -> Unit,
 ) {
-    Row(
-        Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+    val list = rememberLazyListState()
+    // A slider turns the curve into "Custom", the last chip: bring the chosen one into view.
+    LaunchedEffect(chosen) {
+        val index = EqualizerPreset.entries.indexOf(chosen)
+        val info = list.layoutInfo
+        val shown = info.visibleItemsInfo.firstOrNull { it.index == index }
+        val whole = shown != null && shown.offset >= 0 && shown.offset + shown.size <= info.viewportEndOffset
+        if (!whole) list.animateScrollToItem(index)
+    }
+    LazyRow(
+        Modifier.fillMaxWidth(),
+        state = list,
         horizontalArrangement = Arrangement.spacedBy(MuzzzloDimens.SmallGap),
     ) {
-        EqualizerPreset.entries.forEach { preset ->
+        items(EqualizerPreset.entries) { preset ->
             ChoiceChip(
                 text = stringResource(equalizerPresetLabel(preset)),
                 selected = preset == chosen,

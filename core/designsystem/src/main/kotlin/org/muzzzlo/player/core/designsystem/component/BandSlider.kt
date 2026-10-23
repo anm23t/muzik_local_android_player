@@ -102,10 +102,13 @@ private fun DrawScope.drawBand(
     drawRoundRect(MuzzzloColors.Outline, Offset(left, 0f), Size(track, size.height), radius)
     val middle = bandYOf(0f, size.height, min, max)
     val at = bandYOf(value, size.height, min, max)
-    val top = minOf(middle, at)
-    // A flat band still shows a dot of the accent at the middle.
-    val height = maxOf(abs(at - middle), track)
-    drawRoundRect(accent, Offset(left, minOf(top, size.height - height)), Size(track, height), radius)
+    val length = abs(at - middle)
+    if (length < track) {
+        // A flat or almost flat band shows a dot of the accent centred on the middle line.
+        drawRoundRect(accent, Offset(left, middle - track / 2), Size(track, track), radius)
+    } else {
+        drawRoundRect(accent, Offset(left, minOf(middle, at)), Size(track, length), radius)
+    }
     val line = MuzzzloDimens.BorderWidth.toPx()
     drawRect(MuzzzloColors.TextSecondary, Offset(left - track / 2, middle - line / 2), Size(track * 2, line))
 }
