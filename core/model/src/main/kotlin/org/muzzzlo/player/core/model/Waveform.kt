@@ -31,18 +31,29 @@ class PeakCollector(
     private val peaks = FloatArray(count)
     private var frame = 0L
 
+    /** The part of the current frame and the first frame of the next part; kept so [add] needs no division. */
+    private var part = 0
+    private var nextPartStart = 0L
+
     init {
         require(totalFrames > 0) { "A track without frames has no waveform" }
         require(count > 0) { "At least one peak" }
+        nextPartStart = startOf(1)
     }
 
     /** The next frame; [peak] is the largest absolute sample of its channels, 1 is full scale. */
     fun add(peak: Float) {
-        val part = ((frame * count) / totalFrames).toInt().coerceAtMost(count - 1)
+        while (frame >= nextPartStart && part < count - 1) {
+            part++
+            nextPartStart = startOf(part + 1)
+        }
         val value = abs(peak).coerceAtMost(1f)
         if (value > peaks[part]) peaks[part] = value
         frame++
     }
+
+    /** First frame of [part]: the smallest `i` with `i * count / totalFrames >= part`. */
+    private fun startOf(part: Int): Long = (part * totalFrames + count - 1) / count
 
     /** Frames given so far. */
     val frames: Long get() = frame

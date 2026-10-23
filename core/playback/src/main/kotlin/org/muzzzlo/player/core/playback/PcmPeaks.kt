@@ -30,9 +30,55 @@ internal class PcmPeaks(
         require(channelCount > 0) { "No channels" }
     }
 
+    /** Samples of one bulk read: 16-bit and float PCM are read in chunks instead of one call per sample. */
+    private var chunk16 = ShortArray(0)
+    private var chunkFloat = FloatArray(0)
+
     /** Reads all whole frames of [buffer] from its position; a partial frame at the end is skipped. */
     fun add(buffer: ByteBuffer) {
         val data = buffer.duplicate().order(ByteOrder.LITTLE_ENDIAN)
+        val frames = data.remaining() / (bytesPerSample * channelCount)
+        when (encoding) {
+            C.ENCODING_PCM_16BIT -> add16(data, frames)
+            C.ENCODING_PCM_FLOAT -> addFloat(data, frames)
+            else -> addEach(data)
+        }
+    }
+
+    private fun add16(
+        data: ByteBuffer,
+        frames: Int,
+    ) {
+        val samples = frames * channelCount
+        if (chunk16.size < samples) chunk16 = ShortArray(samples)
+        data.asShortBuffer().get(chunk16, 0, samples)
+        var i = 0
+        repeat(frames) {
+            var peak = 0
+            repeat(channelCount) {
+                val v = chunk16[i++].toInt()
+                peak = maxOf(peak, if (v < 0) -v else v)
+            }
+            collector.add(peak / SHORT_SCALE)
+        }
+    }
+
+    private fun addFloat(
+        data: ByteBuffer,
+        frames: Int,
+    ) {
+        val samples = frames * channelCount
+        if (chunkFloat.size < samples) chunkFloat = FloatArray(samples)
+        data.asFloatBuffer().get(chunkFloat, 0, samples)
+        var i = 0
+        repeat(frames) {
+            var peak = 0f
+            repeat(channelCount) { peak = maxOf(peak, abs(chunkFloat[i++])) }
+            collector.add(peak)
+        }
+    }
+
+    private fun addEach(data: ByteBuffer) {
         val frameBytes = bytesPerSample * channelCount
         while (data.remaining() >= frameBytes) {
             var peak = 0f

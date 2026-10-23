@@ -106,11 +106,13 @@ internal class WaveformDecoder
                 codec.configure(format, null, null, 0)
                 codec.start()
                 val output = CodecOutput(codec, collector)
-                var inputDone = false
+                var input = CodecInput.QUEUED
                 while (!output.ended) {
                     currentCoroutineContext().ensureActive()
-                    if (!inputDone) inputDone = queueInput(extractor, codec)
-                    output.drainOne()
+                    if (input != CodecInput.ENDED) input = queueInput(extractor, codec)
+                    // Wait for output only when there is nothing to feed: waiting on every packet made a
+                    // 3-minute MP3 take seconds (found on the test phone).
+                    output.drainOne(if (input == CodecInput.QUEUED) 0 else TIMEOUT_US)
                 }
                 return true
             } finally {
@@ -130,8 +132,8 @@ internal class WaveformDecoder
             var ended = false
                 private set
 
-            fun drainOne() {
-                val index = codec.dequeueOutputBuffer(info, TIMEOUT_US)
+            fun drainOne(timeoutUs: Long) {
+                val index = codec.dequeueOutputBuffer(info, timeoutUs)
                 if (index == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) peaks = peaksFor(codec.outputFormat, collector)
                 if (index < 0) return
                 val buffer = codec.getOutputBuffer(index)
@@ -146,22 +148,25 @@ internal class WaveformDecoder
             }
         }
 
-        /** Gives the codec the next packet; true once the end of the file was queued. */
+        /** What [queueInput] did. */
+        private enum class CodecInput { QUEUED, NO_BUFFER, ENDED }
+
+        /** Gives the codec the next packet if it has a free input buffer, without waiting. */
         private fun queueInput(
             extractor: MediaExtractor,
             codec: MediaCodec,
-        ): Boolean {
-            val index = codec.dequeueInputBuffer(TIMEOUT_US)
+        ): CodecInput {
+            val index = codec.dequeueInputBuffer(0)
             val buffer = if (index >= 0) codec.getInputBuffer(index) else null
-            val size = buffer?.let { extractor.readSampleData(it, 0) } ?: return false
-            val ended = size < 0
-            if (ended) {
+            val size = buffer?.let { extractor.readSampleData(it, 0) } ?: return CodecInput.NO_BUFFER
+            return if (size < 0) {
                 codec.queueInputBuffer(index, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM)
+                CodecInput.ENDED
             } else {
                 codec.queueInputBuffer(index, 0, size, extractor.sampleTime, 0)
                 extractor.advance()
+                CodecInput.QUEUED
             }
-            return ended
         }
 
         private fun peaksFor(
