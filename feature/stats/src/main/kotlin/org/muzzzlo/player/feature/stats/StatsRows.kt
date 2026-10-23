@@ -28,6 +28,8 @@ internal fun TopTrackRow(
         onClick = {},
         number = rank.toString(),
         subtitle = track.artists.joinToString(", ").ifEmpty { null },
+        // A deleted track has no cover left: the placeholder is shown.
+        cover = { CoverImage(track.trackId?.let { id -> CoverSource.Track(id) }, it) },
         trailing = {
             Text(
                 text = playsText(track.plays),

@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -331,7 +332,10 @@ private fun ArtistHeader(
     }
 }
 
-/** "Top Song / Streams" (33:714): up to five songs with their listens; an empty state before the first listen. */
+/**
+ * "Top Song / Streams" (33:714): up to five songs with their covers and listens; an empty state before the first
+ * listen. The covers are not in the mockup (DESIGN.md, section 7).
+ */
 @Composable
 private fun TopSongs(
     songs: List<ArtistTopSong>,
@@ -370,6 +374,10 @@ private fun TopSongs(
                 horizontalArrangement = Arrangement.spacedBy(MuzzzloDimens.ContentGap),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
+                CoverImage(
+                    CoverSource.Track(song.track.id),
+                    Modifier.size(MuzzzloDimens.MiniPlayerCover).clip(MuzzzloDimens.RowShape),
+                )
                 Text(
                     text = song.track.title,
                     modifier = Modifier.weight(1f),
