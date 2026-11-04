@@ -74,6 +74,27 @@ class SettingsViewModelTest {
     }
 
     @Test
+    fun `the folder cover switch saves the setting and scans, both ways`() {
+        var scans = 0
+        val library =
+            Proxy.newProxyInstance(javaClass.classLoader, arrayOf(LibraryRepository::class.java)) { _, method, _ ->
+                check(method.name == "scan") { "unexpected call to ${method.name}" }
+                scans++
+                Unit
+            } as LibraryRepository
+        val model = SettingsViewModel(settings, library, NoMaintenance, updates)
+
+        model.librarySettings.onFolderCoversChanged(true)
+        assertEquals(true, settings.state.value.folderCovers)
+        assertEquals(1, scans)
+
+        model.librarySettings.onFolderCoversChanged(false)
+        assertEquals(false, settings.state.value.folderCovers)
+        assertEquals(2, scans)
+        assertEquals(false, model.state.value.isScanning)
+    }
+
+    @Test
     fun `the waveform switch saves the setting`() {
         viewModel.ui.onWaveformChanged(false)
 
@@ -210,6 +231,10 @@ class SettingsViewModelTest {
 
         override suspend fun setWaveform(enabled: Boolean) {
             state.value = state.value.copy(waveform = enabled)
+        }
+
+        override suspend fun setFolderCovers(enabled: Boolean) {
+            state.value = state.value.copy(folderCovers = enabled)
         }
 
         override suspend fun setEqualizer(settings: EqualizerSettings) {

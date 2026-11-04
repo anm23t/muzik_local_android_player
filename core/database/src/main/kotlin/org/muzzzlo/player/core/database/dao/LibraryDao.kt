@@ -103,6 +103,21 @@ data class TrackStamp(
     @ColumnInfo(name = "is_damaged") val isDamaged: Boolean,
 )
 
+/** Where a track of an album without a cover in its tags lies, for the folder cover (task 2.0.5). */
+data class AlbumTrackFolder(
+    @ColumnInfo(name = "album_id") val albumId: Long,
+    @ColumnInfo(name = "relative_path") val relativePath: String,
+    @ColumnInfo(name = "disc_number") val discNumber: Int?,
+    @ColumnInfo(name = "track_number") val trackNumber: Int?,
+)
+
+/** The folder cover an album uses; both null when it uses none. */
+data class AlbumFolderCover(
+    val id: Long,
+    @ColumnInfo(name = "folder_cover_uri") val uri: String?,
+    @ColumnInfo(name = "folder_cover_modified") val modified: Long?,
+)
+
 /** Rating and favorite flag of a track. */
 data class TrackMarksRow(
     @ColumnInfo(name = "rating_tenths") val ratingTenths: Int?,
@@ -258,6 +273,34 @@ interface LibraryDao {
     /** Null when the accent was not computed yet or was reset, 0 when the cover gives none (DATABASE.md). */
     @Query("SELECT accent_color FROM album WHERE id = :albumId")
     suspend fun albumAccent(albumId: Long): Int?
+
+    /**
+     * Present tracks of albums none of whose present tracks has a cover in its tags: only these albums may take
+     * a cover from their folder. Tracks without a known folder (Android 9 and older) are left out.
+     */
+    @Query(
+        "SELECT album_id, relative_path, disc_number, track_number FROM track " +
+            "WHERE is_missing = 0 AND album_id IS NOT NULL AND relative_path IS NOT NULL AND album_id NOT IN " +
+            "(SELECT album_id FROM track WHERE is_missing = 0 AND has_cover = 1 AND album_id IS NOT NULL)",
+    )
+    suspend fun tracksOfAlbumsWithoutCover(): List<AlbumTrackFolder>
+
+    @Query("SELECT id, folder_cover_uri, folder_cover_modified FROM album")
+    suspend fun albumFolderCovers(): List<AlbumFolderCover>
+
+    @Query("SELECT id, folder_cover_uri, folder_cover_modified FROM album WHERE id = :albumId")
+    suspend fun albumFolderCover(albumId: Long): AlbumFolderCover?
+
+    /** Sets the folder cover of an album and drops its accent, which came from the old cover. */
+    @Query(
+        "UPDATE album SET folder_cover_uri = :uri, folder_cover_modified = :modified, accent_color = NULL " +
+            "WHERE id = :albumId",
+    )
+    suspend fun setAlbumFolderCover(
+        albumId: Long,
+        uri: String?,
+        modified: Long?,
+    )
 
     @Query("UPDATE album SET accent_color = :color WHERE id = :albumId")
     suspend fun setAlbumAccent(

@@ -123,6 +123,10 @@ class DataStoreSettingsRepository
             store.edit { it[WAVEFORM] = enabled }
         }
 
+        override suspend fun setFolderCovers(enabled: Boolean) {
+            store.edit { it[FOLDER_COVERS] = enabled }
+        }
+
         override suspend fun setEqualizer(settings: EqualizerSettings) {
             val clamped = settings.clamped()
             store.edit {
@@ -165,6 +169,7 @@ class DataStoreSettingsRepository
             val STATS_PRIVATE_MODE = booleanPreferencesKey("stats_private_mode")
             val THEME = stringPreferencesKey("theme")
             val WAVEFORM = booleanPreferencesKey("waveform")
+            val FOLDER_COVERS = booleanPreferencesKey("folder_covers")
             val EQUALIZER_ENABLED = booleanPreferencesKey("equalizer_enabled")
             val EQUALIZER_PRESET = stringPreferencesKey("equalizer_preset")
 
@@ -187,12 +192,8 @@ class DataStoreSettingsRepository
                 val defaults = AppSettings()
                 return AppSettings(
                     excludedFolders = preferences[EXCLUDED_FOLDERS].orEmpty(),
-                    minTrackSeconds =
-                        preferences[MIN_TRACK_SECONDS]?.let(AppSettings::clampMinTrackSeconds)
-                            ?: defaults.minTrackSeconds,
-                    id3v2VersionForNewTags =
-                        preferences[ID3V2_VERSION]?.takeIf { it in AppSettings.ID3V2_VERSIONS }
-                            ?: defaults.id3v2VersionForNewTags,
+                    minTrackSeconds = minTrackSecondsOf(preferences, defaults),
+                    id3v2VersionForNewTags = id3v2VersionOf(preferences, defaults),
                     confirmBeforeWrite = preferences[CONFIRM_BEFORE_WRITE] ?: defaults.confirmBeforeWrite,
                     language =
                         AppLanguage.entries.firstOrNull { it.name == preferences[LANGUAGE] } ?: defaults.language,
@@ -215,7 +216,21 @@ class DataStoreSettingsRepository
                     waveform = preferences[WAVEFORM] ?: defaults.waveform,
                     equalizer = equalizerOf(preferences, defaults.equalizer),
                     listSorts = sortsOf(preferences),
+                    folderCovers = preferences[FOLDER_COVERS] ?: defaults.folderCovers,
                 )
+            }
+
+            private fun minTrackSecondsOf(
+                preferences: Preferences,
+                defaults: AppSettings,
+            ) = preferences[MIN_TRACK_SECONDS]?.let(AppSettings::clampMinTrackSeconds) ?: defaults.minTrackSeconds
+
+            private fun id3v2VersionOf(
+                preferences: Preferences,
+                defaults: AppSettings,
+            ): Int {
+                val stored = preferences[ID3V2_VERSION]?.takeIf { it in AppSettings.ID3V2_VERSIONS }
+                return stored ?: defaults.id3v2VersionForNewTags
             }
 
             private fun equalizerOf(

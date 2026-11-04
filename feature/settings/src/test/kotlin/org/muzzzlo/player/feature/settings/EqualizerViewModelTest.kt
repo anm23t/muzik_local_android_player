@@ -150,5 +150,7 @@ class EqualizerViewModelTest {
         override suspend fun setTheme(theme: InterfaceTheme) = Unit
 
         override suspend fun setWaveform(enabled: Boolean) = Unit
+
+        override suspend fun setFolderCovers(enabled: Boolean) = Unit
     }
 }

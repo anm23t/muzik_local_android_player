@@ -73,6 +73,17 @@ class SettingsViewModel
                 closeDialog = { local.update { it.copy(dialog = null) } },
             )
 
+        /** Changes of the library section that need a scan afterwards. */
+        val librarySettings =
+            LibrarySettingsEditor(
+                saveAndScan = { action ->
+                    viewModelScope.launch {
+                        repository.action()
+                        scan()
+                    }
+                },
+            )
+
         /** Changes of the statistics section. */
         val stats =
             StatsSettingsEditor(

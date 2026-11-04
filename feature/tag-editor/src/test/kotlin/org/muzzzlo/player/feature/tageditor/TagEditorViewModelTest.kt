@@ -384,6 +384,8 @@ private class FakeSettings : SettingsRepository {
 
     override suspend fun setWaveform(enabled: Boolean) = Unit
 
+    override suspend fun setFolderCovers(enabled: Boolean) = Unit
+
     override suspend fun setEqualizer(settings: EqualizerSettings) = Unit
 
     override suspend fun setTheme(theme: InterfaceTheme) = Unit

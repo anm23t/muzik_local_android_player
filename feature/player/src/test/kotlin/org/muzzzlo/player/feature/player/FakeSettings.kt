@@ -26,6 +26,10 @@ class FakeSettings : SettingsRepository {
         settings.value = settings.value.copy(waveform = enabled)
     }
 
+    override suspend fun setFolderCovers(enabled: Boolean) {
+        settings.value = settings.value.copy(folderCovers = enabled)
+    }
+
     override suspend fun setFolderIncluded(
         relativePath: String,
         included: Boolean,

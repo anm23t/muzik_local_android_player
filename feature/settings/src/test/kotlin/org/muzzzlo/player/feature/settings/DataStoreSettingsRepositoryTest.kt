@@ -70,6 +70,7 @@ class DataStoreSettingsRepositoryTest {
             repository.setStats(stats)
             repository.setTheme(InterfaceTheme.HUGE)
             repository.setWaveform(false)
+            repository.setFolderCovers(true)
             val equalizer = EqualizerSettings(true, EqualizerPreset.CUSTOM, List(10) { it - 4.5f }, preampDb = -3.5f)
             repository.setEqualizer(equalizer)
             repository.setListSort(SortedList.ALBUMS, StoredSort("Year", ascending = false))
@@ -90,6 +91,7 @@ class DataStoreSettingsRepositoryTest {
                     stats = stats,
                     theme = InterfaceTheme.HUGE,
                     waveform = false,
+                    folderCovers = true,
                     equalizer = equalizer,
                     listSorts =
                         mapOf(

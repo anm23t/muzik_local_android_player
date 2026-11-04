@@ -266,6 +266,23 @@ class MigrationTest {
         }
     }
 
+    @Test
+    fun `12 to 13 adds the folder cover and keeps albums and their accent`() {
+        helper.createDatabase(DB_NAME, 12).use { db ->
+            db.execSQL("INSERT INTO album (id, title, title_key, accent_color) VALUES (1, 'Album', 'album', 255)")
+        }
+
+        helper.runMigrationsAndValidate(DB_NAME, 13, true, MIGRATION_12_13).use { db ->
+            db.query("SELECT title, accent_color, folder_cover_uri, folder_cover_modified FROM album").use {
+                it.moveToFirst()
+                assertEquals("Album", it.getString(0))
+                assertEquals(255, it.getInt(1))
+                assertTrue(it.isNull(2))
+                assertTrue(it.isNull(3))
+            }
+        }
+    }
+
     private companion object {
         const val DB_NAME = "migration-test.db"
     }

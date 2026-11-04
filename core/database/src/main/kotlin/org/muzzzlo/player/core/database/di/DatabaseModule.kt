@@ -9,6 +9,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import org.muzzzlo.player.core.database.MIGRATION_10_11
 import org.muzzzlo.player.core.database.MIGRATION_11_12
+import org.muzzzlo.player.core.database.MIGRATION_12_13
 import org.muzzzlo.player.core.database.MIGRATION_1_2
 import org.muzzzlo.player.core.database.MIGRATION_2_3
 import org.muzzzlo.player.core.database.MIGRATION_3_4
@@ -46,6 +47,7 @@ object DatabaseModule {
                 MIGRATION_9_10,
                 MIGRATION_10_11,
                 MIGRATION_11_12,
+                MIGRATION_12_13,
             )
             .build()
 

@@ -56,6 +56,10 @@ data class AlbumEntity(
     val year: Int? = null,
     @ColumnInfo(name = "cover_hash") val coverHash: String? = null,
     @ColumnInfo(name = "accent_color") val accentColor: Int? = null,
+    /** MediaStore URI of the cover picture lying next to the tracks (schema 13, task 2.0.5); null when none is used. */
+    @ColumnInfo(name = "folder_cover_uri") val folderCoverUri: String? = null,
+    /** `DATE_MODIFIED` of that picture, so a replaced picture gets a new thumbnail. */
+    @ColumnInfo(name = "folder_cover_modified") val folderCoverModified: Long? = null,
 )
 
 @Entity(

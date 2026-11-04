@@ -8,11 +8,15 @@ package org.muzzzlo.player.core.model
  */
 interface CoverRepository {
     /**
-     * Path of the cached JPEG cover of the track, made on the first request. Null when the track has no cover or
-     * its file cannot be read. The name changes when the file changes, so a path can be remembered by its value.
+     * Path of the cached JPEG cover of the track, made on the first request; a track without a cover of its own
+     * gets the folder cover of its album. Null when there is no cover or the file cannot be read. The name changes
+     * when the file changes, so a path can be remembered by its value.
      */
     suspend fun trackCover(trackId: Long): String?
 
-    /** Path of the cover of an album: the cover of its first track that has one. Null when none has. */
+    /**
+     * Path of the cover of an album: the cover of its first track that has one, otherwise the cover picture of its
+     * folder when the user turned folder covers on (task 2.0.5). Null when there is neither.
+     */
     suspend fun albumCover(albumId: Long): String?
 }

@@ -162,3 +162,15 @@ val MIGRATION_11_12 =
             db.execSQL("ALTER TABLE `playlist` ADD COLUMN `cover_path` TEXT")
         }
     }
+
+/**
+ * The album gets a place for the cover picture found in its folder (task 2.0.5). Empty for every album: the next scan
+ * fills it when the user turns folder covers on.
+ */
+val MIGRATION_12_13 =
+    object : Migration(12, 13) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE `album` ADD COLUMN `folder_cover_uri` TEXT")
+            db.execSQL("ALTER TABLE `album` ADD COLUMN `folder_cover_modified` INTEGER")
+        }
+    }

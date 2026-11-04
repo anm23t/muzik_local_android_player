@@ -66,6 +66,42 @@ class LibraryDaoTest {
     )
 
     @Test
+    fun `only albums without a cover in their tags look for a folder cover`() =
+        runBlocking {
+            val bare = dao.insertAlbum(AlbumEntity(title = "Bare", titleKey = "bare"))
+            val tagged = dao.insertAlbum(AlbumEntity(title = "Tagged", titleKey = "tagged"))
+            val goneCover = dao.insertAlbum(AlbumEntity(title = "Gone", titleKey = "gone"))
+            dao.insertTrack(track("u1", "One", bare, number = 1).copy(relativePath = "Music/Bare/"))
+            dao.insertTrack(track("u2", "Two", tagged, number = 1).copy(relativePath = "Music/T/"))
+            dao.insertTrack(track("u3", "Three", tagged, number = 2).copy(relativePath = "Music/T/", hasCover = true))
+            // The only track with a cover is missing, so the album counts as one without a cover.
+            dao.insertTrack(
+                track("u4", "Four", goneCover, isMissing = true).copy(relativePath = "Music/G/", hasCover = true),
+            )
+            dao.insertTrack(track("u5", "Five", goneCover, number = 2).copy(relativePath = "Music/G/"))
+            dao.insertTrack(track("u6", "Six", bare, number = 2))
+
+            val rows = dao.tracksOfAlbumsWithoutCover().sortedBy { it.albumId }
+            assertEquals(listOf(bare, goneCover), rows.map { it.albumId })
+            assertEquals(listOf("Music/Bare/", "Music/G/"), rows.map { it.relativePath })
+        }
+
+    @Test
+    fun `a new folder cover drops the accent of the album`() =
+        runBlocking {
+            val album = dao.insertAlbum(AlbumEntity(title = "A", titleKey = "a", accentColor = 0x123456))
+            dao.setAlbumFolderCover(album, "content://media/external/images/media/7", 99)
+            val cover = dao.albumFolderCover(album)!!
+            assertEquals("content://media/external/images/media/7", cover.uri)
+            assertEquals(99L, cover.modified)
+            assertEquals(null, dao.albumAccent(album))
+
+            dao.setAlbumFolderCover(album, null, null)
+            assertEquals(null, dao.albumFolderCover(album)!!.uri)
+            assertEquals(listOf(album), dao.albumFolderCovers().map { it.id })
+        }
+
+    @Test
     fun `artist is found by key instead of duplicated`() =
         runBlocking {
             val first = dao.artistId("Eminem", "eminem")

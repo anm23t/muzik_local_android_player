@@ -53,6 +53,8 @@ data class StoredSort(
  * @property theme framing of the screens.
  * @property waveform the big player shows the waveform of the track instead of the plain progress bar.
  * @property equalizer the 10-band equalizer of playback.
+ * @property folderCovers albums without a cover in their tags take the picture lying next to their tracks
+ *   (`cover.jpg` and the like, task 2.0.5); needs the permission to read images on Android 13 and newer.
  * @property listSorts the last sort chosen in each list; a list that is not here uses its default sort.
  */
 data class AppSettings(
@@ -71,6 +73,7 @@ data class AppSettings(
     val waveform: Boolean = true,
     val equalizer: EqualizerSettings = EqualizerSettings(),
     val listSorts: Map<SortedList, StoredSort> = emptyMap(),
+    val folderCovers: Boolean = false,
 ) {
     companion object {
         const val DEFAULT_MIN_TRACK_SECONDS = 30
@@ -84,7 +87,11 @@ data class AppSettings(
     }
 }
 
-/** Reads and changes [AppSettings]; stored in DataStore, implemented in `feature:settings`. */
+/**
+ * Reads and changes [AppSettings]; stored in DataStore, implemented in `feature:settings`. One setter per setting
+ * keeps each change small and testable, so the interface grows with the settings.
+ */
+@Suppress("TooManyFunctions")
 interface SettingsRepository {
     val settings: Flow<AppSettings>
 
@@ -119,6 +126,8 @@ interface SettingsRepository {
     suspend fun setTheme(theme: InterfaceTheme)
 
     suspend fun setWaveform(enabled: Boolean)
+
+    suspend fun setFolderCovers(enabled: Boolean)
 
     /** Stores [settings] with the decibel values clamped ([EqualizerSettings.clamped]). */
     suspend fun setEqualizer(settings: EqualizerSettings)

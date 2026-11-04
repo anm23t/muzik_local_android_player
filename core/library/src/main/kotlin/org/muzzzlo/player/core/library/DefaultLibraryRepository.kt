@@ -30,6 +30,7 @@ internal class DefaultLibraryRepository
         private val dispatchers: DispatcherProvider,
         private val photos: ArtistPhotoStore,
         private val settings: SettingsRepository,
+        private val folderCovers: FolderCoverIndexer,
     ) : LibraryRepository {
         override fun observeTracks(): Flow<List<Track>> =
             combine(dao.observeTracks(), dao.observeTrackArtists(), dao.observeAlbums()) { tracks, artists, albums ->
@@ -110,7 +111,9 @@ internal class DefaultLibraryRepository
 
         override suspend fun scan() =
             withContext(dispatchers.io) {
-                indexer.index(ScanFilter.apply(source.query(), settings.settings.first()))
+                val current = settings.settings.first()
+                indexer.index(ScanFilter.apply(source.query(), current))
+                folderCovers.refresh(current.folderCovers)
             }
 
         private companion object {

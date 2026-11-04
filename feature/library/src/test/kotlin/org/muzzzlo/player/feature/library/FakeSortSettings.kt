@@ -54,5 +54,7 @@ class FakeSortSettings(sorts: Map<SortedList, StoredSort> = emptyMap()) : Settin
 
     override suspend fun setWaveform(enabled: Boolean) = Unit
 
+    override suspend fun setFolderCovers(enabled: Boolean) = Unit
+
     override suspend fun setEqualizer(settings: EqualizerSettings) = Unit
 }

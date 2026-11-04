@@ -20,6 +20,7 @@ class BackupJsonTest {
                     stats = StatsSettings(thresholdPercent = 30, thresholdMinutes = 2, privateMode = true),
                     theme = InterfaceTheme.HUGE,
                     waveform = false,
+                    folderCovers = true,
                     equalizer = EqualizerSettings(true, EqualizerPreset.CUSTOM, List(10) { it * 0.5f - 2f }, -1.5f),
                     listSorts =
                         mapOf(

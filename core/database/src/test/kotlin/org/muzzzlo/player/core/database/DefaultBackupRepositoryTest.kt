@@ -135,6 +135,7 @@ class DefaultBackupRepositoryTest {
                     language = AppLanguage.RUSSIAN,
                     stats = StatsSettings(thresholdPercent = 30),
                     listSorts = mapOf(SortedList.ALBUMS to StoredSort("Rating", ascending = false)),
+                    folderCovers = true,
                 )
             compounds.rules += CompoundRule(1, "Tyler, The Creator", null, true)
             compounds.rules += CompoundRule(2, "Built, In", "b1", false)
@@ -162,6 +163,7 @@ class DefaultBackupRepositoryTest {
             assertEquals(listOf(2L), compounds.removed)
             assertEquals(AppLanguage.RUSSIAN, settings.state.value.language)
             assertEquals(30, settings.state.value.stats.thresholdPercent)
+            assertTrue(settings.state.value.folderCovers)
             assertEquals(
                 mapOf(SortedList.ALBUMS to StoredSort("Rating", ascending = false)),
                 settings.state.value.listSorts,
@@ -345,6 +347,10 @@ class DefaultBackupRepositoryTest {
 
         override suspend fun setWaveform(enabled: Boolean) {
             state.value = state.value.copy(waveform = enabled)
+        }
+
+        override suspend fun setFolderCovers(enabled: Boolean) {
+            state.value = state.value.copy(folderCovers = enabled)
         }
 
         override suspend fun setEqualizer(settings: EqualizerSettings) {
