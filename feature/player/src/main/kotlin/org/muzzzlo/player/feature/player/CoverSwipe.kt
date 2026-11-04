@@ -1,8 +1,10 @@
 package org.muzzzlo.player.feature.player
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import org.muzzzlo.player.core.designsystem.gesture.CoverSwipeState
 import org.muzzzlo.player.core.designsystem.gesture.SwipeSkip
 import org.muzzzlo.player.core.model.PlayerState
@@ -21,6 +23,27 @@ internal fun rememberCoverSwipe(
             canNext = { state().hasNext },
             trackKey = { state().currentTrack?.id },
             onSkip = { if (it == SwipeSkip.NEXT) viewModel.onNext() else viewModel.onPrevious() },
+        )
+    }
+}
+
+/** The vertical swipe over the cover (task 2.0.7): up opens the lyrics, down drags the player sheet. */
+@Composable
+internal fun rememberCoverLift(
+    viewModel: LyricsViewModel,
+    onSheetDrag: (Float) -> Unit,
+    onSheetRelease: (Float) -> Unit,
+): CoverLiftState {
+    val scope = rememberCoroutineScope()
+    val drag by rememberUpdatedState(onSheetDrag)
+    val release by rememberUpdatedState(onSheetRelease)
+    return remember {
+        CoverLiftState(
+            scope = scope,
+            canLift = { viewModel.state.value.available },
+            onLift = { viewModel.onSwipeUp() },
+            onSheetDrag = { drag(it) },
+            onSheetRelease = { release(it) },
         )
     }
 }

@@ -55,6 +55,10 @@ data class StoredSort(
  * @property equalizer the 10-band equalizer of playback.
  * @property folderCovers albums without a cover in their tags take the picture lying next to their tracks
  *   (`cover.jpg` and the like, task 2.0.5); needs the permission to read images on Android 13 and newer.
+ * @property lyricsFolder the tree URI of the folder the user opened for `.lrc` files on Android 10 and newer
+ *   (task 2.0.7); null when none. Not in the backup: the permission belongs to this device.
+ * @property lyricsShown the big player shows the lyrics instead of the cover (task 2.0.7); kept between runs,
+ *   not in the backup.
  * @property listSorts the last sort chosen in each list; a list that is not here uses its default sort.
  */
 data class AppSettings(
@@ -73,6 +77,8 @@ data class AppSettings(
     val waveform: Boolean = true,
     val equalizer: EqualizerSettings = EqualizerSettings(),
     val listSorts: Map<SortedList, StoredSort> = emptyMap(),
+    val lyricsShown: Boolean = false,
+    val lyricsFolder: String? = null,
     val folderCovers: Boolean = false,
 ) {
     companion object {
@@ -126,6 +132,10 @@ interface SettingsRepository {
     suspend fun setTheme(theme: InterfaceTheme)
 
     suspend fun setWaveform(enabled: Boolean)
+
+    suspend fun setLyricsShown(value: Boolean)
+
+    suspend fun setLyricsFolder(value: String?)
 
     suspend fun setFolderCovers(enabled: Boolean)
 

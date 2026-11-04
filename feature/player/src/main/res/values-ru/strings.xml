@@ -31,4 +31,6 @@
         <item quantity="many">%d минут</item>
         <item quantity="other">%d минуты</item>
     </plurals>
+    <string name="player_lyrics">Текст</string>
+    <string name="player_show_cover">Показать обложку</string>
 </resources>

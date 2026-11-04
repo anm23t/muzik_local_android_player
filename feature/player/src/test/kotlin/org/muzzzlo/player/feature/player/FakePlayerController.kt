@@ -10,6 +10,7 @@ class FakePlayerController : PlayerController {
     override val state = MutableStateFlow(PlayerState())
     val playedNext = mutableListOf<Track>()
     val addedToQueue = mutableListOf<Track>()
+    val seeks = mutableListOf<Long>()
 
     override fun connect() = Unit
 
@@ -25,7 +26,9 @@ class FakePlayerController : PlayerController {
 
     override fun previous() = Unit
 
-    override fun seekTo(positionMs: Long) = Unit
+    override fun seekTo(positionMs: Long) {
+        seeks += positionMs
+    }
 
     override fun playNext(track: Track) {
         playedNext += track

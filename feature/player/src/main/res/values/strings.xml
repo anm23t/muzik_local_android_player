@@ -29,4 +29,7 @@
         <item quantity="one">%d minute</item>
         <item quantity="other">%d minutes</item>
     </plurals>
+    <string name="lyrics_pause" translatable="false">♪</string>
+    <string name="player_lyrics">Lyrics</string>
+    <string name="player_show_cover">Show the cover</string>
 </resources>

@@ -349,6 +349,14 @@ class DefaultBackupRepositoryTest {
             state.value = state.value.copy(waveform = enabled)
         }
 
+        override suspend fun setLyricsShown(value: Boolean) {
+            state.value = state.value.copy(lyricsShown = value)
+        }
+
+        override suspend fun setLyricsFolder(value: String?) {
+            state.value = state.value.copy(lyricsFolder = value)
+        }
+
         override suspend fun setFolderCovers(enabled: Boolean) {
             state.value = state.value.copy(folderCovers = enabled)
         }

@@ -82,6 +82,7 @@ class SettingsViewModel
                         scan()
                     }
                 },
+                save = { action -> viewModelScope.launch { repository.action() } },
             )
 
         /** Changes of the statistics section. */

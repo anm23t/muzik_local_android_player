@@ -119,6 +119,14 @@ class DataStoreSettingsRepository
             store.edit { it[THEME] = theme.name }
         }
 
+        override suspend fun setLyricsFolder(value: String?) {
+            store.edit { if (value == null) it.remove(LYRICS_FOLDER) else it[LYRICS_FOLDER] = value }
+        }
+
+        override suspend fun setLyricsShown(value: Boolean) {
+            store.edit { it[LYRICS_SHOWN] = value }
+        }
+
         override suspend fun setWaveform(enabled: Boolean) {
             store.edit { it[WAVEFORM] = enabled }
         }
@@ -169,6 +177,12 @@ class DataStoreSettingsRepository
             val STATS_PRIVATE_MODE = booleanPreferencesKey("stats_private_mode")
             val THEME = stringPreferencesKey("theme")
             val WAVEFORM = booleanPreferencesKey("waveform")
+
+            /** Not in the backup: it belongs to this device. */
+            val LYRICS_SHOWN = booleanPreferencesKey("lyrics_shown")
+
+            /** Not in the backup: it belongs to this device. */
+            val LYRICS_FOLDER = stringPreferencesKey("lyrics_folder")
             val FOLDER_COVERS = booleanPreferencesKey("folder_covers")
             val EQUALIZER_ENABLED = booleanPreferencesKey("equalizer_enabled")
             val EQUALIZER_PRESET = stringPreferencesKey("equalizer_preset")
@@ -216,6 +230,8 @@ class DataStoreSettingsRepository
                     waveform = preferences[WAVEFORM] ?: defaults.waveform,
                     equalizer = equalizerOf(preferences, defaults.equalizer),
                     listSorts = sortsOf(preferences),
+                    lyricsShown = preferences[LYRICS_SHOWN] ?: defaults.lyricsShown,
+                    lyricsFolder = preferences[LYRICS_FOLDER],
                     folderCovers = preferences[FOLDER_COVERS] ?: defaults.folderCovers,
                 )
             }

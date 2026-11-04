@@ -12,6 +12,7 @@ import org.muzzzlo.player.core.library.DefaultCompoundRepository
 import org.muzzzlo.player.core.library.DefaultCoverRepository
 import org.muzzzlo.player.core.library.DefaultLibraryMaintenance
 import org.muzzzlo.player.core.library.DefaultLibraryRepository
+import org.muzzzlo.player.core.library.DefaultLyricsRepository
 import org.muzzzlo.player.core.library.DefaultPlaylistRepository
 import org.muzzzlo.player.core.library.DefaultPlaylistTransfer
 import org.muzzzlo.player.core.library.DefaultSearchRepository
@@ -28,6 +29,7 @@ import org.muzzzlo.player.core.model.CompoundRepository
 import org.muzzzlo.player.core.model.CoverRepository
 import org.muzzzlo.player.core.model.LibraryMaintenance
 import org.muzzzlo.player.core.model.LibraryRepository
+import org.muzzzlo.player.core.model.LyricsRepository
 import org.muzzzlo.player.core.model.PlaylistRepository
 import org.muzzzlo.player.core.model.PlaylistTransfer
 import org.muzzzlo.player.core.model.SearchRepository
@@ -69,6 +71,9 @@ internal abstract class LibraryModule {
     @Binds
     @Singleton
     abstract fun covers(impl: DefaultCoverRepository): CoverRepository
+
+    @Binds
+    abstract fun lyrics(impl: DefaultLyricsRepository): LyricsRepository
 
     @Binds
     abstract fun trackFileDeletion(impl: DefaultTrackFileDeletion): TrackFileDeletion

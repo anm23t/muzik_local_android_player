@@ -3,11 +3,14 @@ package org.muzzzlo.player.feature.player
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -77,8 +80,10 @@ fun PlayerScreen(
     viewModel: PlayerViewModel = hiltViewModel(),
     waveformViewModel: WaveformViewModel = hiltViewModel(),
     sleepTimerViewModel: SleepTimerViewModel = hiltViewModel(),
+    lyricsViewModel: LyricsViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val lyricsState by lyricsViewModel.state.collectAsStateWithLifecycle()
     val peaks by waveformViewModel.peaks.collectAsStateWithLifecycle()
     val sleepTimer by sleepTimerViewModel.state.collectAsStateWithLifecycle()
     var sleepDialogOpen by remember { mutableStateOf(false) }
@@ -95,6 +100,9 @@ fun PlayerScreen(
             })
         }
 
+    val coverLift = rememberCoverLift(lyricsViewModel, onSheetDrag, onSheetRelease)
+    val lyrics = lyricsState.lyrics
+
     ScreenFrame(modifier.swipeGestures(vertical = closeSwipe), spacing = MuzzzloDimens.SmallGap) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             RoundIconButton(
@@ -103,6 +111,15 @@ fun PlayerScreen(
                 onClick = onBack,
             )
             Spacer(Modifier.weight(1f))
+            // Without a mockup (task 2.0.7): the lyrics button left of the menu, lit while the lyrics are shown.
+            RoundIconButton(
+                icon = DesignR.drawable.ic_text,
+                contentDescription = stringResource(R.string.player_lyrics),
+                onClick = lyricsViewModel::onToggle,
+                accented = lyricsState.showLyrics,
+                enabled = lyricsState.available || lyricsState.showLyrics,
+            )
+            Spacer(Modifier.width(MuzzzloDimens.ContentGap))
             RoundIconButton(
                 icon = DesignR.drawable.ic_more_horizontal,
                 contentDescription = stringResource(R.string.player_track_menu),
@@ -110,26 +127,55 @@ fun PlayerScreen(
                 enabled = track != null,
             )
         }
-        // The cover takes the space left by the fixed parts and keeps its proportions.
-        Box(
-            Modifier.weight(1f).fillMaxWidth().swipeGestures(horizontal = coverSwipe.axis),
-            contentAlignment = Alignment.Center,
-        ) {
-            CoverCard(
-                Modifier
-                    .graphicsLayer { translationX = coverSwipe.offsetPx }
-                    .fillMaxWidth()
-                    .aspectRatio(PLAYER_COVER_ASPECT, matchHeightConstraintsFirst = true),
-                cover = { CoverImage(track?.let { CoverSource.Track(it.id) }, it, MuzzzloDimens.MiniPlayerShape) },
-            )
+        val sleepBadge: @Composable ColumnScope.() -> Unit = {
+            val timer = sleepTimer
+            if (timer == null) {
+                Spacer(Modifier.height(MuzzzloDimens.RowGap))
+            } else {
+                SleepTimerBadge(
+                    timer,
+                    onClick = { sleepDialogOpen = true },
+                    Modifier.align(Alignment.CenterHorizontally),
+                )
+            }
         }
-        val timer = sleepTimer
-        if (timer == null) {
-            Spacer(Modifier.height(MuzzzloDimens.RowGap))
+        if (lyricsState.showLyrics) {
+            // The lyrics take the place of the cover and the title; the cover shrinks next to the title.
+            Spacer(Modifier.height(MuzzzloDimens.SmallGap))
+            CompactTitle(state, viewModel::artistChoices, onOpenArtist, onCoverClick = lyricsViewModel::onToggle)
+            Box(Modifier.weight(1f).fillMaxWidth().swipeGestures(horizontal = coverSwipe.axis)) {
+                if (lyrics != null) {
+                    LyricsPane(
+                        lyrics = lyrics,
+                        positionMs = state.positionMs,
+                        onLineTap = lyricsViewModel::onLineTapped,
+                        modifier = Modifier.graphicsLayer { translationX = coverSwipe.offsetPx },
+                    )
+                }
+            }
+            sleepBadge()
         } else {
-            SleepTimerBadge(timer, onClick = { sleepDialogOpen = true }, Modifier.align(Alignment.CenterHorizontally))
+            // The cover takes the space left by the fixed parts and keeps its proportions.
+            Box(
+                Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .swipeGestures(horizontal = coverSwipe.axis, vertical = coverLift.axis),
+                contentAlignment = Alignment.Center,
+            ) {
+                CoverCard(
+                    Modifier
+                        .graphicsLayer {
+                            translationX = coverSwipe.offsetPx
+                            translationY = coverLift.offsetPx
+                        }.fillMaxWidth()
+                        .aspectRatio(PLAYER_COVER_ASPECT, matchHeightConstraintsFirst = true),
+                    cover = { CoverImage(track?.let { CoverSource.Track(it.id) }, it, MuzzzloDimens.MiniPlayerShape) },
+                )
+            }
+            sleepBadge()
+            TrackTitle(state, viewModel::artistChoices, onOpenArtist)
         }
-        TrackTitle(state, viewModel::artistChoices, onOpenArtist)
         Spacer(Modifier.height(MuzzzloDimens.ContentGap))
         Progress(state, peaks, viewModel::onSeek)
         Spacer(Modifier.height(MuzzzloDimens.SectionGap))
@@ -173,10 +219,12 @@ fun PlayerScreen(
 }
 
 @Composable
-private fun TrackTitle(
+internal fun TrackTitle(
     state: PlayerState,
     loadArtists: suspend (Long) -> List<ArtistChoice>,
     onOpenArtist: (Long) -> Unit,
+    modifier: Modifier = Modifier,
+    compact: Boolean = false,
 ) {
     val track = state.currentTrack
     val scope = rememberCoroutineScope()
@@ -184,13 +232,15 @@ private fun TrackTitle(
     choices?.let { artists ->
         ArtistPickerMenu(artists = artists, onPick = { onOpenArtist(it.id) }, onDismiss = { choices = null })
     }
-    Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+    val textAlign = if (compact) TextAlign.Start else TextAlign.Center
+    val alignment = if (compact) Alignment.Start else Alignment.CenterHorizontally
+    Column(modifier.fillMaxWidth(), horizontalAlignment = alignment) {
         // One line each, so the cover keeps its size whatever the title length is; long lines scroll.
         MarqueeText(
             text = track?.title ?: stringResource(R.string.player_nothing_playing),
-            style = MaterialTheme.typography.headlineMedium,
+            style = if (compact) MaterialTheme.typography.titleLarge else MaterialTheme.typography.headlineMedium,
             color = MuzzzloColors.TextPrimary,
-            textAlign = TextAlign.Center,
+            textAlign = textAlign,
         )
         Spacer(Modifier.height(MuzzzloDimens.SmallGap))
         // A tap on the artists opens the card of the only artist or the picker of several (DESIGN.md, section 3).
@@ -209,7 +259,7 @@ private fun TrackTitle(
             },
             style = MaterialTheme.typography.titleSmall,
             color = MuzzzloColors.TextSecondary,
-            textAlign = TextAlign.Center,
+            textAlign = textAlign,
             marquee = true,
         )
         state.problem?.let { problem ->
@@ -218,7 +268,7 @@ private fun TrackTitle(
                 text = stringResource(problem.messageRes()),
                 style = MaterialTheme.typography.bodySmall,
                 color = MuzzzloTheme.accent.accent,
-                textAlign = TextAlign.Center,
+                textAlign = textAlign,
             )
         }
     }

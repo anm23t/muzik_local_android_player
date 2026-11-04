@@ -26,6 +26,14 @@ class FakeSettings : SettingsRepository {
         settings.value = settings.value.copy(waveform = enabled)
     }
 
+    override suspend fun setLyricsShown(value: Boolean) {
+        settings.value = settings.value.copy(lyricsShown = value)
+    }
+
+    override suspend fun setLyricsFolder(value: String?) {
+        settings.value = settings.value.copy(lyricsFolder = value)
+    }
+
     override suspend fun setFolderCovers(enabled: Boolean) {
         settings.value = settings.value.copy(folderCovers = enabled)
     }

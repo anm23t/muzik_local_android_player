@@ -95,6 +95,12 @@ class SettingsViewModelTest {
     }
 
     @Test
+    fun `choosing the lyrics folder saves it without a scan`() {
+        viewModel.librarySettings.onLyricsFolderChosen("content://tree/primary%3AMusic")
+        assertEquals("content://tree/primary%3AMusic", settings.state.value.lyricsFolder)
+    }
+
+    @Test
     fun `the waveform switch saves the setting`() {
         viewModel.ui.onWaveformChanged(false)
 
@@ -231,6 +237,14 @@ class SettingsViewModelTest {
 
         override suspend fun setWaveform(enabled: Boolean) {
             state.value = state.value.copy(waveform = enabled)
+        }
+
+        override suspend fun setLyricsShown(value: Boolean) {
+            state.value = state.value.copy(lyricsShown = value)
+        }
+
+        override suspend fun setLyricsFolder(value: String?) {
+            state.value = state.value.copy(lyricsFolder = value)
         }
 
         override suspend fun setFolderCovers(enabled: Boolean) {

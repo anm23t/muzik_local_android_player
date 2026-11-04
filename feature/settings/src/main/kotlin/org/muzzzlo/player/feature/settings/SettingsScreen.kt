@@ -58,6 +58,7 @@ fun SettingsScreen(
                 secondary = stringResource(R.string.settings_min_length_hint),
             )
             FolderCoverRow(settings.folderCovers, viewModel.librarySettings::onFolderCoversChanged)
+            LyricsFolderRow(settings.lyricsFolder, viewModel.librarySettings::onLyricsFolderChosen)
             ValueRow(
                 text = stringResource(R.string.settings_rescan),
                 onClick = viewModel::onRescanClicked,
