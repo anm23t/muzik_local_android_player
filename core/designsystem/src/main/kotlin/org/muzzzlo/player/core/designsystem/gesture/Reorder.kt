@@ -22,6 +22,8 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.LocalPinnableContainer
@@ -32,6 +34,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
+import org.muzzzlo.player.core.designsystem.theme.MuzzzloColors
+import org.muzzzlo.player.core.designsystem.theme.MuzzzloDimens
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloMotion
 
 /** The held row grows this much, so it looks lifted above the others. */
@@ -200,6 +204,7 @@ fun LazyItemScope.reorderableItem(
     )
     val lift by animateFloatAsState(if (isDragged) 1f else 0f, MuzzzloMotion.gesture(), label = "reorder lift")
     val elevationPx = with(LocalDensity.current) { LiftElevation.toPx() }
+    val radiusPx = with(LocalDensity.current) { MuzzzloDimens.RowRadius.toPx() }
     return Modifier
         .animateItem(
             fadeInSpec = MuzzzloMotion.ItemFade,
@@ -212,6 +217,11 @@ fun LazyItemScope.reorderableItem(
             scaleX = scale
             scaleY = scale
             shadowElevation = elevationPx * lift
+        }.drawBehind {
+            // A transparent row (the queue over the live background) would show the rows it passes over.
+            if (lift > 0f) {
+                drawRoundRect(MuzzzloColors.SurfaceElevated.copy(alpha = lift), cornerRadius = CornerRadius(radiusPx))
+            }
         }
 }
 
