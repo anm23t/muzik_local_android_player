@@ -50,7 +50,7 @@ class FakePlaylists(
         playlistId: Long,
         sourceUri: String,
     ) {
-        if (coverFails) throw IllegalArgumentException("Not an image: $sourceUri")
+        require(!coverFails) { "Not an image: $sourceUri" }
         playlists.value = playlists.value.map { if (it.id == playlistId) it.copy(coverPath = sourceUri) else it }
     }
 

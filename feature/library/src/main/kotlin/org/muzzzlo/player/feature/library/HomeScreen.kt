@@ -190,7 +190,8 @@ private fun ContinueListening(
                                 modifier = Modifier.width(tileWidth),
                                 cover = { CoverImage(CoverSource.Album(item.album.id), it, MuzzzloDimens.TileShape) },
                             )
-                        // A playlist shows its own picture or the cover of its first track, like in the list of playlists.
+                        // A playlist shows its own picture or the cover of its first track, like in the list of
+                        // playlists.
                         is ContinueItem.PlaylistItem ->
                             CoverTile(
                                 title = item.playlist.name,
