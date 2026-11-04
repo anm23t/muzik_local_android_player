@@ -167,6 +167,7 @@ fun PlayerScreen(
             shareUri = track.uri,
             albumId = track.albumId,
             onOpenAlbum = onOpenAlbum,
+            trackId = track.id,
         )
     }
 }
@@ -369,6 +370,7 @@ fun MiniPlayer(
             shareUri = track.uri,
             albumId = track.albumId,
             onOpenAlbum = onOpenAlbum,
+            trackId = track.id,
         )
     }
     MiniPlayerView(

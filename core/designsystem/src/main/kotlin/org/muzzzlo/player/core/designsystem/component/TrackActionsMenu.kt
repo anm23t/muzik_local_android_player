@@ -34,6 +34,8 @@ import org.muzzzlo.player.core.designsystem.theme.MuzzzloColors
  * the item is not shown. [onAction] does not receive it.
  * @param albumId the album of the track; with [onOpenAlbum] makes "Go to album" open its card, without either the
  * item is not shown. [onAction] does not receive it.
+ * @param trackId the track; with a [LocalTrackDeleter] makes "Delete file" start the delete, without either the item
+ * is not shown. [onAction] does not receive it.
  */
 @Composable
 fun TrackActionsMenu(
@@ -50,8 +52,10 @@ fun TrackActionsMenu(
     shareUri: String? = null,
     albumId: Long? = null,
     onOpenAlbum: ((Long) -> Unit)? = null,
+    trackId: Long? = null,
 ) {
     val context = LocalContext.current
+    val deleter = LocalTrackDeleter.current
     var step by remember { mutableStateOf(MenuStep.Actions) }
     var artistChoices by remember { mutableStateOf<List<ArtistChoice>>(emptyList()) }
     var markState by remember { mutableStateOf(TrackMarksState()) }
@@ -73,12 +77,15 @@ fun TrackActionsMenu(
     if (replaced) return
     val canOpenAlbum = albumId != null && onOpenAlbum != null
     val canOpenArtist = onOpenArtist != null && artistChoices.isNotEmpty()
-    val optional = optionalActions(canOpenArtist, canOpenAlbum, addToPlaylist != null, marks != null, shareUri != null)
+    val optional =
+        optionalActions(canOpenArtist, canOpenAlbum, addToPlaylist != null, marks != null, shareUri != null) +
+            listOfNotNull(TrackAction.DeleteFile.takeIf { trackId != null && deleter != null })
     val direct =
         directActions(
             onFavorite = { marks?.onFavorite?.invoke(!markState.isFavorite) },
             onAlbum = { albumId?.let { onOpenAlbum?.invoke(it) } },
             onShare = { shareUri?.let { context.shareTracks(listOf(it)) } },
+            onDelete = { trackId?.let { deleter?.delete(it, title) } },
         )
     MuzzzloDialog(title = title, onDismiss = onDismiss, modifier = modifier) {
         ArtistsLine(artists)
@@ -132,11 +139,13 @@ private fun directActions(
     onFavorite: () -> Unit,
     onAlbum: () -> Unit,
     onShare: () -> Unit,
+    onDelete: () -> Unit,
 ): Map<TrackAction, () -> Unit> =
     mapOf(
         TrackAction.AddToFavorites to onFavorite,
         TrackAction.GoToAlbum to onAlbum,
         TrackAction.Share to onShare,
+        TrackAction.DeleteFile to onDelete,
     )
 
 /** Which dialog of the menu is open: the actions, or a picker that replaced them. */
@@ -198,6 +207,7 @@ private val OPTIONAL_ACTIONS =
         TrackAction.AddToFavorites,
         TrackAction.Rate,
         TrackAction.Share,
+        TrackAction.DeleteFile,
     )
 
 /** The actions of [OPTIONAL_ACTIONS] that the screen has given the menu what they need for. */

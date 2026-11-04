@@ -44,6 +44,9 @@ enum class TrackAction(
 
     /** Placeholder until the tag editor (0.3.6). */
     EditTags(R.drawable.ic_pencil, R.string.track_action_edit_tags),
+
+    /** Deletes the file through [LocalTrackDeleter] (task 2.0.6); the ViewModel has nothing to do. Always last. */
+    DeleteFile(R.drawable.ic_trash_2, R.string.track_action_delete_file),
     ;
 
     companion object {
@@ -52,5 +55,8 @@ enum class TrackAction(
 
         /** The menu of the big player. */
         val Player: List<TrackAction> = entries - RemoveFromPlaylist
+
+        /** The menu of a track in the playlist card. */
+        val Playlist: List<TrackAction> = entries - SleepTimer
     }
 }

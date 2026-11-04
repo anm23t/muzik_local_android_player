@@ -41,6 +41,11 @@ internal class CoverDiskCache(
         return file
     }
 
+    /** Deletes the file under [key], if there is one. */
+    fun remove(key: String) {
+        fileFor(key).delete()
+    }
+
     /**
      * Deletes the files used the longest ago until the folder fits the limit. Times and sizes are read once before
      * sorting: a hit in another thread may change a file's time meanwhile, and a sort over a changing key fails.

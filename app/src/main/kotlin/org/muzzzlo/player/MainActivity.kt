@@ -36,6 +36,7 @@ class MainActivity : ComponentActivity() {
     @Inject lateinit var settings: SettingsRepository
 
     private val accentViewModel: AccentViewModel by viewModels()
+    private val deletionViewModel: TrackDeletionViewModel by viewModels()
 
     private var appliedLanguage = AppLanguage.SYSTEM
 
@@ -65,7 +66,9 @@ class MainActivity : ComponentActivity() {
             val frameStyle = themes.collectAsStateWithLifecycle(null).value ?: return@setContent
             CompositionLocalProvider(LocalCoverLoader provides coverLoader) {
                 MuzzzloTheme(accent, frameStyle) {
-                    MuzzzloNavHost()
+                    TrackDeletionHost(deletionViewModel) {
+                        MuzzzloNavHost()
+                    }
                     UpdatePrompts()
                 }
             }

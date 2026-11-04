@@ -195,6 +195,7 @@ class AutoPlaylistViewModel
                 TrackAction.EditTags,
                 TrackAction.Share,
                 TrackAction.SleepTimer,
+                TrackAction.DeleteFile,
                 -> Unit
             }
         }
@@ -306,6 +307,7 @@ class PlaylistViewModel
                 TrackAction.EditTags,
                 TrackAction.Share,
                 TrackAction.SleepTimer,
+                TrackAction.DeleteFile,
                 -> Unit
             }
         }

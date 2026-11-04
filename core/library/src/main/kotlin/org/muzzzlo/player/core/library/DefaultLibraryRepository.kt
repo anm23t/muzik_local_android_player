@@ -19,6 +19,7 @@ import org.muzzzlo.player.core.model.NameNormalizer
 import org.muzzzlo.player.core.model.ReplayGainInfo
 import org.muzzzlo.player.core.model.SettingsRepository
 import org.muzzzlo.player.core.model.Track
+import org.muzzzlo.player.core.model.TrackFileDeletion
 import javax.inject.Inject
 
 internal class DefaultLibraryRepository
@@ -31,6 +32,7 @@ internal class DefaultLibraryRepository
         private val photos: ArtistPhotoStore,
         private val settings: SettingsRepository,
         private val folderCovers: FolderCoverIndexer,
+        private val deletion: TrackFileDeletion,
     ) : LibraryRepository {
         override fun observeTracks(): Flow<List<Track>> =
             combine(dao.observeTracks(), dao.observeTrackArtists(), dao.observeAlbums()) { tracks, artists, albums ->
@@ -112,6 +114,7 @@ internal class DefaultLibraryRepository
         override suspend fun scan() =
             withContext(dispatchers.io) {
                 val current = settings.settings.first()
+                deletion.purgeExpired(System.currentTimeMillis())
                 indexer.index(ScanFilter.apply(source.query(), current))
                 folderCovers.refresh(current.folderCovers)
             }

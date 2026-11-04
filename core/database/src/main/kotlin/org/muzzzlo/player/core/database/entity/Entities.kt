@@ -127,6 +127,11 @@ data class TrackEntity(
     @ColumnInfo(name = "rg_track_peak") val rgTrackPeak: Float? = null,
     @ColumnInfo(name = "rg_album_gain") val rgAlbumGain: Float? = null,
     @ColumnInfo(name = "rg_album_peak") val rgAlbumPeak: Float? = null,
+    /**
+     * When the user deleted the file in the app (schema 14, task 2.0.6), epoch milliseconds; null otherwise. The row is
+     * forgotten [org.muzzzlo.player.core.model.TrashRules.KEEP_DAYS] days later unless the file comes back.
+     */
+    @ColumnInfo(name = "deleted_at") val deletedAt: Long? = null,
 )
 
 /**
@@ -162,6 +167,8 @@ data class TrackScanFields(
     @ColumnInfo(name = "rg_track_peak") val rgTrackPeak: Float? = null,
     @ColumnInfo(name = "rg_album_gain") val rgAlbumGain: Float? = null,
     @ColumnInfo(name = "rg_album_peak") val rgAlbumPeak: Float? = null,
+    /** A scanned file is present, so a file brought back from the trash is no longer deleted. */
+    @ColumnInfo(name = "deleted_at") val deletedAt: Long? = null,
 ) {
     /** A new track row with these fields and default user data. */
     fun toNewEntity() =

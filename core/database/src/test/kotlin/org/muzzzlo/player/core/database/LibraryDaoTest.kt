@@ -39,6 +39,17 @@ class LibraryDaoTest {
     @After
     fun tearDown() = db.close()
 
+    private fun deletedAt(trackId: Long): Long? =
+        db.query("SELECT deleted_at FROM track WHERE id = ?", arrayOf(trackId)).use {
+            it.moveToFirst()
+            if (it.isNull(0)) null else it.getLong(0)
+        }
+
+    private fun trackIds(): List<Long> =
+        db.query("SELECT id FROM track ORDER BY id", null).use {
+            buildList { while (it.moveToNext()) add(it.getLong(0)) }
+        }
+
     private fun track(
         uri: String,
         title: String,
@@ -84,6 +95,62 @@ class LibraryDaoTest {
             val rows = dao.tracksOfAlbumsWithoutCover().sortedBy { it.albumId }
             assertEquals(listOf(bare, goneCover), rows.map { it.albumId })
             assertEquals(listOf("Music/Bare/", "Music/G/"), rows.map { it.relativePath })
+        }
+
+    @Test
+    fun `a deleted track is hidden and forgotten only after the trash time`() =
+        runBlocking {
+            val album = dao.insertAlbum(AlbumEntity(title = "A", titleKey = "a"))
+            val old = dao.insertTrack(track("u1", "Old", album))
+            val recent = dao.insertTrack(track("u2", "Recent", album))
+            val missing = dao.insertTrack(track("u3", "Missing", album, isMissing = true))
+
+            dao.markDeleted(old, 100)
+            dao.markDeleted(recent, 300)
+            assertEquals(emptyList<TrackEntity>(), dao.tracksByIds(listOf(old, recent)))
+            assertEquals(100L, deletedAt(old))
+
+            assertEquals(1, dao.deleteExpiredTracks(cutoffMs = 200))
+            val left = trackIds()
+            // A file missing for another reason (an SD card) is not forgotten.
+            assertEquals(listOf(recent, missing), left)
+        }
+
+    @Test
+    fun `a file back from the trash returns with its rating`() =
+        runBlocking {
+            val id = dao.insertTrack(track("u1", "Song", rating = 67))
+            dao.markDeleted(id, 100)
+            dao.updateScannedTrack(
+                TrackScanFields(
+                    id = id,
+                    mediaStoreId = 5,
+                    uri = "u1",
+                    relativePath = "Music/",
+                    title = "Song",
+                    titleKey = "song",
+                    artistTagValues = "[]",
+                    albumId = null,
+                    trackNumber = null,
+                    discNumber = null,
+                    trackTotal = null,
+                    discTotal = null,
+                    year = null,
+                    durationMs = 1000,
+                    format = null,
+                    bitrate = null,
+                    fileSize = null,
+                    dateAdded = null,
+                    dateModified = 2,
+                    hasCover = false,
+                    hasLyrics = false,
+                    isDamaged = false,
+                ),
+            )
+
+            val back = dao.tracksByIds(listOf(id)).single()
+            assertEquals(null, back.deletedAt)
+            assertEquals(67, back.ratingTenths)
         }
 
     @Test

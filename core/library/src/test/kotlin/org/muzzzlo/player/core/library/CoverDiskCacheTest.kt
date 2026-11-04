@@ -42,6 +42,17 @@ class CoverDiskCacheTest {
     }
 
     @Test
+    fun `a removed cover is a miss and others stay`() {
+        val cache = cache(100)
+        cache.put("a", bytes(10))
+        cache.put("b", bytes(10))
+        cache.remove("a")
+        cache.remove("unknown")
+        assertNull(cache.get("a"))
+        assertNotNull(cache.get("b"))
+    }
+
+    @Test
     fun `a stored cover is found by a new cache over the same folder`() {
         cache(100).put("a", bytes(10))
         assertNotNull(cache(100).get("a"))

@@ -126,6 +126,7 @@ internal fun rememberTrackMenu(
             shareUri = track.uri,
             albumId = track.albumId,
             onOpenAlbum = onOpenAlbum,
+            trackId = track.id,
         )
     }
     return { menuTrack = it }

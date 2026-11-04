@@ -43,6 +43,11 @@ internal class DefaultWaveformRepository
                     }
             }
 
+        override suspend fun forget(track: Track) =
+            withContext(dispatchers.io) {
+                keyOf(track.uri)?.let(cache::remove) ?: Unit
+            }
+
         private fun keyOf(uri: String): String? {
             val projection = arrayOf(MediaStore.MediaColumns.SIZE, MediaStore.MediaColumns.DATE_MODIFIED)
             val row =

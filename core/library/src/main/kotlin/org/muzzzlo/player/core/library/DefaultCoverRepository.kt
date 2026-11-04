@@ -48,6 +48,13 @@ internal class DefaultCoverRepository
                 if (track != null) coverOf(track) else folderCoverOf(albumId)
             }
 
+        /** Drops the thumbnail of the track's own picture (task 2.0.6); the folder cover of the album stays. */
+        suspend fun forgetTrack(trackId: Long) =
+            withContext(dispatchers.io) {
+                val track = dao.tracksByIds(listOf(trackId)).singleOrNull() ?: return@withContext
+                cache.remove(coverKey(track.uri, track.dateModified, track.fileSize))
+            }
+
         private suspend fun coverOf(track: TrackEntity): String? {
             if (!track.hasCover) return null
             return cached(coverKey(track.uri, track.dateModified, track.fileSize)) {

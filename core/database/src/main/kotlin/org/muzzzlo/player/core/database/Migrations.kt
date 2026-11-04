@@ -174,3 +174,11 @@ val MIGRATION_12_13 =
             db.execSQL("ALTER TABLE `album` ADD COLUMN `folder_cover_modified` INTEGER")
         }
     }
+
+/** Tracks remember when the user deleted their file in the app (task 2.0.6), so the row is forgotten 30 days later. */
+val MIGRATION_13_14 =
+    object : Migration(13, 14) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE `track` ADD COLUMN `deleted_at` INTEGER")
+        }
+    }

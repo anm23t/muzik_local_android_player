@@ -39,6 +39,11 @@ internal class WaveformDiskCache(
         trim(keep = file)
     }
 
+    /** Deletes the peaks under [key], if there are any. */
+    fun remove(key: String) {
+        fileFor(key).delete()
+    }
+
     private fun trim(keep: File) {
         val entries =
             folder.listFiles { f -> f.isFile && f.name.endsWith(EXTENSION) }

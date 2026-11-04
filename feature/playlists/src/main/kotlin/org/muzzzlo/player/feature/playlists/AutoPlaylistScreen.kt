@@ -58,6 +58,7 @@ fun AutoPlaylistScreen(
             shareUri = track.uri,
             albumId = track.albumId,
             onOpenAlbum = onOpenAlbum,
+            trackId = track.id,
         )
     }
 

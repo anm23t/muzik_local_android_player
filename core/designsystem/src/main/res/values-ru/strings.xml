@@ -32,4 +32,9 @@
     <string name="track_action_sleep_timer">Таймер сна</string>
     <string name="track_action_share">Поделиться</string>
     <string name="track_action_edit_tags">Редактировать теги</string>
+    <string name="track_action_delete_file">Удалить файл</string>
+    <string name="delete_file_title">Удалить файл?</string>
+    <string name="delete_file_permanent">Файл удаляется насовсем: в этой версии Android нет корзины. Оценка и история прослушиваний останутся.</string>
+    <string name="delete_file_confirm">Удалить</string>
+    <string name="delete_file_failed">Не удалось удалить файл</string>
 </resources>

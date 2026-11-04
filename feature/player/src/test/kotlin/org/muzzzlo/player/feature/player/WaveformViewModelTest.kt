@@ -126,5 +126,7 @@ class WaveformViewModelTest {
             next = null
             return pending.await()
         }
+
+        override suspend fun forget(track: Track) = Unit
     }
 }

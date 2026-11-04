@@ -147,4 +147,7 @@ interface WaveformRepository {
      * caller stops the decoding.
      */
     suspend fun peaks(track: Track): WaveformPeaks?
+
+    /** Drops the cached peaks of [track]; call while its file still exists, the key needs its stamps (task 2.0.6). */
+    suspend fun forget(track: Track)
 }

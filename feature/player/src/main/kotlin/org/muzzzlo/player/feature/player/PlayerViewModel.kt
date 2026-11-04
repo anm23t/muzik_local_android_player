@@ -70,6 +70,8 @@ class PlayerViewModel
                 TrackAction.AddToPlaylist, TrackAction.RemoveFromPlaylist -> Unit
                 // The screen opens the sleep timer dialog.
                 TrackAction.SleepTimer -> Unit
+                // The app deletes the file through LocalTrackDeleter.
+                TrackAction.DeleteFile -> Unit
                 // Favorites and rating go through TrackMarksMenu, the menu does not report them.
                 TrackAction.AddToFavorites,
                 TrackAction.Rate,

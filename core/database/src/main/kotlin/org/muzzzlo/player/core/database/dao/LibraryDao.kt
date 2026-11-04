@@ -342,6 +342,20 @@ interface LibraryDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTrackArtists(rows: List<TrackArtistEntity>)
 
+    /** The user deleted the file of the track in the app (task 2.0.6): hidden like a missing file, dated. */
+    @Query("UPDATE track SET is_missing = 1, deleted_at = :nowMs WHERE id = :trackId")
+    suspend fun markDeleted(
+        trackId: Long,
+        nowMs: Long,
+    )
+
+    /**
+     * Forgets tracks deleted in the app before [cutoffMs] whose files did not come back; their playlist places and
+     * artist links go with them, listen events keep their snapshot (decision 5).
+     */
+    @Query("DELETE FROM track WHERE is_missing = 1 AND deleted_at IS NOT NULL AND deleted_at < :cutoffMs")
+    suspend fun deleteExpiredTracks(cutoffMs: Long): Int
+
     @Query("UPDATE track SET is_missing = :missing WHERE id IN (:ids)")
     suspend fun setMissing(
         ids: List<Long>,

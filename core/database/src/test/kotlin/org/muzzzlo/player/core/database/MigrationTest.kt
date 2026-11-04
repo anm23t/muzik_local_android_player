@@ -283,6 +283,27 @@ class MigrationTest {
         }
     }
 
+    @Test
+    fun `13 to 14 adds deleted_at and keeps tracks not deleted`() {
+        helper.createDatabase(DB_NAME, 13).use { db ->
+            db.execSQL(
+                "INSERT INTO track (id, media_store_id, uri, title, title_key, artist_tag_values, duration_ms, " +
+                    "has_cover, has_lyrics, is_missing, is_favorite, rating_tenths) " +
+                    "VALUES (1, 10, 'content://media/10', 'Song', 'song', '[]', 1000, 0, 0, 1, 1, 67)",
+            )
+        }
+
+        helper.runMigrationsAndValidate(DB_NAME, 14, true, MIGRATION_13_14).use { db ->
+            db.query("SELECT title, is_missing, rating_tenths, deleted_at FROM track WHERE id = 1").use {
+                it.moveToFirst()
+                assertEquals("Song", it.getString(0))
+                assertEquals(1, it.getInt(1))
+                assertEquals(67, it.getInt(2))
+                assertTrue(it.isNull(3))
+            }
+        }
+    }
+
     private companion object {
         const val DB_NAME = "migration-test.db"
     }

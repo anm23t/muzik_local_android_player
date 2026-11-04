@@ -32,4 +32,9 @@
     <string name="track_action_sleep_timer">Sleep timer</string>
     <string name="track_action_share">Share</string>
     <string name="track_action_edit_tags">Edit tags</string>
+    <string name="track_action_delete_file">Delete file</string>
+    <string name="delete_file_title">Delete the file?</string>
+    <string name="delete_file_permanent">The file is deleted for good: this version of Android has no trash. The rating and the play history stay.</string>
+    <string name="delete_file_confirm">Delete</string>
+    <string name="delete_file_failed">The file could not be deleted</string>
 </resources>

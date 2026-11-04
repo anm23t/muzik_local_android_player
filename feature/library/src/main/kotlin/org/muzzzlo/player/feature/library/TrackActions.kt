@@ -16,6 +16,8 @@ internal fun PlayerController.onTrackAction(
         TrackAction.AddToQueue -> addToQueue(track)
         TrackAction.GoToAlbum, TrackAction.EditTags, TrackAction.GoToArtist, TrackAction.Share -> Unit
         TrackAction.SleepTimer -> Unit
+        // The app deletes the file through LocalTrackDeleter.
+        TrackAction.DeleteFile -> Unit
         TrackAction.AddToPlaylist, TrackAction.RemoveFromPlaylist -> Unit
         // Favorites and rating go through TrackMarksMenu, the menu does not report them.
         TrackAction.AddToFavorites,

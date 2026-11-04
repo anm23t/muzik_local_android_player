@@ -115,7 +115,7 @@ fun PlaylistScreen(
                 }
             },
             onDismiss = { menuEntry = null },
-            actions = TrackAction.entries,
+            actions = TrackAction.Playlist,
             loadArtists = { viewModel.artistChoices(entry.track.id) },
             onOpenArtist = onOpenArtist,
             addToPlaylist = remember(entry.entryId) { viewModel.addToPlaylist(entry.track.id) },
@@ -123,6 +123,7 @@ fun PlaylistScreen(
             shareUri = entry.track.uri,
             albumId = entry.track.albumId,
             onOpenAlbum = onOpenAlbum,
+            trackId = entry.track.id,
         )
     }
 
