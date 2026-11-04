@@ -22,10 +22,10 @@
     <string name="settings_min_length">Minimum track length</string>
     <string name="settings_min_length_hint">Shorter files stay out of the library</string>
     <string name="settings_folder_covers">Covers from folders</string>
-    <string name="settings_folder_covers_hint">Albums without a cover in their tags show cover.jpg, folder.jpg, front.jpg or album.jpg from their folder. Needs access to images.</string>
+    <string name="settings_folder_covers_hint">Albums without a cover in their tags take cover.jpg, folder.jpg and the like from their folder.</string>
     <string name="settings_lyrics_folder">Lyrics files</string>
     <string name="settings_lyrics_folder_none">Not chosen</string>
-    <string name="settings_lyrics_folder_hint">The folder with your music, so the player can read .lrc files next to the tracks. Lyrics in the tags work without it.</string>
+    <string name="settings_lyrics_folder_hint">The music folder, so .lrc files next to the tracks can be read.</string>
     <string name="settings_rescan">Rescan now</string>
     <string name="settings_scanning">Scanning…</string>
     <string name="settings_quarantine">Quarantined files</string>

@@ -26,10 +26,10 @@
     <string name="settings_min_length">Минимальная длительность трека</string>
     <string name="settings_min_length_hint">Более короткие файлы не попадают в библиотеку</string>
     <string name="settings_folder_covers">Обложки из папок</string>
-    <string name="settings_folder_covers_hint">Альбомы без обложки в тегах показывают cover.jpg, folder.jpg, front.jpg или album.jpg из своей папки. Нужен доступ к изображениям.</string>
+    <string name="settings_folder_covers_hint">Альбомы без обложки в тегах берут cover.jpg, folder.jpg и похожие из своей папки.</string>
     <string name="settings_lyrics_folder">Файлы текстов</string>
     <string name="settings_lyrics_folder_none">Не выбрана</string>
-    <string name="settings_lyrics_folder_hint">Папка с музыкой, чтобы плеер читал файлы .lrc рядом с треками. Тексты в тегах работают и без неё.</string>
+    <string name="settings_lyrics_folder_hint">Папка с музыкой, чтобы читать файлы .lrc рядом с треками.</string>
     <string name="settings_rescan">Пересканировать сейчас</string>
     <string name="settings_scanning">Сканирование…</string>
     <string name="settings_quarantine">Файлы в карантине</string>
