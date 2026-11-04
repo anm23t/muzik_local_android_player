@@ -32,15 +32,16 @@ object BlobMotion {
     const val MAX_BLOBS = 4
 
     // Each spot has its own periods, so the figure never repeats in a way the eye notices.
-    private val PERIODS_X = floatArrayOf(47f, 61f, 53f, 71f)
-    private val PERIODS_Y = floatArrayOf(59f, 43f, 67f, 49f)
-    private val PERIODS_SIZE = floatArrayOf(31f, 37f, 29f, 41f)
+    // Periods of 10-25 s: slow enough to stay calm, fast enough that the motion is seen (owner's remark).
+    private val PERIODS_X = floatArrayOf(17f, 23f, 19f, 25f)
+    private val PERIODS_Y = floatArrayOf(21f, 15f, 24f, 18f)
+    private val PERIODS_SIZE = floatArrayOf(11f, 13f, 10f, 14f)
     private val CENTRES_X = floatArrayOf(0.25f, 0.75f, 0.35f, 0.7f)
     private val CENTRES_Y = floatArrayOf(0.25f, 0.35f, 0.75f, 0.7f)
     private val PHASES = floatArrayOf(0f, 1.7f, 3.1f, 4.6f)
-    private const val DRIFT = 0.22f
+    private const val DRIFT = 0.25f
     private const val BASE_RADIUS = 0.55f
-    private const val BREATH = 0.12f
+    private const val BREATH = 0.15f
     private const val TWO_PI = (2 * PI).toFloat()
 
     /** The spots at [timeSec]; [count] is clamped to 0..[MAX_BLOBS]. */

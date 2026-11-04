@@ -39,6 +39,12 @@ fun playlistCoverSource(
 fun interface CoverLoader {
     /** The cover, or null when there is none. Suspends off the main thread as needed. */
     suspend fun load(source: CoverSource): ImageBitmap?
+
+    /**
+     * The cover last loaded for [source], without waiting, so a cover composed again (the player turning to its
+     * lyrics) starts with its picture instead of the placeholder; [load] still runs and replaces it.
+     */
+    fun cached(source: CoverSource): ImageBitmap? = null
 }
 
 /** The loader [CoverImage] uses. Without one provided (previews, tests) every cover is missing. */
@@ -60,10 +66,12 @@ fun CoverImage(
     fadeIn: Boolean = false,
 ) {
     val loader = LocalCoverLoader.current
-    val cover by produceState<ImageBitmap?>(initialValue = null, source, loader) {
-        value = source?.let { loader.load(it) }
+    // The picture is kept with its source, so after a change of source the old picture is never shown as the new.
+    val loaded by produceState(initialValue = source to source?.let(loader::cached), source, loader) {
+        value = source to source?.let(loader::cached)
+        value = source to source?.let { loader.load(it) }
     }
-    val image = cover
+    val image = loaded.second.takeIf { loaded.first == source }
     if (!fadeIn) {
         if (image == null) {
             CoverPlaceholder(modifier, placeholderShape)
@@ -72,7 +80,7 @@ fun CoverImage(
         }
         return
     }
-    val alpha = remember(source) { Animatable(0f) }
+    val alpha = remember(source) { Animatable(if (image != null) 1f else 0f) }
     LaunchedEffect(image) { if (image != null) alpha.animateTo(1f, MuzzzloMotion.timed(MuzzzloMotion.SHORT_MS)) }
     Box(modifier) {
         CoverPlaceholder(Modifier.matchParentSize(), placeholderShape)

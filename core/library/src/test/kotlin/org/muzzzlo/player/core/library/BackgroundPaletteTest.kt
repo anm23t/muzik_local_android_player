@@ -59,6 +59,22 @@ class BackgroundPaletteTest {
     }
 
     @Test
+    fun `a dark cover gives a black background, also with a little color`() {
+        assertEquals(BackgroundPalette.BLACK, BackgroundPalette.pick(IntArray(500) { 0xFF050505.toInt() }))
+        assertEquals(BackgroundPalette.BLACK, BackgroundPalette.pick(mix(0xFF000000 to 950, 0xFFE53935 to 50)))
+    }
+
+    @Test
+    fun `the lighter the colorless cover, the lighter the greys`() {
+        val tone = { argb: Long -> Hct.fromInt(BackgroundPalette.pick(IntArray(500) { argb.toInt() }).first()).tone }
+        val white = tone(0xFFF5F5F5)
+        val mid = tone(0xFF808080)
+        val dark = tone(0xFF3A3A3A)
+        assertTrue(white > mid && mid > dark, "$white $mid $dark")
+        assertTrue(white >= BackgroundPalette.MAX_GREY_TONE - 6, "white gives $white")
+    }
+
+    @Test
     fun `no visible pixels give the palette of the default red`() {
         val expected = BackgroundPalette.fromSeed(BackgroundPalette.DEFAULT_RED)
         assertEquals(expected, BackgroundPalette.pick(IntArray(0)))

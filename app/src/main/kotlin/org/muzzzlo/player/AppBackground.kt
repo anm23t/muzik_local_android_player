@@ -30,9 +30,9 @@ import org.muzzzlo.player.core.designsystem.theme.MuzzzloMotion
 /** Track changes and the turn between colored and black take this long (task 2.0.8). */
 private const val FADE_MS = MuzzzloMotion.BACKGROUND_MS
 
-/** The veil over the spots: lists are darker than the player, where the cover is the main thing. */
+/** The veil over the spots: lists are darker than the player, where the colors should be seen (owner's remark). */
 private const val SCREEN_DIM = 0.55f
-private const val PLAYER_DIM = 0.3f
+private const val PLAYER_DIM = 0.12f
 private const val NANOS_PER_SECOND = 1_000_000_000f
 
 /**

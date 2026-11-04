@@ -33,6 +33,11 @@ class AppCoverLoader
                 ): Int = value.width * value.height * BYTES_PER_PIXEL / BYTES_IN_KB
             }
 
+        /** The last bitmap of each recent source, for [cached]; the bitmaps are shared with [memory]. */
+        private val lastBySource = LruCache<CoverSource, ImageBitmap>(RECENT_SOURCES)
+
+        override fun cached(source: CoverSource): ImageBitmap? = lastBySource.get(source)
+
         override suspend fun load(source: CoverSource): ImageBitmap? {
             val path =
                 when (source) {
@@ -41,7 +46,9 @@ class AppCoverLoader
                     // A picked picture is already a small file; it only goes through the memory cache.
                     is CoverSource.File -> source.path
                 } ?: return null
-            return memory.get(path) ?: decode(path)?.also { memory.put(path, it) }
+            val bitmap = memory.get(path) ?: decode(path)?.also { memory.put(path, it) }
+            bitmap?.let { lastBySource.put(source, it) }
+            return bitmap
         }
 
         private suspend fun decode(path: String): ImageBitmap? =
@@ -52,5 +59,6 @@ class AppCoverLoader
             const val MEMORY_KB = 16 * 1024
             const val BYTES_PER_PIXEL = 4
             const val BYTES_IN_KB = 1024
+            const val RECENT_SOURCES = 64
         }
     }

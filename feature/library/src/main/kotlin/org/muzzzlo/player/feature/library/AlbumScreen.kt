@@ -134,6 +134,8 @@ fun AlbumScreen(
                         subtitle = track.artistsText.takeIf { track.artists != album.artists && it.isNotEmpty() },
                         isCurrent = track.id == state.currentTrackId,
                         onMoreClick = { openMenu(track) },
+                        // Dark rows look heavy on the colored live background (owner's remark).
+                        transparent = true,
                     )
                 }
             }

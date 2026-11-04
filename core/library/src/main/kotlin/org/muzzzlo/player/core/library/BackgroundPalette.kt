@@ -3,11 +3,13 @@ package org.muzzzlo.player.core.library
 import com.materialkolor.hct.Hct
 import com.materialkolor.quantize.QuantizerCelebi
 import com.materialkolor.score.Score
+import com.materialkolor.utils.ColorUtils
 
 /**
  * Picks the colors of the live background from a cover (task 2.0.8): the main colors of the picture by the same
- * quantizer as the accent, muted in HCT, so that white text stays readable on them under the veil. Works on plain
- * ARGB pixels, so the rules are tested on the JVM.
+ * quantizer as the accent, muted in HCT, so that white text stays readable on them under the veil. A dark cover
+ * (mostly black) gives a black background, a colorless one greys as light as the cover (owner's remark after the
+ * phone check). Works on plain ARGB pixels, so the rules are tested on the JVM.
  */
 internal object BackgroundPalette {
     /** The live background uses this many colors. */
@@ -32,6 +34,17 @@ internal object BackgroundPalette {
     internal const val MIN_TONE = 30.0
     internal const val MAX_TONE = 45.0
 
+    /** A cover darker than this on average (L*, 0 black to 100 white) gives a black background. */
+    internal const val DARK_COVER_LSTAR = 18.0
+
+    /** Tones of the greys of a colorless cover: a dark grey cover gets [MIN_GREY_TONE], a white one [MAX_GREY_TONE]. */
+    internal const val MIN_GREY_TONE = 20.0
+    internal const val MAX_GREY_TONE = 70.0
+    private const val MAX_LSTAR = 100.0
+
+    /** The palette of a black background: the spots are drawn in black. */
+    val BLACK: List<Int> = List(SIZE) { OPAQUE }
+
     /** Neighbours of a seed: the same hue turned a little, so a one-color cover still has movement. */
     private val HUE_STEPS = doubleArrayOf(0.0, 25.0, -25.0, 50.0)
     private val TONE_STEPS = doubleArrayOf(0.0, -6.0, 6.0, -3.0)
@@ -41,6 +54,8 @@ internal object BackgroundPalette {
     fun pick(pixels: IntArray): List<Int> {
         val visible = pixels.filter { (it ushr ALPHA_SHIFT) >= MIN_ALPHA }.map { it or OPAQUE }.toIntArray()
         if (visible.isEmpty()) return fromSeed(DEFAULT_RED)
+        val lightness = visible.sumOf { ColorUtils.lstarFromArgb(it) } / visible.size
+        if (lightness < DARK_COVER_LSTAR) return BLACK
         val quantized = QuantizerCelebi.quantize(visible, QUANTIZER_COLORS)
         val colored =
             // Score answers its fallback when nothing is colored; 0 is never a quantized (opaque) color.
@@ -50,7 +65,7 @@ internal object BackgroundPalette {
                 .filter { it.chroma >= MIN_CHROMA }
                 .distinctBy { it.toInt() }
         return when (colored.size) {
-            0 -> greys(quantized.keys.first())
+            0 -> greys(quantized.keys.first(), lightness)
             1 -> fromSeed(colored.first().toInt())
             else -> List(SIZE) { muted(colored[it % colored.size], TONE_STEPS[it]).toInt() }
         }
@@ -65,10 +80,15 @@ internal object BackgroundPalette {
         }
     }
 
-    /** A grey cover moves in greys of its own tint. */
-    private fun greys(color: Int): List<Int> {
+    /** A grey cover moves in greys of its own tint, as light as the cover: a white cover gives a light grey. */
+    private fun greys(
+        color: Int,
+        coverLightness: Double,
+    ): List<Int> {
         val hct = Hct.fromInt(color)
-        return List(SIZE) { Hct.from(hct.hue, hct.chroma, (MIN_TONE + MAX_TONE) / 2 + TONE_STEPS[it]).toInt() }
+        val share = ((coverLightness - DARK_COVER_LSTAR) / (MAX_LSTAR - DARK_COVER_LSTAR)).coerceIn(0.0, 1.0)
+        val tone = MIN_GREY_TONE + (MAX_GREY_TONE - MIN_GREY_TONE) * share
+        return List(SIZE) { Hct.from(hct.hue, hct.chroma, (tone + TONE_STEPS[it]).coerceIn(0.0, MAX_LSTAR)).toInt() }
     }
 
     private fun muted(

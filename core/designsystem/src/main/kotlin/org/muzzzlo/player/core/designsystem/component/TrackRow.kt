@@ -21,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -41,6 +42,7 @@ import org.muzzzlo.player.core.designsystem.theme.MuzzzloTheme
  * @param cover cover slot on the left (40 dp, rounded as the row), null hides it. Not in the mockup, see DESIGN.md.
  * @param onMoreClick opens the track menu; null hides the "more" button.
  * @param trailing extra controls before the "more" button (for example the queue drag handle).
+ * @param transparent no fill under a row that is not current, so the live background shows through (the album card).
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -57,6 +59,7 @@ fun TrackRow(
     onLongClick: (() -> Unit)? = null,
     ratingTenths: Int? = null,
     trailing: @Composable RowScope.() -> Unit = {},
+    transparent: Boolean = false,
 ) {
     val accent = MuzzzloTheme.accent
     val textColor = if (isCurrent) accent.accent else MuzzzloColors.TextPrimary
@@ -65,7 +68,13 @@ fun TrackRow(
             .fillMaxWidth()
             .heightIn(min = MuzzzloDimens.TrackRowMinHeight)
             .clip(MuzzzloDimens.RowShape)
-            .background(if (isCurrent) accent.container else MuzzzloColors.Surface)
+            .background(
+                when {
+                    isCurrent -> accent.container
+                    transparent -> Color.Transparent
+                    else -> MuzzzloColors.Surface
+                },
+            )
             .combinedClickable(enabled = enabled, onClick = onClick, onLongClick = onLongClick)
             .padding(start = MuzzzloDimens.RowPadding, end = MuzzzloDimens.RowEndPadding),
         horizontalArrangement = Arrangement.spacedBy(MuzzzloDimens.ItemGap),

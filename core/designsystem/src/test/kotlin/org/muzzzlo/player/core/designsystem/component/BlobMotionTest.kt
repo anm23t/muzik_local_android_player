@@ -27,10 +27,10 @@ class BlobMotionTest {
         val before = BlobMotion.blobs(4, 100f)
         val after = BlobMotion.blobs(4, 100f + 1f / 60)
         before.zip(after).forEach { (a, b) ->
-            assertTrue(hypot(a.x - b.x, a.y - b.y) < 0.001f)
-            assertTrue(abs(a.radius - b.radius) < 0.001f)
+            assertTrue(hypot(a.x - b.x, a.y - b.y) < 0.003f)
+            assertTrue(abs(a.radius - b.radius) < 0.003f)
         }
-        assertNotEquals(BlobMotion.blobs(4, 0f), BlobMotion.blobs(4, 20f))
+        assertNotEquals(BlobMotion.blobs(4, 0f), BlobMotion.blobs(4, 5f))
     }
 
     @Test

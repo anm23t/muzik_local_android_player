@@ -1,6 +1,12 @@
 package org.muzzzlo.player.feature.player
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -8,6 +14,7 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
@@ -59,6 +66,9 @@ import java.util.Locale
 import org.muzzzlo.player.core.designsystem.R as DesignR
 import org.muzzzlo.player.core.designsystem.component.MiniPlayer as MiniPlayerView
 
+/** The cover is one shared element in the cover and the lyrics layouts, so it flows from one place to the other. */
+private const val SHARED_COVER_KEY = "player cover"
+
 /** The cover card of the player: 316 x 319, a 284 x 288 cover with a 16 inset (1:3). */
 private const val PLAYER_COVER_ASPECT = 316f / 319f
 
@@ -66,6 +76,7 @@ private const val PLAYER_COVER_ASPECT = 316f / 319f
  * Full screen player (1:3): cover, title, artists, progress, controls and the bottom menu
  * (artists, albums, queue, home). Each artist of the track opens their card.
  */
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun PlayerScreen(
     onBack: () -> Unit,
@@ -141,49 +152,75 @@ fun PlayerScreen(
                 )
             }
         }
-        if (lyricsState.showLyrics) {
-            // The lyrics take the place of the cover and the title; the cover shrinks next to the title.
-            Spacer(Modifier.height(MuzzzloDimens.SmallGap))
-            CompactTitle(state, viewModel::artistChoices, onOpenArtist, onCoverClick = lyricsViewModel::onToggle)
-            Box(Modifier.weight(1f).fillMaxWidth().swipeGestures(horizontal = coverSwipe.axis)) {
-                if (lyrics != null) {
-                    LyricsPane(
-                        lyrics = lyrics,
-                        positionMs = state.positionMs,
-                        onLineTap = lyricsViewModel::onLineTapped,
-                        modifier = Modifier.graphicsLayer { translationX = coverSwipe.offsetPx },
+        // The cover flows into the miniature next to the title and back (owner's remark after the phone check).
+        SharedTransitionLayout(Modifier.weight(1f).fillMaxWidth()) {
+            AnimatedContent(
+                targetState = lyricsState.showLyrics,
+                transitionSpec = {
+                    fadeIn(MuzzzloMotion.timed(MuzzzloMotion.MEDIUM_MS)) togetherWith
+                        fadeOut(MuzzzloMotion.timed(MuzzzloMotion.SHORT_MS))
+                },
+                label = "lyrics mode",
+            ) { showLyrics ->
+                val sharedCover =
+                    Modifier.sharedElement(
+                        rememberSharedContentState(SHARED_COVER_KEY),
+                        animatedVisibilityScope = this,
+                        boundsTransform = { _, _ -> MuzzzloMotion.gesture() },
                     )
+                Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(MuzzzloDimens.SmallGap)) {
+                    if (showLyrics) {
+                        // The lyrics take the place of the cover and the title; the cover shrinks next to the title.
+                        Spacer(Modifier.height(MuzzzloDimens.SmallGap))
+                        CompactTitle(
+                            state,
+                            viewModel::artistChoices,
+                            onOpenArtist,
+                            onCoverClick = lyricsViewModel::onToggle,
+                            coverModifier = sharedCover,
+                        )
+                        Box(Modifier.weight(1f).fillMaxWidth().swipeGestures(horizontal = coverSwipe.axis)) {
+                            if (lyrics != null) {
+                                LyricsPane(
+                                    lyrics = lyrics,
+                                    positionMs = state.positionMs,
+                                    onLineTap = lyricsViewModel::onLineTapped,
+                                    modifier = Modifier.graphicsLayer { translationX = coverSwipe.offsetPx },
+                                )
+                            }
+                        }
+                        sleepBadge()
+                    } else {
+                        // The cover takes the space left by the fixed parts and keeps its proportions.
+                        Box(
+                            Modifier
+                                .weight(1f)
+                                .fillMaxWidth()
+                                .swipeGestures(horizontal = coverSwipe.axis, vertical = coverLift.axis),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            CoverCard(
+                                Modifier
+                                    .graphicsLayer {
+                                        translationX = coverSwipe.offsetPx
+                                        translationY = coverLift.offsetPx
+                                    }.fillMaxWidth()
+                                    .aspectRatio(PLAYER_COVER_ASPECT, matchHeightConstraintsFirst = true),
+                                cover = {
+                                    CoverImage(
+                                        track?.let { CoverSource.Track(it.id) },
+                                        sharedCover.then(it),
+                                        MuzzzloDimens.MiniPlayerShape,
+                                        fadeIn = true,
+                                    )
+                                },
+                            )
+                        }
+                        sleepBadge()
+                        TrackTitle(state, viewModel::artistChoices, onOpenArtist)
+                    }
                 }
             }
-            sleepBadge()
-        } else {
-            // The cover takes the space left by the fixed parts and keeps its proportions.
-            Box(
-                Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-                    .swipeGestures(horizontal = coverSwipe.axis, vertical = coverLift.axis),
-                contentAlignment = Alignment.Center,
-            ) {
-                CoverCard(
-                    Modifier
-                        .graphicsLayer {
-                            translationX = coverSwipe.offsetPx
-                            translationY = coverLift.offsetPx
-                        }.fillMaxWidth()
-                        .aspectRatio(PLAYER_COVER_ASPECT, matchHeightConstraintsFirst = true),
-                    cover = {
-                        CoverImage(
-                            track?.let { CoverSource.Track(it.id) },
-                            it,
-                            MuzzzloDimens.MiniPlayerShape,
-                            fadeIn = true,
-                        )
-                    },
-                )
-            }
-            sleepBadge()
-            TrackTitle(state, viewModel::artistChoices, onOpenArtist)
         }
         Spacer(Modifier.height(MuzzzloDimens.ContentGap))
         Progress(state, peaks, viewModel::onSeek)

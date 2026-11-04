@@ -244,6 +244,7 @@ internal fun CompactTitle(
     loadArtists: suspend (Long) -> List<ArtistChoice>,
     onOpenArtist: (Long) -> Unit,
     onCoverClick: () -> Unit,
+    coverModifier: Modifier = Modifier,
 ) {
     val track = state.currentTrack
     Row(
@@ -255,7 +256,7 @@ internal fun CompactTitle(
         CoverImage(
             source = track?.let { CoverSource.Track(it.id) },
             modifier =
-                Modifier
+                coverModifier
                     .size(MuzzzloDimens.ArtistPhoto)
                     .clip(MuzzzloDimens.TileShape)
                     .clickable(onClickLabel = description, onClick = onCoverClick),
