@@ -239,6 +239,8 @@ data class PlaylistEntity(
     @ColumnInfo(name = "created_at") val createdAt: Long,
     /** When playback last started from the playlist, for "Continue listening"; null before the first time. */
     @ColumnInfo(name = "last_played_at") val lastPlayedAt: Long? = null,
+    /** Picture the user picked, a file in the app's private folder; null: the cover of the first track. */
+    @ColumnInfo(name = "cover_path") val coverPath: String? = null,
 )
 
 /**

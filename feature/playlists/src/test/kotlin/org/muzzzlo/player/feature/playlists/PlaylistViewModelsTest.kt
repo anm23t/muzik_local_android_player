@@ -48,6 +48,33 @@ class PlaylistViewModelsTest {
         playlists.create("Mix").also { playlists.addTracks(it, tracks.map(Track::id)) }
 
     @Test
+    fun `a picked picture becomes the cover and a reset brings the first track back`() =
+        runTest {
+            val id = mix(a)
+            val viewModel = card(id)
+            assertEquals(null, viewModel.state.value.playlist?.coverPath)
+
+            viewModel.onCoverPicked("content://picker/1")
+            assertEquals("content://picker/1", viewModel.state.value.playlist?.coverPath)
+
+            viewModel.onCoverReset()
+            assertEquals(null, viewModel.state.value.playlist?.coverPath)
+        }
+
+    @Test
+    fun `a picture that cannot be read leaves the old cover`() =
+        runTest {
+            val id = mix(a)
+            val viewModel = card(id)
+            viewModel.onCoverPicked("content://picker/1")
+
+            playlists.coverFails = true
+            viewModel.onCoverPicked("content://picker/broken")
+
+            assertEquals("content://picker/1", viewModel.state.value.playlist?.coverPath)
+        }
+
+    @Test
     fun `the list shows playlists and creates one with a clean name`() =
         runTest {
             val viewModel = PlaylistListViewModel(playlists, autoPlaylists, transfer)

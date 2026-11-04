@@ -52,5 +52,12 @@ class FakePlaylists : PlaylistRepository {
         entryIds: List<Long>,
     ) = error("Not used")
 
+    override suspend fun setCover(
+        playlistId: Long,
+        sourceUri: String,
+    ) = Unit
+
+    override suspend fun removeCover(playlistId: Long) = Unit
+
     override suspend fun markPlayed(playlistId: Long) = Unit
 }

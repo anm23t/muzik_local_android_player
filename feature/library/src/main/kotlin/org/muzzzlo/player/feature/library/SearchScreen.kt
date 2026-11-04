@@ -28,6 +28,7 @@ import org.muzzzlo.player.core.designsystem.component.PillButton
 import org.muzzzlo.player.core.designsystem.component.ScreenFrame
 import org.muzzzlo.player.core.designsystem.component.SearchField
 import org.muzzzlo.player.core.designsystem.component.TrackRow
+import org.muzzzlo.player.core.designsystem.component.playlistCoverSource
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloColors
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloDimens
 import org.muzzzlo.player.core.model.Album
@@ -172,7 +173,7 @@ private fun SearchResultsList(
                 title = playlist.name,
                 subtitle = playlistCounts.getValue(playlist.id),
                 onClick = { onOpenPlaylist(playlist.id) },
-                cover = { CoverImage(playlist.firstTrackId?.let { id -> CoverSource.Track(id) }, it) },
+                cover = { CoverImage(playlistCoverSource(playlist.coverPath, playlist.firstTrackId), it) },
             )
         }
     }

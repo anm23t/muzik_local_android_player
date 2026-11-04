@@ -38,6 +38,8 @@ class AppCoverLoader
                 when (source) {
                     is CoverSource.Track -> covers.trackCover(source.id)
                     is CoverSource.Album -> covers.albumCover(source.id)
+                    // A picked picture is already a small file; it only goes through the memory cache.
+                    is CoverSource.File -> source.path
                 } ?: return null
             return memory.get(path) ?: decode(path)?.also { memory.put(path, it) }
         }

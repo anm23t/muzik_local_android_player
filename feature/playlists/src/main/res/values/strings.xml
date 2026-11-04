@@ -14,6 +14,9 @@
     <string name="auto_playlist_top_songs_empty">No rated tracks yet. Rate tracks with “Rate” in the menu of a track.</string>
     <string name="playlist_play">Play</string>
     <string name="playlist_manage">Playlist actions</string>
+    <string name="playlist_cover_change">Change playlist cover</string>
+    <string name="playlist_cover_choose">Choose picture</string>
+    <string name="playlist_cover_reset">Reset cover</string>
     <string name="playlist_rename">Rename</string>
     <string name="playlist_rename_title">Rename playlist</string>
     <string name="playlist_save">Save</string>

@@ -1,7 +1,10 @@
 package org.muzzzlo.player.feature.playlists
 
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -24,6 +27,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
@@ -74,7 +78,13 @@ fun PlaylistScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     var dialog by rememberSaveable { mutableStateOf(PlaylistDialog.None) }
     var menuEntry by remember { mutableStateOf<PlaylistEntry?>(null) }
+    var coverMenuOpen by rememberSaveable { mutableStateOf(false) }
     val playlist = state.playlist
+    val coverPicker =
+        rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+            uri?.let { viewModel.onCoverPicked(it.toString()) }
+        }
+    val pickCover = { coverPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }
     val exportFile =
         rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument(PLAYLIST_EXPORT_TYPE)) { uri ->
             if (uri != null) viewModel.onExport(uri.toString())
@@ -116,6 +126,15 @@ fun PlaylistScreen(
         )
     }
 
+    if (coverMenuOpen && playlist != null) {
+        CoverMenu(
+            playlistName = playlist.name,
+            onPick = pickCover,
+            onReset = viewModel::onCoverReset,
+            onDismiss = { coverMenuOpen = false },
+        )
+    }
+
     ScreenFrame(modifier) {
         ScreenHeader(onBack) { HomeButton(onHome) }
         if (playlist == null) {
@@ -128,6 +147,8 @@ fun PlaylistScreen(
             name = playlist.name,
             trackCount = playlist.trackCount,
             firstTrackId = playlist.firstTrackId,
+            coverPath = playlist.coverPath,
+            onCoverLongPress = { if (playlist.coverPath == null) pickCover() else coverMenuOpen = true },
             onManage = { dialog = PlaylistDialog.Actions },
             onPlay = viewModel::onPlay,
         )
@@ -146,7 +167,44 @@ fun PlaylistScreen(
     }
 }
 
-/** Cover, name, number of tracks and "Play"; the pencil button is shown when there is something to [onManage]. */
+/**
+ * Shown on a long press on the cover when the playlist already has a picture of its own. Not in the mockup
+ * (DESIGN.md, section 7).
+ */
+@Composable
+private fun CoverMenu(
+    playlistName: String,
+    onPick: () -> Unit,
+    onReset: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    MuzzzloDialog(title = playlistName, onDismiss = onDismiss) {
+        ActionRow(
+            icon = DesignR.drawable.ic_pencil,
+            text = stringResource(R.string.playlist_cover_choose),
+            onClick = {
+                onDismiss()
+                onPick()
+            },
+        )
+        ActionRow(
+            icon = DesignR.drawable.ic_close,
+            text = stringResource(R.string.playlist_cover_reset),
+            onClick = {
+                onDismiss()
+                onReset()
+            },
+        )
+    }
+}
+
+/**
+ * Cover, name, number of tracks and "Play"; the pencil button is shown when there is something to [onManage].
+ *
+ * @param coverPath the picture the user picked; null shows the cover of the first track.
+ * @param onCoverLongPress a long press on the cover (change it); null for a playlist whose cover cannot be changed.
+ */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 internal fun PlaylistHeader(
     name: String,
@@ -154,17 +212,34 @@ internal fun PlaylistHeader(
     firstTrackId: Long?,
     onManage: (() -> Unit)?,
     onPlay: () -> Unit,
+    coverPath: String? = null,
+    onCoverLongPress: (() -> Unit)? = null,
 ) {
     Row(
         horizontalArrangement = Arrangement.spacedBy(MuzzzloDimens.SectionGap),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        val changeLabel = stringResource(R.string.playlist_cover_change)
         CoverCard(
-            modifier = Modifier.size(MuzzzloDimens.AlbumCardCover),
+            modifier =
+                Modifier
+                    .size(MuzzzloDimens.AlbumCardCover)
+                    .clip(MuzzzloDimens.MiniPlayerShape)
+                    .then(
+                        if (onCoverLongPress == null) {
+                            Modifier
+                        } else {
+                            Modifier.combinedClickable(
+                                onClick = {},
+                                onLongClick = onCoverLongPress,
+                                onLongClickLabel = changeLabel,
+                            )
+                        },
+                    ),
             shape = MuzzzloDimens.MiniPlayerShape,
             coverShape = MuzzzloDimens.TileShape,
             inset = MuzzzloDimens.AlbumCardInset,
-            cover = { PlaylistCover(firstTrackId, it) },
+            cover = { PlaylistCover(firstTrackId, it, coverPath) },
         )
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(MuzzzloDimens.SmallGap)) {
             Text(

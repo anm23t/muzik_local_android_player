@@ -46,6 +46,7 @@ import org.muzzzlo.player.core.designsystem.component.PillButton
 import org.muzzzlo.player.core.designsystem.component.RoundIconButton
 import org.muzzzlo.player.core.designsystem.component.ScreenFrame
 import org.muzzzlo.player.core.designsystem.component.SectionTitle
+import org.muzzzlo.player.core.designsystem.component.playlistCoverSource
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloColors
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloDimens
 import org.muzzzlo.player.core.model.Album
@@ -189,14 +190,15 @@ private fun ContinueListening(
                                 modifier = Modifier.width(tileWidth),
                                 cover = { CoverImage(CoverSource.Album(item.album.id), it, MuzzzloDimens.TileShape) },
                             )
-                        // A playlist shows the cover of its first track, like in the list of playlists.
+                        // A playlist shows its own picture or the cover of its first track, like in the list of playlists.
                         is ContinueItem.PlaylistItem ->
                             CoverTile(
                                 title = item.playlist.name,
                                 onClick = { onOpenPlaylist(item.playlist.id) },
                                 modifier = Modifier.width(tileWidth),
                                 cover = {
-                                    val source = item.playlist.firstTrackId?.let { id -> CoverSource.Track(id) }
+                                    val source =
+                                        playlistCoverSource(item.playlist.coverPath, item.playlist.firstTrackId)
                                     CoverImage(source, it, MuzzzloDimens.TileShape)
                                 },
                             )

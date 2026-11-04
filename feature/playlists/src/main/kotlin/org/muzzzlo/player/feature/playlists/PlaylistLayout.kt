@@ -18,8 +18,8 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import org.muzzzlo.player.core.designsystem.component.CoverImage
-import org.muzzzlo.player.core.designsystem.component.CoverSource
 import org.muzzzlo.player.core.designsystem.component.RoundIconButton
+import org.muzzzlo.player.core.designsystem.component.playlistCoverSource
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloColors
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloDimens
 import org.muzzzlo.player.core.model.AutoPlaylist
@@ -87,12 +87,16 @@ internal fun Notice(text: String) {
 @Composable
 internal fun trackCountText(count: Int): String = pluralStringResource(R.plurals.playlist_track_count, count, count)
 
-/** A playlist stands for itself with the cover of its first track; an empty playlist shows the placeholder. */
+/**
+ * A playlist stands for itself with the picture the user picked ([coverPath]) or else the cover of its first track;
+ * an empty playlist without a picture shows the placeholder.
+ */
 @Composable
 internal fun PlaylistCover(
     firstTrackId: Long?,
     modifier: Modifier,
-) = CoverImage(firstTrackId?.let { CoverSource.Track(it) }, modifier)
+    coverPath: String? = null,
+) = CoverImage(playlistCoverSource(coverPath, firstTrackId), modifier)
 
 /** The name of an automatic playlist. */
 @Composable

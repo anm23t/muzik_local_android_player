@@ -319,6 +319,19 @@ class PlaylistViewModel
             viewModelScope.launch { playlists.delete(playlistId) }
         }
 
+        /** The user picked a picture ([uri] from the photo picker); it becomes the cover of the playlist. */
+        fun onCoverPicked(uri: String) {
+            viewModelScope.launch {
+                // A picture that cannot be read leaves the old cover; there is nothing the user can fix.
+                runCatching { playlists.setCover(playlistId, uri) }
+            }
+        }
+
+        /** "Reset cover": the playlist shows the cover of its first track again. */
+        fun onCoverReset() {
+            viewModelScope.launch { playlists.removeCover(playlistId) }
+        }
+
         /** The user chose where to save the playlist as M3U8. */
         fun onExport(uri: String) {
             if (file.value.busy) return

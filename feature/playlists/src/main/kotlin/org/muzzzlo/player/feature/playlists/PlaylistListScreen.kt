@@ -96,7 +96,7 @@ fun PlaylistListScreen(
                             title = playlist.name,
                             subtitle = trackCountText(playlist.trackCount),
                             onClick = { onOpenPlaylist(playlist.id) },
-                            cover = { PlaylistCover(playlist.firstTrackId, it) },
+                            cover = { PlaylistCover(playlist.firstTrackId, it, playlist.coverPath) },
                         )
                     }
                 }

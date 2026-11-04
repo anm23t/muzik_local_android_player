@@ -18,7 +18,16 @@ sealed interface CoverSource {
 
     /** The cover of an album (that of its first track with a picture). */
     data class Album(val id: Long) : CoverSource
+
+    /** A picture the user picked, a file in the app's private folder (the cover of a playlist). */
+    data class File(val path: String) : CoverSource
 }
+
+/** The cover a playlist stands for itself with: the picture the user picked, else the cover of its first track. */
+fun playlistCoverSource(
+    coverPath: String?,
+    firstTrackId: Long?,
+): CoverSource? = coverPath?.let { CoverSource.File(it) } ?: firstTrackId?.let { CoverSource.Track(it) }
 
 /** Loads the small covers for [CoverImage]; the app provides the implementation (cover cache of task 0.3.7). */
 fun interface CoverLoader {

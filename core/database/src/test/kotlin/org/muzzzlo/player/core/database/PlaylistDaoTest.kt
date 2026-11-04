@@ -150,4 +150,47 @@ class PlaylistDaoTest {
             assertNull(dao.observePlaylist(p).first())
             assertEquals(emptyList<Any>(), dao.slots(p))
         }
+
+    @Test
+    fun `a playlist has no cover of its own until one is set, and it can be taken away again`() =
+        runBlocking {
+            val mix = playlist("Mix")
+            assertNull(dao.observePlaylist(mix).first()?.coverPath)
+
+            dao.setCoverPath(mix, "/covers/1-100.jpg")
+            assertEquals("/covers/1-100.jpg", dao.observePlaylist(mix).first()?.coverPath)
+            assertEquals("/covers/1-100.jpg", dao.coverPath(mix))
+
+            dao.setCoverPath(mix, null)
+            assertNull(dao.observePlaylist(mix).first()?.coverPath)
+        }
+
+    @Test
+    fun `the cover of one playlist does not touch another and stays when the first track changes`() =
+        runBlocking {
+            val a = track("A")
+            val mix = playlist("Mix")
+            val other = playlist("Other")
+            dao.append(mix, listOf(a))
+            dao.setCoverPath(mix, "/covers/1-100.jpg")
+
+            val rows = dao.observePlaylists().first().associateBy { it.id }
+
+            assertEquals("/covers/1-100.jpg", rows.getValue(mix).coverPath)
+            assertEquals(a, rows.getValue(mix).firstTrackId)
+            assertNull(rows.getValue(other).coverPath)
+        }
+
+    @Test
+    fun `the cover path is read before the playlist is deleted`() =
+        runBlocking {
+            val mix = playlist("Mix")
+            dao.setCoverPath(mix, "/covers/1-100.jpg")
+
+            val path = dao.coverPath(mix)
+            dao.deletePlaylist(mix)
+
+            assertEquals("/covers/1-100.jpg", path)
+            assertNull(dao.coverPath(mix))
+        }
 }

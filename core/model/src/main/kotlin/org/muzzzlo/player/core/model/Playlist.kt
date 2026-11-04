@@ -8,6 +8,8 @@ import kotlinx.coroutines.flow.Flow
  * @property trackCount tracks whose files are on the device; entries of missing files are not counted.
  * @property firstTrackId the first such track, its cover stands for the playlist; null for an empty playlist.
  * @property lastPlayedAtMs when playback last started from the playlist, null before the first time.
+ * @property coverPath picture the user picked for the playlist (a file of the app); null shows the cover of the
+ *   first track.
  */
 data class Playlist(
     val id: Long,
@@ -16,6 +18,7 @@ data class Playlist(
     val firstTrackId: Long?,
     val createdAtMs: Long,
     val lastPlayedAtMs: Long?,
+    val coverPath: String? = null,
 )
 
 /** A track in a playlist. The same track may be there twice, so an entry has its own [entryId]. */
@@ -49,7 +52,20 @@ interface PlaylistRepository {
         name: String,
     )
 
+    /** Deletes the playlist and the cover picture the user picked for it. */
     suspend fun delete(playlistId: Long)
+
+    /**
+     * Makes the picture at [sourceUri] (from the system picker) the cover of the playlist: it is reduced and kept in
+     * the app's folder. A picture that cannot be read throws and leaves the old cover.
+     */
+    suspend fun setCover(
+        playlistId: Long,
+        sourceUri: String,
+    )
+
+    /** Removes the picked cover, the playlist shows the cover of its first track again. */
+    suspend fun removeCover(playlistId: Long)
 
     /** Adds the tracks to the end of the playlist. */
     suspend fun addTracks(

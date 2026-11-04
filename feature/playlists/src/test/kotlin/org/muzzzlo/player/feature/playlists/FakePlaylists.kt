@@ -16,6 +16,9 @@ class FakePlaylists(
     val entries = MutableStateFlow<Map<Long, List<PlaylistEntry>>>(emptyMap())
     val played = mutableListOf<Long>()
     val reordered = mutableListOf<List<Long>>()
+
+    /** Set to make the next [setCover] fail like an unreadable picture. */
+    var coverFails = false
     private var nextEntryId = 100L
 
     override fun observePlaylists(): Flow<List<Playlist>> = playlists
@@ -41,6 +44,18 @@ class FakePlaylists(
     override suspend fun delete(playlistId: Long) {
         playlists.value = playlists.value.filter { it.id != playlistId }
         entries.value -= playlistId
+    }
+
+    override suspend fun setCover(
+        playlistId: Long,
+        sourceUri: String,
+    ) {
+        if (coverFails) throw IllegalArgumentException("Not an image: $sourceUri")
+        playlists.value = playlists.value.map { if (it.id == playlistId) it.copy(coverPath = sourceUri) else it }
+    }
+
+    override suspend fun removeCover(playlistId: Long) {
+        playlists.value = playlists.value.map { if (it.id == playlistId) it.copy(coverPath = null) else it }
     }
 
     override suspend fun addTracks(

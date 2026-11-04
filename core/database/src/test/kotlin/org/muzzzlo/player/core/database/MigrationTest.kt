@@ -246,6 +246,26 @@ class MigrationTest {
         }
     }
 
+    @Test
+    fun `11 to 12 adds the playlist cover and keeps playlists without one`() {
+        helper.createDatabase(DB_NAME, 11).use { db ->
+            db.execSQL("INSERT INTO playlist (id, name, created_at) VALUES (1, 'Mix', 5)")
+        }
+
+        helper.runMigrationsAndValidate(DB_NAME, 12, true, MIGRATION_11_12).use { db ->
+            db.execSQL(
+                "INSERT INTO playlist (id, name, created_at, cover_path) VALUES (2, 'Own', 6, '/covers/2-1.jpg')",
+            )
+            db.query("SELECT name, cover_path FROM playlist ORDER BY id").use {
+                it.moveToFirst()
+                assertEquals("Mix", it.getString(0))
+                assertTrue(it.isNull(1))
+                it.moveToNext()
+                assertEquals("/covers/2-1.jpg", it.getString(1))
+            }
+        }
+    }
+
     private companion object {
         const val DB_NAME = "migration-test.db"
     }

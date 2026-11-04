@@ -24,6 +24,7 @@ internal class DefaultPlaylistRepository
     constructor(
         private val dao: PlaylistDao,
         private val library: LibraryDao,
+        private val covers: PlaylistCoverStore,
         private val dispatchers: DispatcherProvider,
         private val clock: Clock,
     ) : PlaylistRepository {
@@ -54,7 +55,35 @@ internal class DefaultPlaylistRepository
             name: String,
         ) = withContext(dispatchers.io) { dao.rename(playlistId, validName(name)) }
 
-        override suspend fun delete(playlistId: Long) = withContext(dispatchers.io) { dao.deletePlaylist(playlistId) }
+        override suspend fun delete(playlistId: Long) =
+            withContext(dispatchers.io) {
+                val cover = dao.coverPath(playlistId)
+                dao.deletePlaylist(playlistId)
+                covers.delete(cover)
+            }
+
+        override suspend fun setCover(
+            playlistId: Long,
+            sourceUri: String,
+        ) = withContext(dispatchers.io) {
+            val previous = dao.coverPath(playlistId)
+            val path = covers.save(playlistId, sourceUri)
+            var stored = false
+            try {
+                dao.setCoverPath(playlistId, path)
+                stored = true
+            } finally {
+                // The new copy is useless when the database did not take it; the old cover stays.
+                covers.delete(if (stored) previous else path)
+            }
+        }
+
+        override suspend fun removeCover(playlistId: Long) =
+            withContext(dispatchers.io) {
+                val previous = dao.coverPath(playlistId)
+                dao.setCoverPath(playlistId, null)
+                covers.delete(previous)
+            }
 
         override suspend fun addTracks(
             playlistId: Long,
@@ -77,5 +106,14 @@ internal class DefaultPlaylistRepository
         private fun validName(name: String): String =
             requireNotNull(PlaylistNames.clean(name)) { "A playlist name must not be blank" }
 
-        private fun PlaylistRow.toPlaylist() = Playlist(id, name, trackCount, firstTrackId, createdAt, lastPlayedAt)
+        private fun PlaylistRow.toPlaylist() =
+            Playlist(
+                id,
+                name,
+                trackCount,
+                firstTrackId,
+                createdAt,
+                lastPlayedAt,
+                coverPath,
+            )
     }

@@ -154,3 +154,11 @@ val MIGRATION_10_11 =
             db.execSQL("UPDATE `album` SET `accent_color` = NULL")
         }
     }
+
+/** The playlist gets a place for the cover the user picks (task 2.0.4); existing playlists keep the first track. */
+val MIGRATION_11_12 =
+    object : Migration(11, 12) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE `playlist` ADD COLUMN `cover_path` TEXT")
+        }
+    }
