@@ -56,7 +56,7 @@ fun StatsScreen(
         when {
             !state.isLoaded -> Unit
             state.isEmpty -> Notice(stringResource(R.string.stats_empty))
-            else -> StatsContent(state, onOpenAlbum, onOpenArtist)
+            else -> StatsContent(state, viewModel::onTrackClicked, onOpenAlbum, onOpenArtist)
         }
     }
 }
@@ -93,6 +93,7 @@ private fun StatsPeriod.labelRes(): Int =
 @Composable
 private fun StatsContent(
     state: StatsUiState,
+    onTrackClicked: (Long) -> Unit,
     onOpenAlbum: (Long) -> Unit,
     onOpenArtist: (Long?, String) -> Unit,
 ) {
@@ -100,7 +101,10 @@ private fun StatsContent(
         item { TotalsPanel(state.totals) }
         if (state.tracks.isNotEmpty()) {
             item { SectionTitle(stringResource(R.string.stats_top_tracks)) }
-            items(state.tracks.size) { index -> TopTrackRow(index + 1, state.tracks[index]) }
+            items(state.tracks.size) { index ->
+                val track = state.tracks[index]
+                TopTrackRow(index + 1, track, track.trackId in state.playable, onTrackClicked)
+            }
         }
         if (state.albums.isNotEmpty()) {
             item { SectionTitle(stringResource(R.string.stats_top_albums)) }

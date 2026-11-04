@@ -20,15 +20,18 @@ import org.muzzzlo.player.core.model.TopTrack
 @Composable
 internal fun playsText(plays: Int): String = pluralStringResource(R.plurals.stats_plays_count, plays, plays)
 
-// The tap does nothing: the row of a deleted track has no track to open, and playing from a top is not asked for.
+// The row of a deleted track (not [playable]) has no file to play and does not react to taps.
 @Composable
 internal fun TopTrackRow(
     rank: Int,
     track: TopTrack,
+    playable: Boolean,
+    onClick: (Long) -> Unit,
 ) {
     TrackRow(
         title = track.title,
-        onClick = {},
+        onClick = { track.trackId?.let(onClick) },
+        enabled = playable,
         number = rank.toString(),
         subtitle = track.artists.joinToString(", ").ifEmpty { null },
         // A deleted track has no cover left: the placeholder is shown.

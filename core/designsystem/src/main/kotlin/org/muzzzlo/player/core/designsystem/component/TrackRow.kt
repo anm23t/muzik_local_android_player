@@ -35,6 +35,7 @@ import org.muzzzlo.player.core.designsystem.theme.MuzzzloTheme
 /**
  * Track row of the album card (4:337), the current track is highlighted as in 4:361.
  *
+ * @param enabled false makes the row ignore taps (a track without a file).
  * @param number track number shown on the left ("01"), null hides the column.
  * @param subtitle artists under the title, null hides the line (album card shows only titles).
  * @param cover cover slot on the left (40 dp, rounded as the row), null hides it. Not in the mockup, see DESIGN.md.
@@ -47,6 +48,7 @@ fun TrackRow(
     title: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
     number: String? = null,
     subtitle: String? = null,
     cover: (@Composable (Modifier) -> Unit)? = null,
@@ -64,7 +66,7 @@ fun TrackRow(
             .heightIn(min = MuzzzloDimens.TrackRowMinHeight)
             .clip(MuzzzloDimens.RowShape)
             .background(if (isCurrent) accent.container else MuzzzloColors.Surface)
-            .combinedClickable(onClick = onClick, onLongClick = onLongClick)
+            .combinedClickable(enabled = enabled, onClick = onClick, onLongClick = onLongClick)
             .padding(start = MuzzzloDimens.RowPadding, end = MuzzzloDimens.RowEndPadding),
         horizontalArrangement = Arrangement.spacedBy(MuzzzloDimens.ItemGap),
         verticalAlignment = Alignment.CenterVertically,
