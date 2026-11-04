@@ -24,11 +24,12 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloColors
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloDimens
+import org.muzzzlo.player.core.designsystem.theme.MuzzzloMotion
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloTheme
 import kotlin.math.floor
 
 /** Duration of the change from the plain bar to the waveform, once the peaks are ready. */
-const val WAVEFORM_FADE_MS = 300
+const val WAVEFORM_FADE_MS = MuzzzloMotion.MEDIUM_MS
 
 /**
  * Progress of the big player as a waveform of bars, like SoundCloud (task 1.2.7, no mockup): played bars in the

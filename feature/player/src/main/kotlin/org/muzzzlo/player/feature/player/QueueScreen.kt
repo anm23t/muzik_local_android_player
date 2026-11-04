@@ -2,7 +2,6 @@ package org.muzzzlo.player.feature.player
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,6 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
@@ -28,8 +28,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -37,8 +35,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -49,7 +45,10 @@ import org.muzzzlo.player.core.designsystem.component.CoverImage
 import org.muzzzlo.player.core.designsystem.component.CoverSource
 import org.muzzzlo.player.core.designsystem.component.TrackAction
 import org.muzzzlo.player.core.designsystem.component.TrackActionsMenu
-import org.muzzzlo.player.core.designsystem.gesture.dragTargetIndex
+import org.muzzzlo.player.core.designsystem.gesture.rememberReorderState
+import org.muzzzlo.player.core.designsystem.gesture.reorderHandle
+import org.muzzzlo.player.core.designsystem.gesture.reorderableItem
+import org.muzzzlo.player.core.designsystem.gesture.stableKeys
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloDimens
 import org.muzzzlo.player.core.model.Track
 import org.muzzzlo.player.core.designsystem.R as DesignR
@@ -101,8 +100,12 @@ private fun QueueList(
     onOpenAlbum: (Long) -> Unit,
 ) {
     val rowHeightPx = with(LocalDensity.current) { RowHeight.toPx() }
-    var draggingIndex by remember { mutableIntStateOf(-1) }
-    var dragOffset by remember { mutableFloatStateOf(0f) }
+    val listState = rememberLazyListState()
+    val reorder = rememberReorderState(listState, viewModel::onQueueItemMoved)
+    // The same track may stand twice in the queue: its keys stay with the rows when they move (task 2.0.9).
+    val keys = remember(queue) { stableKeys(queue) { it.id } }
+    reorder.keys = keys
+    reorder.stepPx = rowHeightPx
     var menuTrack by remember { mutableStateOf<Track?>(null) }
     menuTrack?.let { track ->
         TrackActionsMenu(
@@ -124,16 +127,15 @@ private fun QueueList(
         )
     }
 
-    LazyColumn(Modifier.fillMaxSize()) {
-        itemsIndexed(queue, key = { index, track -> "$index-${track.id}" }) { index, track ->
-            val isDragged = index == draggingIndex
+    LazyColumn(Modifier.fillMaxSize(), state = listState) {
+        itemsIndexed(queue, key = { index, _ -> keys[index] }) { index, track ->
+            val key = keys[index]
             Surface(
                 color = if (index == currentIndex) MaterialTheme.colorScheme.primaryContainer else Color.Unspecified,
                 modifier =
-                    Modifier
+                    reorderableItem(reorder, key, index)
                         .fillMaxWidth()
                         .height(RowHeight)
-                        .graphicsLayer { translationY = if (isDragged) dragOffset else 0f }
                         .combinedClickable(
                             onLongClickLabel = stringResource(DesignR.string.designsystem_track_menu),
                             onLongClick = { menuTrack = track },
@@ -163,28 +165,7 @@ private fun QueueList(
                         stringResource(R.string.queue_reorder),
                         Modifier
                             .padding(horizontal = 12.dp)
-                            .pointerInput(index, queue.size) {
-                                detectDragGestures(
-                                    onDragStart = {
-                                        draggingIndex = index
-                                        dragOffset = 0f
-                                    },
-                                    onDrag = { change, amount ->
-                                        change.consume()
-                                        dragOffset += amount.y
-                                    },
-                                    onDragEnd = {
-                                        val target = dragTargetIndex(index, dragOffset, rowHeightPx, queue.size)
-                                        if (target != index) viewModel.onQueueItemMoved(index, target)
-                                        draggingIndex = -1
-                                        dragOffset = 0f
-                                    },
-                                    onDragCancel = {
-                                        draggingIndex = -1
-                                        dragOffset = 0f
-                                    },
-                                )
-                            },
+                            .reorderHandle(reorder, key),
                     )
                 }
             }

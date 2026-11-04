@@ -1,6 +1,5 @@
 package org.muzzzlo.player.core.designsystem.gesture
 
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.awaitTouchSlopOrCancellation
@@ -21,6 +20,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
+import org.muzzzlo.player.core.designsystem.theme.MuzzzloMotion
 import kotlin.math.abs
 import androidx.compose.animation.core.animate as animateFloat
 
@@ -127,11 +127,11 @@ class CoverSwipeState(
         job =
             scope.launch {
                 if (result == SwipeSkip.NONE) {
-                    settle(0f)
+                    settle(0f, velocityPxPerSec)
                 } else {
                     val outside = if (result == SwipeSkip.NEXT) -widthPx else widthPx
                     val before = trackKey()
-                    settle(outside)
+                    settle(outside, velocityPxPerSec)
                     onSkip(result)
                     withTimeoutOrNull(TRACK_WAIT_MS) { snapshotFlow(trackKey).first { it != before } }
                     offsetPx = -outside
@@ -140,14 +140,17 @@ class CoverSwipeState(
             }
     }
 
-    private suspend fun settle(target: Float) {
-        animateFloat(offsetPx, target, animationSpec = tween(SETTLE_MS)) { value, _ ->
+    /** Moves the cover to [target] on a spring that picks up the speed of the finger (task 2.0.9). */
+    private suspend fun settle(
+        target: Float,
+        velocityPxPerSec: Float = 0f,
+    ) {
+        animateFloat(offsetPx, target, velocityPxPerSec, MuzzzloMotion.gesture()) { value, _ ->
             offsetPx = value
         }
     }
 
     private companion object {
-        const val SETTLE_MS = 160
         const val TRACK_WAIT_MS = 500L
     }
 }

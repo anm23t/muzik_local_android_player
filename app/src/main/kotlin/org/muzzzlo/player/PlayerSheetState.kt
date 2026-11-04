@@ -1,8 +1,7 @@
 package org.muzzzlo.player
 
-import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.animate
-import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -11,13 +10,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.muzzzlo.player.core.designsystem.gesture.sheetSettlesOpen
-
-private const val SHEET_MS = 300
+import org.muzzzlo.player.core.designsystem.theme.MuzzzloMotion
 
 /**
  * Position of the player layer over the `NavHost` (ARCHITECTURE.md, section 9): [progress] is 0 when
  * the player is closed and 1 when it is open. A finger moves it through [dragBy] and [release];
- * buttons and the back key use [open] and [close], which animate.
+ * buttons and the back key use [open] and [close], which animate. A released sheet goes on on a spring with the
+ * speed of the finger (task 2.0.9).
  */
 @Stable
 internal class PlayerSheetState(private val scope: CoroutineScope) {
@@ -49,7 +48,10 @@ internal class PlayerSheetState(private val scope: CoroutineScope) {
     fun release(velocityPxPerSec: Float) {
         val start = dragStart ?: progress
         dragStart = null
-        if (sheetSettlesOpen(progress, velocityPxPerSec, heightPx, start)) open() else close()
+        val target = if (sheetSettlesOpen(progress, velocityPxPerSec, heightPx, start)) 1f else 0f
+        // Progress grows upwards, the finger speed is positive downwards.
+        val velocity = if (heightPx > 0f) -velocityPxPerSec / heightPx else 0f
+        animateTo(target, MuzzzloMotion.gesture(), velocity)
     }
 
     fun open() = animateTo(1f)
@@ -59,13 +61,15 @@ internal class PlayerSheetState(private val scope: CoroutineScope) {
     /** Hides the player at once, for a screen that slides in over it. */
     fun hide() = moveTo(0f)
 
-    private fun animateTo(target: Float) {
+    private fun animateTo(
+        target: Float,
+        spec: AnimationSpec<Float> = MuzzzloMotion.timed(),
+        velocity: Float = 0f,
+    ) {
         job?.cancel()
         job =
             scope.launch {
-                animate(progress, target, animationSpec = tween(SHEET_MS, easing = FastOutSlowInEasing)) { value, _ ->
-                    progress = value
-                }
+                animate(progress, target, velocity, spec) { value, _ -> progress = value.coerceIn(0f, 1f) }
             }
     }
 }

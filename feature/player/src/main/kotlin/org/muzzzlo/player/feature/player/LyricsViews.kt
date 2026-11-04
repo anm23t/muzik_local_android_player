@@ -43,6 +43,7 @@ import org.muzzzlo.player.core.designsystem.gesture.AxisSwipe
 import org.muzzzlo.player.core.designsystem.gesture.RUBBER_BAND
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloColors
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloDimens
+import org.muzzzlo.player.core.designsystem.theme.MuzzzloMotion
 import org.muzzzlo.player.core.model.Lyrics
 import org.muzzzlo.player.core.model.LyricsScroll
 import org.muzzzlo.player.core.model.PlayerState
@@ -51,7 +52,7 @@ import kotlin.math.abs
 
 /** Lines that are not sung now are dimmed this much (task 2.0.7, no mockup, DESIGN.md, section 7). */
 private const val DIMMED_ALPHA = 0.45f
-private const val LINE_COLOR_MS = 300
+private const val LINE_COLOR_MS = MuzzzloMotion.MEDIUM_MS
 
 /** Share of the cover height a lift must cover to open the lyrics. */
 private const val LIFT_SHARE = 0.15f
@@ -61,7 +62,6 @@ private const val LIFT_FLING_SHARE_PER_SECOND = 1f
 
 /** With lyrics to open the cover follows the finger more willingly than the rubber band of a track without them. */
 private const val LIFT_FOLLOW = 0.5f
-private const val SETTLE_MS = 160
 
 /**
  * Whether a lift of the cover by [rawOffsetPx] (up is negative) released at [velocityPxPerSec] opens the lyrics:
@@ -125,7 +125,7 @@ internal class CoverLiftState(
             onLift()
         } else {
             scope.launch {
-                animate(offsetPx, 0f, animationSpec = tween(SETTLE_MS)) { value, _ -> offsetPx = value }
+                animate(offsetPx, 0f, velocityPxPerSec, MuzzzloMotion.gesture()) { value, _ -> offsetPx = value }
             }
         }
     }

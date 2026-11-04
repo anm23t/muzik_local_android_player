@@ -48,7 +48,7 @@ val LocalAccent = compositionLocalOf { AccentColors.from(DefaultAccent) }
 private const val LIGHT_ACCENT_LUMINANCE = 0.3f
 
 /** Duration of the accent change when the playing track changes (DESIGN.md, section 4: 300 to 500 ms). */
-const val ACCENT_ANIMATION_MS = 400
+const val ACCENT_ANIMATION_MS = MuzzzloMotion.ACCENT_MS
 
 /**
  * App theme. Dark only, there is no light variant on purpose (CLAUDE.md, decision 8).

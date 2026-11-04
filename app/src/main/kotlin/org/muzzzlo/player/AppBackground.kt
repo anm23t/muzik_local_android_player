@@ -25,9 +25,10 @@ import androidx.lifecycle.compose.currentStateAsState
 import org.muzzzlo.player.core.designsystem.component.BlobMotion
 import org.muzzzlo.player.core.designsystem.component.LiveBackground
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloColors
+import org.muzzzlo.player.core.designsystem.theme.MuzzzloMotion
 
 /** Track changes and the turn between colored and black take this long (task 2.0.8). */
-private const val FADE_MS = 1_500
+private const val FADE_MS = MuzzzloMotion.BACKGROUND_MS
 
 /** The veil over the spots: lists are darker than the player, where the cover is the main thing. */
 private const val SCREEN_DIM = 0.55f

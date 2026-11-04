@@ -1,5 +1,6 @@
 package org.muzzzlo.player.core.designsystem.component
 
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -26,6 +27,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import org.muzzzlo.player.core.designsystem.R
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloColors
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloDimens
+import org.muzzzlo.player.core.designsystem.theme.MuzzzloMotion
 
 /**
  * Mini player under the lists (15:45). Stateless: the screen passes what is playing.
@@ -72,21 +74,29 @@ fun MiniPlayer(
                     .size(MuzzzloDimens.MiniPlayerCover)
                     .clip(MuzzzloDimens.RowShape)
             if (cover != null) cover(coverModifier) else CoverPlaceholder(coverModifier)
-            Column(Modifier.weight(1f)) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
-                    color = MuzzzloColors.TextPrimary,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Text(
-                    text = artists,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MuzzzloColors.TextSecondary,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
+            // A new track fades in over the old one (task 2.0.9).
+            Crossfade(
+                targetState = title to artists,
+                modifier = Modifier.weight(1f),
+                animationSpec = MuzzzloMotion.timed<Float>(MuzzzloMotion.SHORT_MS),
+                label = "mini player track",
+            ) { (shownTitle, shownArtists) ->
+                Column {
+                    Text(
+                        text = shownTitle,
+                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                        color = MuzzzloColors.TextPrimary,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Text(
+                        text = shownArtists,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MuzzzloColors.TextSecondary,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
             }
             RoundIconButton(
                 icon = if (isPlaying) R.drawable.ic_pause else R.drawable.ic_play,

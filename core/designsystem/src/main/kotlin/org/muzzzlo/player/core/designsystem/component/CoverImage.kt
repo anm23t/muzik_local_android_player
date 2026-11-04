@@ -1,15 +1,21 @@
 package org.muzzzlo.player.core.designsystem.component
 
+import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloDimens
+import org.muzzzlo.player.core.designsystem.theme.MuzzzloMotion
 
 /** Which cover [CoverImage] shows. */
 sealed interface CoverSource {
@@ -43,21 +49,40 @@ val LocalCoverLoader = staticCompositionLocalOf { CoverLoader { null } }
  * Pass the modifier the slot of [CoverTile], [CoverCard], [AlbumRow] or [MiniPlayerView] gives.
  *
  * @param placeholderShape corners of the placeholder border, the same as the clip of [modifier].
+ * @param fadeIn a new cover fades in over the placeholder (the player and the mini player, task 2.0.9). The old
+ * picture goes at once, so a cover that flies back in after a swipe never shows the previous track.
  */
 @Composable
 fun CoverImage(
     source: CoverSource?,
     modifier: Modifier = Modifier,
     placeholderShape: Shape = MuzzzloDimens.RowShape,
+    fadeIn: Boolean = false,
 ) {
     val loader = LocalCoverLoader.current
     val cover by produceState<ImageBitmap?>(initialValue = null, source, loader) {
         value = source?.let { loader.load(it) }
     }
     val image = cover
-    if (image == null) {
-        CoverPlaceholder(modifier, placeholderShape)
-    } else {
-        Image(bitmap = image, contentDescription = null, modifier = modifier, contentScale = ContentScale.Crop)
+    if (!fadeIn) {
+        if (image == null) {
+            CoverPlaceholder(modifier, placeholderShape)
+        } else {
+            Image(bitmap = image, contentDescription = null, modifier = modifier, contentScale = ContentScale.Crop)
+        }
+        return
+    }
+    val alpha = remember(source) { Animatable(0f) }
+    LaunchedEffect(image) { if (image != null) alpha.animateTo(1f, MuzzzloMotion.timed(MuzzzloMotion.SHORT_MS)) }
+    Box(modifier) {
+        CoverPlaceholder(Modifier.matchParentSize(), placeholderShape)
+        if (image != null) {
+            Image(
+                bitmap = image,
+                contentDescription = null,
+                modifier = Modifier.matchParentSize().graphicsLayer { this.alpha = alpha.value },
+                contentScale = ContentScale.Crop,
+            )
+        }
     }
 }

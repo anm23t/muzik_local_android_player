@@ -1,5 +1,6 @@
 package org.muzzzlo.player.feature.player
 
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -47,6 +48,7 @@ import org.muzzzlo.player.core.designsystem.gesture.AxisSwipe
 import org.muzzzlo.player.core.designsystem.gesture.swipeGestures
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloColors
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloDimens
+import org.muzzzlo.player.core.designsystem.theme.MuzzzloMotion
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloTheme
 import org.muzzzlo.player.core.model.PlaybackProblem
 import org.muzzzlo.player.core.model.PlayerState
@@ -170,7 +172,14 @@ fun PlayerScreen(
                             translationY = coverLift.offsetPx
                         }.fillMaxWidth()
                         .aspectRatio(PLAYER_COVER_ASPECT, matchHeightConstraintsFirst = true),
-                    cover = { CoverImage(track?.let { CoverSource.Track(it.id) }, it, MuzzzloDimens.MiniPlayerShape) },
+                    cover = {
+                        CoverImage(
+                            track?.let { CoverSource.Track(it.id) },
+                            it,
+                            MuzzzloDimens.MiniPlayerShape,
+                            fadeIn = true,
+                        )
+                    },
                 )
             }
             sleepBadge()
@@ -218,6 +227,13 @@ fun PlayerScreen(
     }
 }
 
+/** What the title shows of a track: a new rating of the same track is not a change to fade. */
+private data class ShownTrack(
+    val id: Long,
+    val title: String,
+    val artists: List<String>,
+)
+
 @Composable
 internal fun TrackTitle(
     state: PlayerState,
@@ -233,35 +249,45 @@ internal fun TrackTitle(
         ArtistPickerMenu(artists = artists, onPick = { onOpenArtist(it.id) }, onDismiss = { choices = null })
     }
     val textAlign = if (compact) TextAlign.Start else TextAlign.Center
+    val titleStyle = if (compact) MaterialTheme.typography.titleLarge else MaterialTheme.typography.headlineMedium
     val alignment = if (compact) Alignment.Start else Alignment.CenterHorizontally
     Column(modifier.fillMaxWidth(), horizontalAlignment = alignment) {
-        // One line each, so the cover keeps its size whatever the title length is; long lines scroll.
-        MarqueeText(
-            text = track?.title ?: stringResource(R.string.player_nothing_playing),
-            style = if (compact) MaterialTheme.typography.titleLarge else MaterialTheme.typography.headlineMedium,
-            color = MuzzzloColors.TextPrimary,
-            textAlign = textAlign,
-        )
-        Spacer(Modifier.height(MuzzzloDimens.SmallGap))
-        // A tap on the artists opens the card of the only artist or the picker of several (DESIGN.md, section 3).
-        ArtistLinks(
-            names = track?.artists.orEmpty(),
-            onClick = {
-                if (track != null) {
-                    scope.launch {
-                        when (val tap = ArtistTap.of(loadArtists(track.id))) {
-                            is ArtistTap.Open -> onOpenArtist(tap.artist.id)
-                            is ArtistTap.Choose -> choices = tap.artists
-                            ArtistTap.Nothing -> Unit
+        // A new track fades in over the old one (task 2.0.9); a new rating of the same track does not.
+        Crossfade(
+            targetState = track?.let { ShownTrack(it.id, it.title, it.artists) },
+            animationSpec = MuzzzloMotion.timed<Float>(MuzzzloMotion.SHORT_MS),
+            label = "player track",
+        ) { shown ->
+            Column(Modifier.fillMaxWidth(), horizontalAlignment = alignment) {
+                // One line each, so the cover keeps its size whatever the title length is; long lines scroll.
+                MarqueeText(
+                    text = shown?.title ?: stringResource(R.string.player_nothing_playing),
+                    style = titleStyle,
+                    color = MuzzzloColors.TextPrimary,
+                    textAlign = textAlign,
+                )
+                Spacer(Modifier.height(MuzzzloDimens.SmallGap))
+                // A tap on the artists opens the card of the only artist or the picker of several (DESIGN.md, 3).
+                ArtistLinks(
+                    names = shown?.artists.orEmpty(),
+                    onClick = {
+                        if (shown != null) {
+                            scope.launch {
+                                when (val tap = ArtistTap.of(loadArtists(shown.id))) {
+                                    is ArtistTap.Open -> onOpenArtist(tap.artist.id)
+                                    is ArtistTap.Choose -> choices = tap.artists
+                                    ArtistTap.Nothing -> Unit
+                                }
+                            }
                         }
-                    }
-                }
-            },
-            style = MaterialTheme.typography.titleSmall,
-            color = MuzzzloColors.TextSecondary,
-            textAlign = textAlign,
-            marquee = true,
-        )
+                    },
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MuzzzloColors.TextSecondary,
+                    textAlign = textAlign,
+                    marquee = true,
+                )
+            }
+        }
         state.problem?.let { problem ->
             Spacer(Modifier.height(MuzzzloDimens.SmallGap))
             Text(
@@ -432,7 +458,7 @@ fun MiniPlayer(
         onPlayPause = viewModel::onPlayPause,
         modifier = modifier,
         onLongClick = { menuOpen = true },
-        cover = { CoverImage(CoverSource.Track(track.id), it) },
+        cover = { CoverImage(CoverSource.Track(track.id), it, fadeIn = true) },
         gestures = Modifier.swipeGestures(horizontal = coverSwipe.axis, vertical = openSwipe),
         coverOffsetPx = { coverSwipe.offsetPx },
     )

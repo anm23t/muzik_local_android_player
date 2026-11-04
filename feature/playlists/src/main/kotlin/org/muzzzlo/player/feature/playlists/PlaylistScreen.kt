@@ -5,7 +5,6 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,13 +13,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -28,14 +27,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.muzzzlo.player.core.designsystem.component.ActionRow
@@ -49,7 +45,9 @@ import org.muzzzlo.player.core.designsystem.component.ScreenFrame
 import org.muzzzlo.player.core.designsystem.component.TrackAction
 import org.muzzzlo.player.core.designsystem.component.TrackActionsMenu
 import org.muzzzlo.player.core.designsystem.component.TrackRow
-import org.muzzzlo.player.core.designsystem.gesture.dragTargetIndex
+import org.muzzzlo.player.core.designsystem.gesture.rememberReorderState
+import org.muzzzlo.player.core.designsystem.gesture.reorderHandle
+import org.muzzzlo.player.core.designsystem.gesture.reorderableItem
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloColors
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloDimens
 import org.muzzzlo.player.core.model.Playlist
@@ -291,24 +289,24 @@ private fun PlaylistTracks(
 ) {
     val gapPx = with(LocalDensity.current) { MuzzzloDimens.TinyGap.toPx() }
     var rowHeightPx by remember { mutableFloatStateOf(0f) }
-    var draggingIndex by remember { mutableIntStateOf(-1) }
-    var dragOffset by remember { mutableFloatStateOf(0f) }
     val entries = state.entries
+    val listState = rememberLazyListState()
+    val reorder = rememberReorderState(listState, onMoved)
+    reorder.keys = entries.map { it.entryId }
+    reorder.stepPx = rowHeightPx + gapPx
     LazyColumn(
+        state = listState,
         contentPadding = MiniPlayerClearance,
         verticalArrangement = Arrangement.spacedBy(MuzzzloDimens.TinyGap),
     ) {
         itemsIndexed(entries, key = { _, entry -> entry.entryId }) { index, entry ->
-            val isDragged = index == draggingIndex
             TrackRow(
                 title = entry.track.title,
                 ratingTenths = entry.track.ratingTenths,
                 onClick = { onClick(index) },
                 modifier =
-                    Modifier
-                        .onSizeChanged { rowHeightPx = it.height.toFloat() }
-                        .zIndex(if (isDragged) 1f else 0f)
-                        .graphicsLayer { translationY = if (isDragged) dragOffset else 0f },
+                    reorderableItem(reorder, entry.entryId, index)
+                        .onSizeChanged { rowHeightPx = it.height.toFloat() },
                 subtitle = entry.track.artistsText.ifEmpty { null },
                 cover = { PlaylistCover(entry.track.id, it) },
                 isCurrent = entry.track.id == state.currentTrackId,
@@ -320,29 +318,7 @@ private fun PlaylistTracks(
                         modifier =
                             Modifier
                                 .size(MuzzzloDimens.SmallIcon)
-                                .pointerInput(index, entries.size) {
-                                    detectDragGestures(
-                                        onDragStart = {
-                                            draggingIndex = index
-                                            dragOffset = 0f
-                                        },
-                                        onDrag = { change, amount ->
-                                            change.consume()
-                                            dragOffset += amount.y
-                                        },
-                                        onDragEnd = {
-                                            val step = rowHeightPx + gapPx
-                                            val target = dragTargetIndex(index, dragOffset, step, entries.size)
-                                            if (target != index) onMoved(index, target)
-                                            draggingIndex = -1
-                                            dragOffset = 0f
-                                        },
-                                        onDragCancel = {
-                                            draggingIndex = -1
-                                            dragOffset = 0f
-                                        },
-                                    )
-                                },
+                                .reorderHandle(reorder, entry.entryId),
                         tint = MuzzzloColors.TextSecondary,
                     )
                 },

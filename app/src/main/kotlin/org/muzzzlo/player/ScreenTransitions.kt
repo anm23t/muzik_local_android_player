@@ -3,16 +3,13 @@ package org.muzzzlo.player
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.ui.unit.IntOffset
 import androidx.navigation.NavBackStackEntry
+import org.muzzzlo.player.core.designsystem.theme.MuzzzloMotion
 
-private const val SCREEN_TRANSITION_MS = 300
-
-private fun <T> motionSpec() = tween<T>(SCREEN_TRANSITION_MS, easing = FastOutSlowInEasing)
+private fun <T> motionSpec() = MuzzzloMotion.timed<T>()
 
 private typealias NavScope = AnimatedContentTransitionScope<NavBackStackEntry>
 
