@@ -151,7 +151,7 @@ PK: (`track_id`, `artist_id`). Индекс по `artist_id` для страни
 Разделители не настраиваются: фиксированы `;` и `,`.
 
 ### Заготовки на следующие версии
-- `smart_playlist(id, name, rules_json)` (версия 1.4).
+- `smart_playlist(id, name, rules_json)` (версия 2.1).
 - `playback_queue_item(position, track_id)` и таблица состояния позиции (версия 0.2, либо DataStore).
 
 ## Основные запросы (ориентиры для DAO)
