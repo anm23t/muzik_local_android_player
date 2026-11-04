@@ -65,6 +65,16 @@ class BackgroundPaletteTest {
     }
 
     @Test
+    fun `a dark cover with plenty of color keeps its colors`() {
+        // Like a dark painting: mostly near black, a quarter in a deep red and a warm orange.
+        val palette = BackgroundPalette.pick(mix(0xFF0A0604 to 750, 0xFF9E2A12 to 150, 0xFFB8641E to 100))
+        assertTrue(palette != BackgroundPalette.BLACK)
+        assertMuted(palette)
+        val red = Hct.fromInt(0xFF9E2A12.toInt()).hue
+        assertTrue(palette.any { hueDistance(Hct.fromInt(it).hue, red) < 20 }, "red in the palette")
+    }
+
+    @Test
     fun `the lighter the colorless cover, the lighter the greys`() {
         val tone = { argb: Long -> Hct.fromInt(BackgroundPalette.pick(IntArray(500) { argb.toInt() }).first()).tone }
         val white = tone(0xFFF5F5F5)

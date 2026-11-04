@@ -34,8 +34,16 @@ internal object BackgroundPalette {
     internal const val MIN_TONE = 30.0
     internal const val MAX_TONE = 45.0
 
-    /** A cover darker than this on average (L*, 0 black to 100 white) gives a black background. */
+    /**
+     * A cover darker than this on average (L*, 0 black to 100 white) gives a black background, unless at least
+     * [COLORFUL_SHARE] of it is visibly colored: a dark painting with a red cloak keeps its colors.
+     */
     internal const val DARK_COVER_LSTAR = 18.0
+    internal const val COLORFUL_SHARE = 0.1
+
+    /** A pixel counts as colored with this chroma and at least this tone (very dark "colors" read as black). */
+    private const val COLORFUL_CHROMA = 16.0
+    private const val COLORFUL_MIN_TONE = 15.0
 
     /** Tones of the greys of a colorless cover: a dark grey cover gets [MIN_GREY_TONE], a white one [MAX_GREY_TONE]. */
     internal const val MIN_GREY_TONE = 20.0
@@ -55,7 +63,7 @@ internal object BackgroundPalette {
         val visible = pixels.filter { (it ushr ALPHA_SHIFT) >= MIN_ALPHA }.map { it or OPAQUE }.toIntArray()
         if (visible.isEmpty()) return fromSeed(DEFAULT_RED)
         val lightness = visible.sumOf { ColorUtils.lstarFromArgb(it) } / visible.size
-        if (lightness < DARK_COVER_LSTAR) return BLACK
+        if (lightness < DARK_COVER_LSTAR && colorfulShare(visible) < COLORFUL_SHARE) return BLACK
         val quantized = QuantizerCelebi.quantize(visible, QUANTIZER_COLORS)
         val colored =
             // Score answers its fallback when nothing is colored; 0 is never a quantized (opaque) color.
@@ -70,6 +78,12 @@ internal object BackgroundPalette {
             else -> List(SIZE) { muted(colored[it % colored.size], TONE_STEPS[it]).toInt() }
         }
     }
+
+    private fun colorfulShare(pixels: IntArray): Double =
+        pixels.count {
+            val hct = Hct.fromInt(it)
+            hct.chroma >= COLORFUL_CHROMA && hct.tone >= COLORFUL_MIN_TONE
+        }.toDouble() / pixels.size
 
     /** [SIZE] muted colors around [seed]: its hue and close neighbours. */
     fun fromSeed(seed: Int): List<Int> {
