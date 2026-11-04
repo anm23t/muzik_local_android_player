@@ -34,6 +34,8 @@ import org.muzzzlo.player.core.model.ContinueListening
 import org.muzzzlo.player.core.model.LibraryRepository
 import org.muzzzlo.player.core.model.PlayerController
 import org.muzzzlo.player.core.model.PlaylistRepository
+import org.muzzzlo.player.core.model.SettingsRepository
+import org.muzzzlo.player.core.model.SortedList
 import org.muzzzlo.player.core.model.StatsRepository
 import org.muzzzlo.player.core.model.Track
 import org.muzzzlo.player.core.model.TrackMarksRepository
@@ -135,9 +137,9 @@ class AlbumListViewModel
     @Inject
     constructor(
         library: LibraryRepository,
-        savedState: SavedStateHandle,
+        settings: SettingsRepository,
     ) : ViewModel() {
-        private val sort = SavedSort(savedState, "albumSort", AlbumSortField.entries, DefaultAlbumSort)
+        private val sort = SavedSort(settings, SortedList.ALBUMS, AlbumSortField.entries, DefaultAlbumSort)
 
         val state: StateFlow<AlbumListUiState> =
             combine(library.observeAlbums(), sort.sort) { albums, sort ->
@@ -145,7 +147,9 @@ class AlbumListViewModel
             }.stateIn(this, AlbumListUiState())
 
         /** A sort option was tapped: the list follows at once, a second tap flips the direction. */
-        fun onSortChosen(field: AlbumSortField) = sort.choose(field)
+        fun onSortChosen(field: AlbumSortField) {
+            viewModelScope.launch { sort.choose(field) }
+        }
     }
 
 /**
@@ -186,9 +190,9 @@ class ArtistListViewModel
     constructor(
         library: LibraryRepository,
         private val compounds: CompoundRepository,
-        savedState: SavedStateHandle,
+        settings: SettingsRepository,
     ) : ViewModel() {
-        private val sort = SavedSort(savedState, "artistSort", ArtistSortField.entries, DefaultArtistSort)
+        private val sort = SavedSort(settings, SortedList.ARTISTS, ArtistSortField.entries, DefaultArtistSort)
         private val selection = MutableStateFlow(Selection())
         private val artists = library.observeArtists().stateIn(this, emptyList())
 
@@ -205,7 +209,9 @@ class ArtistListViewModel
             }.stateIn(this, ArtistListUiState())
 
         /** A sort option was tapped: the list follows at once, a second tap flips the direction. */
-        fun onSortChosen(field: ArtistSortField) = sort.choose(field)
+        fun onSortChosen(field: ArtistSortField) {
+            viewModelScope.launch { sort.choose(field) }
+        }
 
         /** The choice mode button: turns the mode on, or off with the ticks cleared. */
         fun onSelectionToggled() = selection.update { if (it.selecting) Selection() else Selection(selecting = true) }

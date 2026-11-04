@@ -24,7 +24,9 @@ import org.muzzzlo.player.core.model.QuarantinedFile
 import org.muzzzlo.player.core.model.ReplayGainMode
 import org.muzzzlo.player.core.model.ReplayGainSettings
 import org.muzzzlo.player.core.model.SettingsRepository
+import org.muzzzlo.player.core.model.SortedList
 import org.muzzzlo.player.core.model.StatsSettings
+import org.muzzzlo.player.core.model.StoredSort
 import org.muzzzlo.player.core.model.TransientFocusAction
 import java.lang.reflect.Proxy
 
@@ -180,6 +182,11 @@ class SettingsViewModelTest {
      * DataStore has not emitted yet, so the view model must build on its own state.
      */
     private class FakeSettings : SettingsRepository {
+        override suspend fun setListSort(
+            list: SortedList,
+            sort: StoredSort,
+        ) = Unit
+
         val state = MutableStateFlow(AppSettings())
         val saved = mutableListOf<ReplayGainSettings>()
         val savedCrossfade = mutableListOf<CrossfadeSettings>()

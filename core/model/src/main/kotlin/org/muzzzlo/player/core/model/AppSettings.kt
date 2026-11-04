@@ -18,6 +18,21 @@ enum class InterfaceTheme {
     HUGE,
 }
 
+/** The lists whose sort is remembered between runs (task 2.0.2). */
+enum class SortedList {
+    ALBUMS,
+    ARTISTS,
+}
+
+/**
+ * The last sort the user chose in a list. [field] is the name of the sort field as `feature:library` writes it;
+ * a name that no field has any more is read as "no choice".
+ */
+data class StoredSort(
+    val field: String,
+    val ascending: Boolean,
+)
+
 /**
  * The settings of the app (ARCHITECTURE.md, section 9). The default values live here, in one place; a later task
  * adds its own fields with defaults.
@@ -38,6 +53,7 @@ enum class InterfaceTheme {
  * @property theme framing of the screens.
  * @property waveform the big player shows the waveform of the track instead of the plain progress bar.
  * @property equalizer the 10-band equalizer of playback.
+ * @property listSorts the last sort chosen in each list; a list that is not here uses its default sort.
  */
 data class AppSettings(
     val excludedFolders: Set<String> = emptySet(),
@@ -54,6 +70,7 @@ data class AppSettings(
     val theme: InterfaceTheme = InterfaceTheme.WINDOW,
     val waveform: Boolean = true,
     val equalizer: EqualizerSettings = EqualizerSettings(),
+    val listSorts: Map<SortedList, StoredSort> = emptyMap(),
 ) {
     companion object {
         const val DEFAULT_MIN_TRACK_SECONDS = 30
@@ -105,4 +122,10 @@ interface SettingsRepository {
 
     /** Stores [settings] with the decibel values clamped ([EqualizerSettings.clamped]). */
     suspend fun setEqualizer(settings: EqualizerSettings)
+
+    /** Remembers the sort chosen in [list]. */
+    suspend fun setListSort(
+        list: SortedList,
+        sort: StoredSort,
+    )
 }

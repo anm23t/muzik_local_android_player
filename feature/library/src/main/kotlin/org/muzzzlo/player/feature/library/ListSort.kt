@@ -1,9 +1,12 @@
 package org.muzzzlo.player.feature.library
 
-import androidx.lifecycle.SavedStateHandle
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import org.muzzzlo.player.core.model.SettingsRepository
+import org.muzzzlo.player.core.model.SortedList
+import org.muzzzlo.player.core.model.StoredSort
 
 /**
  * A field a list can be sorted by.
@@ -40,35 +43,29 @@ internal fun <T, F> List<T>.sortedBy(
 }
 
 /**
- * The sort of a list screen kept in the [SavedStateHandle], so it survives process death. It is not a setting:
- * a new visit of the screen starts with [default].
+ * The sort of a list screen as the user last chose it. It is kept in the app settings (and so in the backup), so a
+ * new visit of the screen, also after a restart, starts with the last choice; before any choice it is [default].
  *
- * @param key prefix of the saved state keys, unique per screen.
- * @param fields the fields that can be restored; an unknown saved name falls back to [default].
+ * @param list the settings entry of this screen.
+ * @param fields the fields that can be restored; a saved name that no field has any more gives [default].
  */
 internal class SavedSort<F>(
-    private val savedState: SavedStateHandle,
-    private val key: String,
-    fields: List<F>,
-    default: ListSort<F>,
+    private val settings: SettingsRepository,
+    private val list: SortedList,
+    private val fields: List<F>,
+    private val default: ListSort<F>,
 ) where F : Enum<F>, F : SortField {
-    private val current = MutableStateFlow(restore(fields, default))
-    val sort: StateFlow<ListSort<F>> = current.asStateFlow()
+    /** The current sort. It emits once the settings are read, so a list is never drawn in the wrong order first. */
+    val sort: Flow<ListSort<F>> = settings.settings.map { restore(it.listSorts[list]) }.distinctUntilChanged()
 
     /** A sort option was tapped: the list follows at once, a second tap flips the direction. */
-    fun choose(field: F) {
-        val next = current.value.choose(field)
-        savedState["$key.field"] = next.field.name
-        savedState["$key.ascending"] = next.ascending
-        current.value = next
+    suspend fun choose(field: F) {
+        val next = sort.first().choose(field)
+        settings.setListSort(list, StoredSort(next.field.name, next.ascending))
     }
 
-    private fun restore(
-        fields: List<F>,
-        default: ListSort<F>,
-    ): ListSort<F> {
-        val name = savedState.get<String>("$key.field")
-        val field = fields.firstOrNull { it.name == name } ?: return default
-        return ListSort(field, savedState.get<Boolean>("$key.ascending") ?: field.ascendingByDefault)
+    private fun restore(stored: StoredSort?): ListSort<F> {
+        val field = fields.firstOrNull { it.name == stored?.field } ?: return default
+        return ListSort(field, stored?.ascending ?: field.ascendingByDefault)
     }
 }

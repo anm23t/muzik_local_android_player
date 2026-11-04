@@ -9,10 +9,17 @@ import org.muzzzlo.player.core.model.InterfaceTheme
 import org.muzzzlo.player.core.model.PlaybackBehaviorSettings
 import org.muzzzlo.player.core.model.ReplayGainSettings
 import org.muzzzlo.player.core.model.SettingsRepository
+import org.muzzzlo.player.core.model.SortedList
 import org.muzzzlo.player.core.model.StatsSettings
+import org.muzzzlo.player.core.model.StoredSort
 
 /** Settings in memory; only the waveform switch matters to the player. */
 class FakeSettings : SettingsRepository {
+    override suspend fun setListSort(
+        list: SortedList,
+        sort: StoredSort,
+    ) = Unit
+
     override val settings = MutableStateFlow(AppSettings())
 
     override suspend fun setWaveform(enabled: Boolean) {

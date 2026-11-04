@@ -39,8 +39,10 @@ import org.muzzzlo.player.core.model.LibraryRepository
 import org.muzzzlo.player.core.model.PlayerState
 import org.muzzzlo.player.core.model.Playlist
 import org.muzzzlo.player.core.model.RecentAlbum
+import org.muzzzlo.player.core.model.SortedList
 import org.muzzzlo.player.core.model.StatsPeriod
 import org.muzzzlo.player.core.model.StatsRepository
+import org.muzzzlo.player.core.model.StoredSort
 import org.muzzzlo.player.core.model.TopTrack
 import org.muzzzlo.player.core.model.Track
 import org.muzzzlo.player.core.model.TrackMarks
@@ -201,10 +203,10 @@ class LibraryViewModelsTest {
         }
 
     @Test
-    fun `the album list follows the chosen sort and keeps it in the saved state`() =
+    fun `the album list follows the chosen sort and a new screen starts with it`() =
         runTest {
-            val savedState = SavedStateHandle()
-            val viewModel = AlbumListViewModel(library, savedState)
+            val settings = FakeSortSettings()
+            val viewModel = AlbumListViewModel(library, settings)
             subscribe(viewModel.state)
             assertEquals(listOf(album, older), viewModel.state.value.albums)
 
@@ -212,21 +214,36 @@ class LibraryViewModelsTest {
             assertEquals(listOf(older, album), viewModel.state.value.albums)
 
             viewModel.onSortChosen(AlbumSortField.Year)
-            val restored = AlbumListViewModel(library, savedState)
+            val restored = AlbumListViewModel(library, settings)
             subscribe(restored.state)
             assertEquals(AlbumSort(AlbumSortField.Year, ascending = false), restored.state.value.sort)
             assertEquals(listOf(album, older), restored.state.value.albums)
         }
 
     @Test
-    fun `an unknown saved sort falls back to the default`() =
+    fun `an unknown stored sort falls back to the default`() =
         runTest {
-            val savedState = SavedStateHandle(mapOf("albumSort.field" to "Removed", "albumSort.ascending" to false))
-            val viewModel = AlbumListViewModel(library, savedState)
+            val stored = mapOf(SortedList.ALBUMS to StoredSort("Removed", ascending = false))
+            val viewModel = AlbumListViewModel(library, FakeSortSettings(stored))
             subscribe(viewModel.state)
 
             assertEquals(DefaultAlbumSort, viewModel.state.value.sort)
             assertEquals(true, viewModel.state.value.isLoaded)
+        }
+
+    @Test
+    fun `the artist list restores its stored sort and the album sort does not touch it`() =
+        runTest {
+            val settings = FakeSortSettings(mapOf(SortedList.ALBUMS to StoredSort("Year", ascending = false)))
+            val viewModel = ArtistListViewModel(library, FakeCompounds(), settings)
+            subscribe(viewModel.state)
+            assertEquals(DefaultArtistSort, viewModel.state.value.sort)
+
+            viewModel.onSortChosen(ArtistSortField.TrackCount)
+            val restored = ArtistListViewModel(library, FakeCompounds(), settings)
+            subscribe(restored.state)
+
+            assertEquals(ArtistSort(ArtistSortField.TrackCount), restored.state.value.sort)
         }
 
     @Test
@@ -308,7 +325,7 @@ class LibraryViewModelsTest {
     @Test
     fun `the artist list follows the chosen sort`() =
         runTest {
-            val viewModel = ArtistListViewModel(library, FakeCompounds(), SavedStateHandle())
+            val viewModel = ArtistListViewModel(library, FakeCompounds(), FakeSortSettings())
             subscribe(viewModel.state)
             assertEquals(listOf(anna, bob), viewModel.state.value.artists)
 
@@ -474,7 +491,7 @@ class LibraryViewModelsTest {
     @Test
     fun `ticked artists keep their order and unticking removes one`() =
         runTest {
-            val viewModel = ArtistListViewModel(library, FakeCompounds(), SavedStateHandle())
+            val viewModel = ArtistListViewModel(library, FakeCompounds(), FakeSortSettings())
             subscribe(viewModel.state)
 
             viewModel.onSelectionToggled()
@@ -493,7 +510,7 @@ class LibraryViewModelsTest {
     @Test
     fun `the remember dialog needs two artists and suggests their names in the ticked order`() =
         runTest {
-            val viewModel = ArtistListViewModel(library, FakeCompounds(), SavedStateHandle())
+            val viewModel = ArtistListViewModel(library, FakeCompounds(), FakeSortSettings())
             subscribe(viewModel.state)
             viewModel.onSelectionToggled()
             viewModel.onArtistTicked(bob.id)
@@ -518,7 +535,7 @@ class LibraryViewModelsTest {
     fun `a wrong name is refused and a right one is saved and ends the choice mode`() =
         runTest {
             val compounds = FakeCompounds()
-            val viewModel = ArtistListViewModel(library, compounds, SavedStateHandle())
+            val viewModel = ArtistListViewModel(library, compounds, FakeSortSettings())
             subscribe(viewModel.state)
             viewModel.onSelectionToggled()
             viewModel.onArtistTicked(anna.id)
@@ -545,7 +562,7 @@ class LibraryViewModelsTest {
     fun `a name that is already a rule is reported and keeps the dialog open`() =
         runTest {
             val compounds = FakeCompounds(result = -1)
-            val viewModel = ArtistListViewModel(library, compounds, SavedStateHandle())
+            val viewModel = ArtistListViewModel(library, compounds, FakeSortSettings())
             subscribe(viewModel.state)
             viewModel.onSelectionToggled()
             viewModel.onArtistTicked(anna.id)

@@ -21,7 +21,9 @@ import org.muzzzlo.player.core.model.InterfaceTheme
 import org.muzzzlo.player.core.model.PlaybackBehaviorSettings
 import org.muzzzlo.player.core.model.ReplayGainSettings
 import org.muzzzlo.player.core.model.SettingsRepository
+import org.muzzzlo.player.core.model.SortedList
 import org.muzzzlo.player.core.model.StatsSettings
+import org.muzzzlo.player.core.model.StoredSort
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class EqualizerViewModelTest {
@@ -106,6 +108,11 @@ class EqualizerViewModelTest {
     }
 
     private class FakeSettings : SettingsRepository {
+        override suspend fun setListSort(
+            list: SortedList,
+            sort: StoredSort,
+        ) = Unit
+
         val state = MutableStateFlow(AppSettings())
         val saved = mutableListOf<EqualizerSettings>()
         override val settings = state

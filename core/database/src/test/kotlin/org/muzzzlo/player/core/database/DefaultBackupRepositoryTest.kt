@@ -35,7 +35,9 @@ import org.muzzzlo.player.core.model.InterfaceTheme
 import org.muzzzlo.player.core.model.PlaybackBehaviorSettings
 import org.muzzzlo.player.core.model.ReplayGainSettings
 import org.muzzzlo.player.core.model.SettingsRepository
+import org.muzzzlo.player.core.model.SortedList
 import org.muzzzlo.player.core.model.StatsSettings
+import org.muzzzlo.player.core.model.StoredSort
 import org.robolectric.RobolectricTestRunner
 import java.time.Clock
 import java.time.Instant
@@ -129,7 +131,11 @@ class DefaultBackupRepositoryTest {
             event(id, 10)
             event(null, 20, "Deleted track")
             settings.state.value =
-                AppSettings(language = AppLanguage.RUSSIAN, stats = StatsSettings(thresholdPercent = 30))
+                AppSettings(
+                    language = AppLanguage.RUSSIAN,
+                    stats = StatsSettings(thresholdPercent = 30),
+                    listSorts = mapOf(SortedList.ALBUMS to StoredSort("Rating", ascending = false)),
+                )
             compounds.rules += CompoundRule(1, "Tyler, The Creator", null, true)
             compounds.rules += CompoundRule(2, "Built, In", "b1", false)
             val json = repository().exportJson()
@@ -156,6 +162,10 @@ class DefaultBackupRepositoryTest {
             assertEquals(listOf(2L), compounds.removed)
             assertEquals(AppLanguage.RUSSIAN, settings.state.value.language)
             assertEquals(30, settings.state.value.stats.thresholdPercent)
+            assertEquals(
+                mapOf(SortedList.ALBUMS to StoredSort("Rating", ascending = false)),
+                settings.state.value.listSorts,
+            )
             assertEquals("Tyler", other.backupDao().aliases().single().artistName)
             other.close()
         }
@@ -276,6 +286,13 @@ class DefaultBackupRepositoryTest {
         }
 
     private class FakeSettings : SettingsRepository {
+        override suspend fun setListSort(
+            list: SortedList,
+            sort: StoredSort,
+        ) {
+            state.value = state.value.copy(listSorts = state.value.listSorts + (list to sort))
+        }
+
         val state = MutableStateFlow(AppSettings())
         override val settings: Flow<AppSettings> = state
 

@@ -22,7 +22,9 @@ import org.muzzzlo.player.core.model.PlaybackBehaviorSettings
 import org.muzzzlo.player.core.model.ReplayGainMode
 import org.muzzzlo.player.core.model.ReplayGainSettings
 import org.muzzzlo.player.core.model.SettingsRepository
+import org.muzzzlo.player.core.model.SortedList
 import org.muzzzlo.player.core.model.StatsSettings
+import org.muzzzlo.player.core.model.StoredSort
 import org.muzzzlo.player.core.model.TransientFocusAction
 import javax.inject.Inject
 
@@ -131,6 +133,16 @@ class DataStoreSettingsRepository
             }
         }
 
+        override suspend fun setListSort(
+            list: SortedList,
+            sort: StoredSort,
+        ) {
+            store.edit {
+                it[sortFieldKey(list)] = sort.field
+                it[sortAscendingKey(list)] = sort.ascending
+            }
+        }
+
         internal companion object {
             val EXCLUDED_FOLDERS = stringSetPreferencesKey("excluded_folders")
             val MIN_TRACK_SECONDS = intPreferencesKey("min_track_seconds")
@@ -159,6 +171,17 @@ class DataStoreSettingsRepository
             /** Gains of the custom curve in dB, comma separated, one per band. */
             val EQUALIZER_CUSTOM_DB = stringPreferencesKey("equalizer_custom_db")
             val EQUALIZER_PREAMP_DB = floatPreferencesKey("equalizer_preamp_db")
+
+            fun sortFieldKey(list: SortedList) = stringPreferencesKey("sort_${list.name.lowercase()}_field")
+
+            fun sortAscendingKey(list: SortedList) = booleanPreferencesKey("sort_${list.name.lowercase()}_ascending")
+
+            private fun sortsOf(preferences: Preferences): Map<SortedList, StoredSort> =
+                SortedList.entries.mapNotNull { list ->
+                    val field = preferences[sortFieldKey(list)] ?: return@mapNotNull null
+                    val ascending = preferences[sortAscendingKey(list)] ?: return@mapNotNull null
+                    list to StoredSort(field, ascending)
+                }.toMap()
 
             fun toSettings(preferences: Preferences): AppSettings {
                 val defaults = AppSettings()
@@ -191,6 +214,7 @@ class DataStoreSettingsRepository
                     theme = InterfaceTheme.entries.firstOrNull { it.name == preferences[THEME] } ?: defaults.theme,
                     waveform = preferences[WAVEFORM] ?: defaults.waveform,
                     equalizer = equalizerOf(preferences, defaults.equalizer),
+                    listSorts = sortsOf(preferences),
                 )
             }
 

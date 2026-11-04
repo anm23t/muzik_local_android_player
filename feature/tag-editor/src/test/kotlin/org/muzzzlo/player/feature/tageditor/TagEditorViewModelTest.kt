@@ -35,7 +35,9 @@ import org.muzzzlo.player.core.model.LibraryRepository
 import org.muzzzlo.player.core.model.PlaybackBehaviorSettings
 import org.muzzzlo.player.core.model.ReplayGainSettings
 import org.muzzzlo.player.core.model.SettingsRepository
+import org.muzzzlo.player.core.model.SortedList
 import org.muzzzlo.player.core.model.StatsSettings
+import org.muzzzlo.player.core.model.StoredSort
 import org.muzzzlo.player.core.model.TagEdit
 import org.muzzzlo.player.core.model.TagReadResult
 import org.muzzzlo.player.core.model.TagWriteResult
@@ -349,6 +351,11 @@ class TagEditorViewModelTest {
 }
 
 private class FakeSettings : SettingsRepository {
+    override suspend fun setListSort(
+        list: SortedList,
+        sort: StoredSort,
+    ) = Unit
+
     val state = MutableStateFlow(AppSettings())
     override val settings: Flow<AppSettings> = state
 

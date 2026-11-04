@@ -21,6 +21,11 @@ class BackupJsonTest {
                     theme = InterfaceTheme.HUGE,
                     waveform = false,
                     equalizer = EqualizerSettings(true, EqualizerPreset.CUSTOM, List(10) { it * 0.5f - 2f }, -1.5f),
+                    listSorts =
+                        mapOf(
+                            SortedList.ALBUMS to StoredSort("Rating", ascending = false),
+                            SortedList.ARTISTS to StoredSort("Name", ascending = true),
+                        ),
                 ),
             aliases = listOf(BackupAlias("tyler", "Tyler", "Tyler, The Creator")),
             compounds =
@@ -95,6 +100,16 @@ class BackupJsonTest {
         assertEquals(AppSettings().id3v2VersionForNewTags, settings.id3v2VersionForNewTags)
         assertEquals(InterfaceTheme.WINDOW, settings.theme)
         assertEquals(EqualizerSettings(customDb = listOf(12f) + List(9) { 0f }, preampDb = -12f), settings.equalizer)
+    }
+
+    @Test
+    fun `a backup without sorts, or with half a sort, has no remembered sorts`() {
+        val text =
+            """{"format":"muzzzlo-backup","schemaVersion":1,"settings":{"albumSortField":"Year",""" +
+                """"artistSortField":3,"artistSortAscending":true}}"""
+
+        assertEquals(emptyMap<SortedList, StoredSort>(), BackupJson.decode(text).settings.listSorts)
+        assertEquals(emptyMap<SortedList, StoredSort>(), AppSettings().listSorts)
     }
 
     @Test

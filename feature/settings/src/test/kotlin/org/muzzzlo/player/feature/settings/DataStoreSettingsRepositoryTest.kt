@@ -25,7 +25,9 @@ import org.muzzzlo.player.core.model.InterfaceTheme
 import org.muzzzlo.player.core.model.PlaybackBehaviorSettings
 import org.muzzzlo.player.core.model.ReplayGainMode
 import org.muzzzlo.player.core.model.ReplayGainSettings
+import org.muzzzlo.player.core.model.SortedList
 import org.muzzzlo.player.core.model.StatsSettings
+import org.muzzzlo.player.core.model.StoredSort
 import org.muzzzlo.player.core.model.TransientFocusAction
 import java.io.File
 
@@ -70,6 +72,8 @@ class DataStoreSettingsRepositoryTest {
             repository.setWaveform(false)
             val equalizer = EqualizerSettings(true, EqualizerPreset.CUSTOM, List(10) { it - 4.5f }, preampDb = -3.5f)
             repository.setEqualizer(equalizer)
+            repository.setListSort(SortedList.ALBUMS, StoredSort("Year", ascending = false))
+            repository.setListSort(SortedList.ARTISTS, StoredSort("Name", ascending = true))
 
             val expected =
                 AppSettings(
@@ -87,6 +91,11 @@ class DataStoreSettingsRepositoryTest {
                     theme = InterfaceTheme.HUGE,
                     waveform = false,
                     equalizer = equalizer,
+                    listSorts =
+                        mapOf(
+                            SortedList.ALBUMS to StoredSort("Year", ascending = false),
+                            SortedList.ARTISTS to StoredSort("Name", ascending = true),
+                        ),
                 )
             assertEquals(expected, repository.settings.first())
         }
@@ -186,6 +195,19 @@ class DataStoreSettingsRepositoryTest {
             assertEquals(
                 EqualizerSettings(customDb = listOf(12f, 0f, 0.5f) + List(7) { 0f }, preampDb = -12f),
                 settings.equalizer,
+            )
+        }
+
+    @Test
+    fun `a sort is remembered per list and a lone field without direction is ignored`() =
+        runBlocking {
+            repository.setListSort(SortedList.ALBUMS, StoredSort("Year", ascending = false))
+            repository.setListSort(SortedList.ALBUMS, StoredSort("Title", ascending = true))
+            store.edit { it[DataStoreSettingsRepository.sortFieldKey(SortedList.ARTISTS)] = "Name" }
+
+            assertEquals(
+                mapOf(SortedList.ALBUMS to StoredSort("Title", ascending = true)),
+                repository.settings.first().listSorts,
             )
         }
 

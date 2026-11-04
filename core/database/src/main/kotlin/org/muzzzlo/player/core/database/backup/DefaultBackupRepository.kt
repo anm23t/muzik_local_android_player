@@ -278,6 +278,7 @@ class DefaultBackupRepository
             settings.setTheme(incoming.theme)
             settings.setWaveform(incoming.waveform)
             settings.setEqualizer(incoming.equalizer)
+            incoming.listSorts.forEach { (list, sort) -> settings.setListSort(list, sort) }
         }
 
         private fun tagValues(track: TrackIdentity) = stringList(track.artistTagValues)

@@ -40,7 +40,21 @@ internal object BackupSettingsJson {
             "equalizerPreset" to s.equalizer.preset.name,
             "equalizerCustomDb" to s.equalizer.customDb,
             "equalizerPreampDb" to s.equalizer.preampDb,
-        )
+        ) + sortsMap(s.listSorts)
+
+    private fun sortsMap(sorts: Map<SortedList, StoredSort>): Map<String, Any?> =
+        sorts.entries.flatMap { (list, sort) ->
+            listOf("${list.key}SortField" to sort.field, "${list.key}SortAscending" to sort.ascending)
+        }.toMap()
+
+    private fun sortsOf(m: Map<*, *>): Map<SortedList, StoredSort> =
+        SortedList.entries.mapNotNull { list ->
+            val field = m["${list.key}SortField"] as? String ?: return@mapNotNull null
+            val ascending = m["${list.key}SortAscending"] as? Boolean ?: return@mapNotNull null
+            list to StoredSort(field, ascending)
+        }.toMap()
+
+    private val SortedList.key: String get() = name.lowercase()
 
     /** A missing, unknown or out of range value reads as the default, like the settings repository does. */
     fun settingsOf(m: Map<*, *>): AppSettings {
@@ -73,6 +87,7 @@ internal object BackupSettingsJson {
             theme = enumOf(m["theme"], d.theme),
             waveform = m["waveform"] as? Boolean ?: d.waveform,
             equalizer = equalizerOf(m, d.equalizer),
+            listSorts = sortsOf(m),
         )
     }
 
