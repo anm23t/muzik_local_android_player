@@ -9,6 +9,7 @@ import kotlinx.coroutines.withContext
 import org.muzzzlo.player.core.database.dao.LibraryDao
 import org.muzzzlo.player.core.database.entity.TrackEntity
 import org.muzzzlo.player.core.model.Album
+import org.muzzzlo.player.core.model.AlbumRating
 import org.muzzzlo.player.core.model.Artist
 import org.muzzzlo.player.core.model.ArtistDiscography
 import org.muzzzlo.player.core.model.ArtistRef
@@ -43,7 +44,10 @@ internal class DefaultLibraryRepository
         override fun observeAlbums(): Flow<List<Album>> =
             combine(dao.observeAlbums(), dao.observeAlbumArtists()) { albums, artists ->
                 val byAlbum = artists.groupBy({ it.albumId }, { it.name })
-                albums.map { Album(it.id, it.title, byAlbum[it.id].orEmpty(), it.year, it.trackCount, it.dateAdded) }
+                albums.map {
+                    val rating = AlbumRating.of(it.ratingSum, it.ratedCount)
+                    Album(it.id, it.title, byAlbum[it.id].orEmpty(), it.year, it.trackCount, it.dateAdded, rating)
+                }
             }.flowOn(dispatchers.default)
 
         override fun observeArtists(): Flow<List<Artist>> =

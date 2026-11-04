@@ -12,6 +12,7 @@ enum class AlbumSortField(
     Year(true),
     TrackCount(false),
     DateAdded(false),
+    Rating(false),
 }
 
 typealias AlbumSort = ListSort<AlbumSortField>
@@ -21,7 +22,7 @@ val DefaultAlbumSort = AlbumSort(AlbumSortField.Title)
 
 /**
  * Albums in the given order. Albums without the sorted value (no year, no artist, no date) stay at the end in both
- * directions. Equal values are ordered by title and then by id.
+ * directions (also the albums with no rated track). Equal values are ordered by title and then by id.
  */
 fun List<Album>.sortedBy(sort: AlbumSort): List<Album> =
     sortedBy(sort, Album::hasValueFor, ::albumComparator, albumTieBreaker)
@@ -34,6 +35,7 @@ private fun Album.hasValueFor(field: AlbumSortField): Boolean =
         AlbumSortField.Artist -> artists.isNotEmpty()
         AlbumSortField.Year -> year != null
         AlbumSortField.DateAdded -> dateAdded != null
+        AlbumSortField.Rating -> ratingTenths != null
     }
 
 private fun albumComparator(field: AlbumSortField): Comparator<Album> =
@@ -43,4 +45,5 @@ private fun albumComparator(field: AlbumSortField): Comparator<Album> =
         AlbumSortField.Year -> compareBy { it.year }
         AlbumSortField.TrackCount -> compareBy { it.trackCount }
         AlbumSortField.DateAdded -> compareBy { it.dateAdded }
+        AlbumSortField.Rating -> compareBy { it.ratingTenths }
     }

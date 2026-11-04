@@ -31,6 +31,7 @@ import org.muzzzlo.player.core.designsystem.theme.MuzzzloTheme
 /**
  * Album row of the album list (15:18).
  *
+ * @param ratingTenths rating of the album in tenths, shown as a [RatingBadge] at the end; null shows nothing.
  * @param cover cover image; null shows [CoverPlaceholder].
  */
 @Composable
@@ -39,6 +40,7 @@ fun AlbumRow(
     subtitle: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    ratingTenths: Int? = null,
     cover: (@Composable (Modifier) -> Unit)? = null,
 ) {
     Row(
@@ -68,6 +70,7 @@ fun AlbumRow(
                 overflow = TextOverflow.Ellipsis,
             )
         }
+        if (ratingTenths != null) RatingBadge(ratingTenths)
     }
 }
 

@@ -43,6 +43,7 @@ fun AlbumListScreen(
                 title = album.title,
                 subtitle = albumSubtitle(album),
                 onClick = { onOpenAlbum(album.id) },
+                ratingTenths = album.ratingTenths,
                 cover = { CoverImage(CoverSource.Album(album.id), it) },
             )
         }
@@ -57,6 +58,7 @@ private val AlbumSortField.label: Int
             AlbumSortField.Year -> R.string.albums_sort_year
             AlbumSortField.TrackCount -> R.string.albums_sort_track_count
             AlbumSortField.DateAdded -> R.string.albums_sort_date_added
+            AlbumSortField.Rating -> R.string.albums_sort_rating
         }
 
 /** Album artists under the title; the mockup shows only them, the number of tracks is on the card. */

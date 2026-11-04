@@ -38,6 +38,7 @@ class AlbumSortTest {
         assertEquals(AlbumSort(AlbumSortField.Artist, true), sort.choose(AlbumSortField.Artist))
         assertEquals(AlbumSort(AlbumSortField.TrackCount, false), sort.choose(AlbumSortField.TrackCount))
         assertEquals(AlbumSort(AlbumSortField.DateAdded, false), sort.choose(AlbumSortField.DateAdded))
+        assertEquals(AlbumSort(AlbumSortField.Rating, false), sort.choose(AlbumSortField.Rating))
         assertEquals(AlbumSort(AlbumSortField.Year, true), sort.choose(AlbumSortField.Year))
     }
 
@@ -49,14 +50,14 @@ class AlbumSortTest {
     }
 
     private companion object {
-        // id, title, artists, year, tracks, date added
+        // id, title, artists, year, tracks, date added, rating in tenths
         val library =
             listOf(
-                album(1, "beta", listOf("Zed"), 2010, 10, 300),
-                album(2, "Alpha", listOf("anna"), null, 3, null),
-                album(3, "Ålbum", emptyList(), 1999, 10, 100),
-                album(4, "  ALPHA ", listOf("Bob", "Anna"), 2010, 12, 200),
-                album(5, "Гроза", listOf("Хаски"), 2017, 1, 400),
+                album(1, "beta", listOf("Zed"), 2010, 10, 300, 80),
+                album(2, "Alpha", listOf("anna"), null, 3, null, null),
+                album(3, "Ålbum", emptyList(), 1999, 10, 100, 80),
+                album(4, "  ALPHA ", listOf("Bob", "Anna"), 2010, 12, 200, null),
+                album(5, "Гроза", listOf("Хаски"), 2017, 1, 400, 95),
             )
 
         @JvmStatic
@@ -77,6 +78,9 @@ class AlbumSortTest {
                 // No date goes last.
                 Arguments.of(AlbumSortField.DateAdded, false, listOf(5L, 1L, 4L, 3L, 2L)),
                 Arguments.of(AlbumSortField.DateAdded, true, listOf(3L, 4L, 1L, 5L, 2L)),
+                // Equal ratings are ordered by title; albums without a rated track go last in both directions.
+                Arguments.of(AlbumSortField.Rating, false, listOf(5L, 1L, 3L, 2L, 4L)),
+                Arguments.of(AlbumSortField.Rating, true, listOf(1L, 3L, 5L, 2L, 4L)),
             )
 
         fun album(
@@ -86,6 +90,7 @@ class AlbumSortTest {
             year: Int?,
             tracks: Int,
             dateAdded: Long?,
-        ) = Album(id, title, artists, year, tracks, dateAdded)
+            ratingTenths: Int?,
+        ) = Album(id, title, artists, year, tracks, dateAdded, ratingTenths)
     }
 }

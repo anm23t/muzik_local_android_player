@@ -21,6 +21,7 @@ import org.muzzzlo.player.core.database.entity.TrackScanFields
  * Album row with the number of present tracks.
  *
  * @property dateAdded when the first of its tracks appeared on the device (MediaStore `date_added`, seconds).
+ * @property ratedCount present tracks with a rating, [ratingSum] is the sum of those ratings in tenths.
  */
 data class AlbumRow(
     val id: Long,
@@ -28,6 +29,8 @@ data class AlbumRow(
     val year: Int?,
     @ColumnInfo(name = "track_count") val trackCount: Int,
     @ColumnInfo(name = "date_added") val dateAdded: Long?,
+    @ColumnInfo(name = "rated_count") val ratedCount: Int,
+    @ColumnInfo(name = "rating_sum") val ratingSum: Long,
 )
 
 /**
@@ -153,7 +156,8 @@ interface LibraryDao {
     fun observeAlbumTracks(albumId: Long): Flow<List<TrackEntity>>
 
     @Query(
-        "SELECT a.id, a.title, a.year, COUNT(t.id) AS track_count, MIN(t.date_added) AS date_added FROM album a " +
+        "SELECT a.id, a.title, a.year, COUNT(t.id) AS track_count, MIN(t.date_added) AS date_added, " +
+            "COUNT(t.rating_tenths) AS rated_count, COALESCE(SUM(t.rating_tenths), 0) AS rating_sum FROM album a " +
             "JOIN track t ON t.album_id = a.id AND t.is_missing = 0 " +
             "GROUP BY a.id ORDER BY a.title_key",
     )

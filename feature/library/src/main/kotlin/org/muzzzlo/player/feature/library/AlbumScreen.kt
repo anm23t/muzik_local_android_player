@@ -30,6 +30,7 @@ import org.muzzzlo.player.core.designsystem.component.CoverCard
 import org.muzzzlo.player.core.designsystem.component.CoverImage
 import org.muzzzlo.player.core.designsystem.component.CoverSource
 import org.muzzzlo.player.core.designsystem.component.PillButton
+import org.muzzzlo.player.core.designsystem.component.RatingBadge
 import org.muzzzlo.player.core.designsystem.component.RoundIconButton
 import org.muzzzlo.player.core.designsystem.component.RoundIconButtonSize
 import org.muzzzlo.player.core.designsystem.component.ScreenFrame
@@ -189,6 +190,7 @@ private fun AlbumHeader(
                     color = MuzzzloColors.TextSecondary,
                 )
             }
+            album.ratingTenths?.let { RatingBadge(it) }
         }
     }
 }

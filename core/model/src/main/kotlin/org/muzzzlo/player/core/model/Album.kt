@@ -5,6 +5,7 @@ package org.muzzzlo.player.core.model
  *
  * @property artists album artists from the album artist tag (the track artists when the files have none).
  * @property dateAdded when the first of its tracks appeared on the device, seconds since the epoch.
+ * @property ratingTenths mean rating of its tracks in tenths (see [AlbumRating]); null when no track is rated.
  */
 data class Album(
     val id: Long,
@@ -13,6 +14,7 @@ data class Album(
     val year: Int?,
     val trackCount: Int,
     val dateAdded: Long? = null,
+    val ratingTenths: Int? = null,
 ) {
     val artistsText: String get() = artists.joinToString(", ")
 }

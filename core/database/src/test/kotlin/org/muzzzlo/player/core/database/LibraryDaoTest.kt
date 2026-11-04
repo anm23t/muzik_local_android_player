@@ -289,6 +289,34 @@ class LibraryDaoTest {
         }
 
     @Test
+    fun `album rating counts rated present tracks only and keeps zero as a rating`() =
+        runBlocking {
+            val album = dao.insertAlbum(AlbumEntity(title = "Album", titleKey = "album"))
+            dao.insertTrack(track("u1", "One", album, 1, rating = 80))
+            dao.insertTrack(track("u2", "Two", album, 2, rating = 0))
+            dao.insertTrack(track("u3", "Three", album, 3))
+            dao.insertTrack(track("u4", "Gone", album, 4, isMissing = true, rating = 100))
+
+            val row = dao.observeAlbums().first().single()
+
+            assertEquals(2, row.ratedCount)
+            assertEquals(80L, row.ratingSum)
+            assertEquals(3, row.trackCount)
+        }
+
+    @Test
+    fun `album without rated tracks has no rating`() =
+        runBlocking {
+            val album = dao.insertAlbum(AlbumEntity(title = "Album", titleKey = "album"))
+            dao.insertTrack(track("u1", "One", album, 1))
+
+            val row = dao.observeAlbums().first().single()
+
+            assertEquals(0, row.ratedCount)
+            assertEquals(0L, row.ratingSum)
+        }
+
+    @Test
     fun `artists are counted by present tracks and listed by name`() =
         runBlocking {
             val bob = dao.artistId("bob", "bob")

@@ -221,6 +221,22 @@ class LibraryViewModelsTest {
         }
 
     @Test
+    fun `the album list sorted by rating keeps albums without a rating last`() =
+        runTest {
+            val middle = album.copy(ratingTenths = 60)
+            val best = Album(12, "Best", listOf("C"), 2001, 1, 60, ratingTenths = 85)
+            val lib = FakeLibrary(emptyList(), listOf(middle, older, best), emptyList())
+            val viewModel = AlbumListViewModel(lib, FakeSortSettings())
+            subscribe(viewModel.state)
+
+            viewModel.onSortChosen(AlbumSortField.Rating)
+            assertEquals(listOf(best, middle, older), viewModel.state.value.albums)
+
+            viewModel.onSortChosen(AlbumSortField.Rating)
+            assertEquals(listOf(middle, best, older), viewModel.state.value.albums)
+        }
+
+    @Test
     fun `an unknown stored sort falls back to the default`() =
         runTest {
             val stored = mapOf(SortedList.ALBUMS to StoredSort("Removed", ascending = false))
