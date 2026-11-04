@@ -131,6 +131,10 @@ class DataStoreSettingsRepository
             store.edit { it[WAVEFORM] = enabled }
         }
 
+        override suspend fun setAnimatedBackground(enabled: Boolean) {
+            store.edit { it[ANIMATED_BACKGROUND] = enabled }
+        }
+
         override suspend fun setFolderCovers(enabled: Boolean) {
             store.edit { it[FOLDER_COVERS] = enabled }
         }
@@ -177,6 +181,7 @@ class DataStoreSettingsRepository
             val STATS_PRIVATE_MODE = booleanPreferencesKey("stats_private_mode")
             val THEME = stringPreferencesKey("theme")
             val WAVEFORM = booleanPreferencesKey("waveform")
+            val ANIMATED_BACKGROUND = booleanPreferencesKey("animated_background")
 
             /** Not in the backup: it belongs to this device. */
             val LYRICS_SHOWN = booleanPreferencesKey("lyrics_shown")
@@ -230,11 +235,17 @@ class DataStoreSettingsRepository
                     waveform = preferences[WAVEFORM] ?: defaults.waveform,
                     equalizer = equalizerOf(preferences, defaults.equalizer),
                     listSorts = sortsOf(preferences),
-                    lyricsShown = preferences[LYRICS_SHOWN] ?: defaults.lyricsShown,
-                    lyricsFolder = preferences[LYRICS_FOLDER],
-                    folderCovers = preferences[FOLDER_COVERS] ?: defaults.folderCovers,
-                )
+                ).withVersion2(preferences)
             }
+
+            /** The settings added in version 2.0, read apart so that [toSettings] stays readable. */
+            private fun AppSettings.withVersion2(preferences: Preferences): AppSettings =
+                copy(
+                    folderCovers = preferences[FOLDER_COVERS] ?: folderCovers,
+                    lyricsFolder = preferences[LYRICS_FOLDER],
+                    lyricsShown = preferences[LYRICS_SHOWN] ?: lyricsShown,
+                    animatedBackground = preferences[ANIMATED_BACKGROUND] ?: animatedBackground,
+                )
 
             private fun minTrackSecondsOf(
                 preferences: Preferences,

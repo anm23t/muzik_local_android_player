@@ -139,6 +139,8 @@
     <string name="settings_theme_window_hint">Screens in a rounded frame with borders</string>
     <string name="settings_theme_huge">Huge</string>
     <string name="settings_theme_huge_hint">No frame and no borders, content close to the screen edges</string>
+    <string name="settings_animated_background">Animated background</string>
+    <string name="settings_animated_background_hint">Soft spots in the colors of the playing cover float behind the screens. Off: a black background.</string>
     <string name="settings_waveform">Waveform</string>
     <string name="settings_waveform_hint">The player shows the shape of the track instead of a plain progress bar. Each track is analysed once.</string>
     <string name="settings_equalizer">Equalizer</string>

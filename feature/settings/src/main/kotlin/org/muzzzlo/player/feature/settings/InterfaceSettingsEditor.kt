@@ -17,4 +17,6 @@ class InterfaceSettingsEditor(
     }
 
     fun onWaveformChanged(enabled: Boolean) = save { setWaveform(enabled) }
+
+    fun onAnimatedBackgroundChanged(enabled: Boolean) = save { setAnimatedBackground(enabled) }
 }

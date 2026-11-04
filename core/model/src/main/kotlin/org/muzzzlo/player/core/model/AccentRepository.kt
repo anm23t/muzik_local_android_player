@@ -13,3 +13,15 @@ interface AccentRepository {
      */
     suspend fun accentOf(trackId: Long): Int?
 }
+
+/**
+ * Colors of the live background (task 2.0.8), 4 muted ARGB colors. Implemented in `core:library`; calls switch to
+ * the I/O dispatcher.
+ */
+interface BackgroundPaletteRepository {
+    /** The colors of the cover of [trackId]; the palette of the default red when it has no cover. */
+    suspend fun paletteOf(trackId: Long): List<Int>
+
+    /** The palette of the default red, for a switched off dynamic accent. */
+    val defaultPalette: List<Int>
+}

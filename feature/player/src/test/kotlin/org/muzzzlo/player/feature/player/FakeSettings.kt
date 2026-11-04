@@ -26,6 +26,10 @@ class FakeSettings : SettingsRepository {
         settings.value = settings.value.copy(waveform = enabled)
     }
 
+    override suspend fun setAnimatedBackground(enabled: Boolean) {
+        settings.value = settings.value.copy(animatedBackground = enabled)
+    }
+
     override suspend fun setLyricsShown(value: Boolean) {
         settings.value = settings.value.copy(lyricsShown = value)
     }

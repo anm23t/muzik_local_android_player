@@ -349,6 +349,10 @@ class DefaultBackupRepositoryTest {
             state.value = state.value.copy(waveform = enabled)
         }
 
+        override suspend fun setAnimatedBackground(enabled: Boolean) {
+            state.value = state.value.copy(animatedBackground = enabled)
+        }
+
         override suspend fun setLyricsShown(value: Boolean) {
             state.value = state.value.copy(lyricsShown = value)
         }

@@ -36,6 +36,7 @@ internal object BackupSettingsJson {
             "statsPrivateMode" to s.stats.privateMode,
             "theme" to s.theme.name,
             "waveform" to s.waveform,
+            "animatedBackground" to s.animatedBackground,
             "folderCovers" to s.folderCovers,
             "equalizerEnabled" to s.equalizer.enabled,
             "equalizerPreset" to s.equalizer.preset.name,
@@ -89,6 +90,7 @@ internal object BackupSettingsJson {
             waveform = m["waveform"] as? Boolean ?: d.waveform,
             equalizer = equalizerOf(m, d.equalizer),
             listSorts = sortsOf(m),
+            animatedBackground = m["animatedBackground"] as? Boolean ?: d.animatedBackground,
             folderCovers = m["folderCovers"] as? Boolean ?: d.folderCovers,
         )
     }

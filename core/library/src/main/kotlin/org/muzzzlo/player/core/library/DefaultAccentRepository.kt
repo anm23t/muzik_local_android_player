@@ -50,22 +50,20 @@ internal class DefaultAccentRepository
             return memory?.getOrPut(coverPath) { pick(coverPath) } ?: pick(coverPath)
         }
 
-        private fun pick(coverPath: String): Int = AccentPicker.pick(decodePixels(coverPath))
-
-        /** The cover decoded at about [SAMPLE_SIDE] px: enough for the dominant color, cheap to quantize. */
-        private fun decodePixels(path: String): IntArray {
-            val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-            BitmapFactory.decodeFile(path, bounds)
-            val sample = sampleSizeFor(bounds.outWidth, bounds.outHeight, SAMPLE_SIDE)
-            val options = BitmapFactory.Options().apply { inSampleSize = sample }
-            val bitmap = BitmapFactory.decodeFile(path, options) ?: return IntArray(0)
-            return IntArray(bitmap.width * bitmap.height).also {
-                bitmap.getPixels(it, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
-                bitmap.recycle()
-            }
-        }
-
-        private companion object {
-            const val SAMPLE_SIDE = 128
-        }
+        private fun pick(coverPath: String): Int = AccentPicker.pick(decodeCoverPixels(coverPath))
     }
+
+private const val SAMPLE_SIDE = 128
+
+/** The cover file at [path] decoded at about [SAMPLE_SIDE] px: enough for its main colors, cheap to quantize. */
+internal fun decodeCoverPixels(path: String): IntArray {
+    val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+    BitmapFactory.decodeFile(path, bounds)
+    val sample = sampleSizeFor(bounds.outWidth, bounds.outHeight, SAMPLE_SIDE)
+    val options = BitmapFactory.Options().apply { inSampleSize = sample }
+    val bitmap = BitmapFactory.decodeFile(path, options) ?: return IntArray(0)
+    return IntArray(bitmap.width * bitmap.height).also {
+        bitmap.getPixels(it, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
+        bitmap.recycle()
+    }
+}

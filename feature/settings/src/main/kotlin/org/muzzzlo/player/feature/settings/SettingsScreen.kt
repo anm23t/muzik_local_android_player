@@ -131,6 +131,12 @@ fun SettingsScreen(
                 secondary = stringResource(R.string.settings_waveform_hint),
             )
             SwitchRow(
+                text = stringResource(R.string.settings_animated_background),
+                checked = settings.animatedBackground,
+                onCheckedChange = viewModel.ui::onAnimatedBackgroundChanged,
+                secondary = stringResource(R.string.settings_animated_background_hint),
+            )
+            SwitchRow(
                 text = stringResource(R.string.settings_dynamic_accent),
                 checked = settings.dynamicAccent,
                 onCheckedChange = viewModel::onDynamicAccentChanged,

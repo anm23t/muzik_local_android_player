@@ -21,6 +21,7 @@ class BackupJsonTest {
                     theme = InterfaceTheme.HUGE,
                     waveform = false,
                     folderCovers = true,
+                    animatedBackground = false,
                     equalizer = EqualizerSettings(true, EqualizerPreset.CUSTOM, List(10) { it * 0.5f - 2f }, -1.5f),
                     listSorts =
                         mapOf(

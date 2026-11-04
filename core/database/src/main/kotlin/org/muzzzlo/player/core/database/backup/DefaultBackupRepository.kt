@@ -277,6 +277,7 @@ class DefaultBackupRepository
             settings.setStats(incoming.stats)
             settings.setTheme(incoming.theme)
             settings.setWaveform(incoming.waveform)
+            settings.setAnimatedBackground(incoming.animatedBackground)
             settings.setFolderCovers(incoming.folderCovers)
             settings.setEqualizer(incoming.equalizer)
             incoming.listSorts.forEach { (list, sort) -> settings.setListSort(list, sort) }

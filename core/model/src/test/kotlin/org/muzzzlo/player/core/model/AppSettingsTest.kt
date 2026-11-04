@@ -16,6 +16,8 @@ class AppSettingsTest {
         assertEquals(AppLanguage.SYSTEM, settings.language)
         assertEquals(true, settings.dynamicAccent)
         assertEquals(true, settings.gapless)
+        assertEquals(false, settings.folderCovers)
+        assertEquals(true, settings.animatedBackground)
     }
 
     @ParameterizedTest

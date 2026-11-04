@@ -37,6 +37,7 @@ class MainActivity : ComponentActivity() {
 
     private val accentViewModel: AccentViewModel by viewModels()
     private val deletionViewModel: TrackDeletionViewModel by viewModels()
+    private val backgroundViewModel: LiveBackgroundViewModel by viewModels()
 
     private var appliedLanguage = AppLanguage.SYSTEM
 
@@ -67,7 +68,7 @@ class MainActivity : ComponentActivity() {
             CompositionLocalProvider(LocalCoverLoader provides coverLoader) {
                 MuzzzloTheme(accent, frameStyle) {
                     TrackDeletionHost(deletionViewModel) {
-                        MuzzzloNavHost()
+                        MuzzzloNavHost(backgroundViewModel)
                     }
                     UpdatePrompts()
                 }

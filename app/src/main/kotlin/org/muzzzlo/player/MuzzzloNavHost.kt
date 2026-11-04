@@ -5,9 +5,8 @@ import androidx.activity.compose.PredictiveBackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -18,13 +17,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import kotlinx.coroutines.CancellationException
+import org.muzzzlo.player.core.designsystem.component.LocalLiveBackground
 import org.muzzzlo.player.feature.library.ALBUM_ID_ARG
 import org.muzzzlo.player.feature.library.ARTIST_ID_ARG
 import org.muzzzlo.player.feature.library.ARTIST_NAME_ARG
@@ -115,8 +117,12 @@ private fun NavHostController.goHome() {
 
 /** Wires the feature screens together; features do not know about each other. */
 @Composable
-fun MuzzzloNavHost() {
+fun MuzzzloNavHost(backgroundViewModel: LiveBackgroundViewModel) {
     val navController = rememberNavController()
+    val background by backgroundViewModel.state.collectAsStateWithLifecycle()
+    val route = navController.currentBackStackEntryAsState().value?.destination?.route
+    val backgroundColors = animatedPalette(background.palette)
+    val backgroundClock = rememberLiveBackgroundClock(enabled = background.enabled && background.palette != null)
     val openTagEditor: (Long) -> Unit = { navController.navigate(tagEditorRoute(it)) }
     val openArtist: (Long) -> Unit = { navController.navigate(artistRoute(it)) }
     val sheetScope = rememberCoroutineScope()
@@ -156,8 +162,15 @@ fun MuzzzloNavHost() {
             onOpenArtist = openArtist,
         )
     }
-    Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+    // One live background for the whole app (task 2.0.8): the screens are transparent over it.
+    CompositionLocalProvider(LocalLiveBackground provides true) {
         Box(Modifier.fillMaxSize().onSizeChanged { sheet.heightPx = it.height.toFloat() }) {
+            AppBackgroundLayer(
+                backgroundColored(background, route),
+                backgroundColors,
+                backgroundClock,
+                forPlayer = false,
+            )
             NavHost(
                 navController,
                 startDestination = ROUTE_HOME,
@@ -334,7 +347,14 @@ fun MuzzzloNavHost() {
                     )
                 }
             }
-            PlayerLayer(sheet, fromPlayer, goHome)
+            PlayerLayer(sheet, fromPlayer, goHome) {
+                AppBackgroundLayer(
+                    backgroundColored(background, null),
+                    backgroundColors,
+                    backgroundClock,
+                    forPlayer = true,
+                )
+            }
         }
     }
 }
@@ -350,6 +370,7 @@ private fun PlayerLayer(
     sheet: PlayerSheetState,
     fromPlayer: (String) -> Unit,
     goHome: () -> Unit,
+    background: @Composable () -> Unit,
 ) {
     PredictiveBackHandler(enabled = sheet.progress > 0f) { backEvents ->
         try {
@@ -365,10 +386,11 @@ private fun PlayerLayer(
         Modifier
             .fillMaxSize()
             .graphicsLayer { translationY = (1f - sheet.progress) * sheet.heightPx }
-            .background(MaterialTheme.colorScheme.background)
             // Blocks touches from reaching the screen below while the layer is on top.
             .pointerInput(Unit) {},
     ) {
+        // Its own copy of the live background at the same moment, so the screen below does not show through.
+        background()
         PlayerScreen(
             onBack = sheet::close,
             onOpenQueue = { fromPlayer(ROUTE_QUEUE) },

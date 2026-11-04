@@ -59,6 +59,8 @@ data class StoredSort(
  *   (task 2.0.7); null when none. Not in the backup: the permission belongs to this device.
  * @property lyricsShown the big player shows the lyrics instead of the cover (task 2.0.7); kept between runs,
  *   not in the backup.
+ * @property animatedBackground the live background of cover colors behind the screens (task 2.0.8); off is
+ *   a black background.
  * @property listSorts the last sort chosen in each list; a list that is not here uses its default sort.
  */
 data class AppSettings(
@@ -77,6 +79,7 @@ data class AppSettings(
     val waveform: Boolean = true,
     val equalizer: EqualizerSettings = EqualizerSettings(),
     val listSorts: Map<SortedList, StoredSort> = emptyMap(),
+    val animatedBackground: Boolean = true,
     val lyricsShown: Boolean = false,
     val lyricsFolder: String? = null,
     val folderCovers: Boolean = false,
@@ -132,6 +135,8 @@ interface SettingsRepository {
     suspend fun setTheme(theme: InterfaceTheme)
 
     suspend fun setWaveform(enabled: Boolean)
+
+    suspend fun setAnimatedBackground(enabled: Boolean)
 
     suspend fun setLyricsShown(value: Boolean)
 

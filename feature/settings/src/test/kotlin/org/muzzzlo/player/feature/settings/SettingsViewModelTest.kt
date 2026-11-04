@@ -101,6 +101,12 @@ class SettingsViewModelTest {
     }
 
     @Test
+    fun `the animated background switch saves the setting`() {
+        viewModel.ui.onAnimatedBackgroundChanged(false)
+        assertEquals(false, settings.state.value.animatedBackground)
+    }
+
+    @Test
     fun `the waveform switch saves the setting`() {
         viewModel.ui.onWaveformChanged(false)
 
@@ -237,6 +243,10 @@ class SettingsViewModelTest {
 
         override suspend fun setWaveform(enabled: Boolean) {
             state.value = state.value.copy(waveform = enabled)
+        }
+
+        override suspend fun setAnimatedBackground(enabled: Boolean) {
+            state.value = state.value.copy(animatedBackground = enabled)
         }
 
         override suspend fun setLyricsShown(value: Boolean) {

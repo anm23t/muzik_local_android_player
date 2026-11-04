@@ -18,6 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -38,6 +39,8 @@ import org.muzzzlo.player.core.designsystem.theme.MuzzzloDimens
  * In [FrameStyle.Huge] there is no frame: the content keeps [FrameInsets.HugeInner] from the screen edges.
  *
  * @param outlined draws the border; the home screen (28:620) keeps the paddings of the frame without it.
+ *
+ * Under the live background of the app ([LocalLiveBackground], task 2.0.8) the frame is transparent.
  */
 @Composable
 fun ScreenFrame(
@@ -51,12 +54,13 @@ fun ScreenFrame(
     val insets = WindowInsets.systemBars.union(WindowInsets.displayCutout).union(WindowInsets.ime)
     val style = LocalFrameStyle.current
     val border = outlined && style == FrameStyle.Window
+    val fill = if (LocalLiveBackground.current) Color.Transparent else MuzzzloColors.Background
 
     fun side(px: Int) = FrameInsets.outer(with(density) { px.toDp() }, width, style)
     Box(
         modifier
             .fillMaxSize()
-            .background(MuzzzloColors.Background)
+            .background(fill)
             .padding(
                 start = side(insets.getLeft(density, LocalLayoutDirection.current)),
                 top = side(insets.getTop(density)),
@@ -68,10 +72,10 @@ fun ScreenFrame(
             Modifier
                 .fillMaxSize()
                 .clip(MuzzzloDimens.FrameShape)
-                .background(MuzzzloColors.Background)
+                .background(fill)
                 .border(
                     MuzzzloDimens.BorderWidth,
-                    if (border) MuzzzloColors.Outline else MuzzzloColors.Background,
+                    if (border) MuzzzloColors.Outline else fill,
                     MuzzzloDimens.FrameShape,
                 )
                 .padding(FrameInsets.inner(width, style)),
