@@ -95,6 +95,8 @@ fun AutoPlaylistScreen(
                             cover = { PlaylistCover(track.id, it) },
                             isCurrent = track.id == state.currentTrackId,
                             onMoreClick = { menuTrack = track },
+                            // Dark rows look heavy on the colored live background, as on the album card.
+                            transparent = true,
                         )
                     }
                 }

@@ -311,6 +311,8 @@ private fun PlaylistTracks(
                 cover = { PlaylistCover(entry.track.id, it) },
                 isCurrent = entry.track.id == state.currentTrackId,
                 onMoreClick = { onMore(entry) },
+                // Dark rows look heavy on the colored live background, as on the album card.
+                transparent = true,
                 trailing = {
                     Icon(
                         painter = painterResource(DesignR.drawable.ic_grip_vertical),
