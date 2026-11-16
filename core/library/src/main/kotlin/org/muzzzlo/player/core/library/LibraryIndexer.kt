@@ -7,6 +7,7 @@ import org.muzzzlo.player.core.database.dao.TrackStamp
 import org.muzzzlo.player.core.database.entity.AlbumArtistEntity
 import org.muzzzlo.player.core.database.entity.AlbumEntity
 import org.muzzzlo.player.core.database.entity.TrackArtistEntity
+import org.muzzzlo.player.core.database.entity.TrackGenreEntity
 import org.muzzzlo.player.core.database.entity.TrackScanFields
 import org.muzzzlo.player.core.model.CompoundRepository
 import org.muzzzlo.player.core.model.NameNormalizer
@@ -43,6 +44,7 @@ class LibraryIndexer
             database.withTransaction {
                 if (gone.isNotEmpty()) dao.setMissing(gone, true)
                 dao.deleteEmptyAlbums()
+                dao.deleteEmptyGenres()
             }
         }
 
@@ -56,6 +58,7 @@ class LibraryIndexer
             database.withTransaction {
                 write(file, metadata, dao.trackIdByUri(file.uri))
                 dao.deleteEmptyAlbums()
+                dao.deleteEmptyGenres()
             }
         }
 
@@ -74,6 +77,7 @@ class LibraryIndexer
             existingId: Long?,
         ) {
             val artistIds = metadata.artists.map { dao.artistId(it, NameNormalizer.key(it)) }
+            val genreIds = metadata.genres.map { dao.genreId(it, NameNormalizer.key(it)) }
             val albumId =
                 metadata.album?.let { album ->
                     val albumArtistIds = metadata.albumArtistValues.map { dao.artistId(it, NameNormalizer.key(it)) }
@@ -119,9 +123,11 @@ class LibraryIndexer
                 } else {
                     dao.updateScannedTrack(fields)
                     dao.clearTrackArtists(existingId)
+                    dao.clearTrackGenres(existingId)
                     existingId
                 }
             dao.insertTrackArtists(artistIds.mapIndexed { i, id -> TrackArtistEntity(trackId, id, i) })
+            dao.insertTrackGenres(genreIds.mapIndexed { i, id -> TrackGenreEntity(trackId, id, i) })
         }
 
         private suspend fun findOrCreateAlbum(

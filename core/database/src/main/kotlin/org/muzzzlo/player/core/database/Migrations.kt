@@ -182,3 +182,26 @@ val MIGRATION_13_14 =
             db.execSQL("ALTER TABLE `track` ADD COLUMN `deleted_at` INTEGER")
         }
     }
+
+/**
+ * Genres in the database (task 2.5.4). The tables start empty; `date_modified` is cleared as in version 3, so the next
+ * scan reads the tags of every file once more and fills them.
+ */
+val MIGRATION_14_15 =
+    object : Migration(14, 15) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                "CREATE TABLE IF NOT EXISTS `genre` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                    "`name` TEXT NOT NULL, `name_key` TEXT NOT NULL)",
+            )
+            db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_genre_name_key` ON `genre` (`name_key`)")
+            db.execSQL(
+                "CREATE TABLE IF NOT EXISTS `track_genre` (`track_id` INTEGER NOT NULL, `genre_id` INTEGER NOT NULL, " +
+                    "`position` INTEGER NOT NULL, PRIMARY KEY(`track_id`, `genre_id`), " +
+                    "FOREIGN KEY(`track_id`) REFERENCES `track`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , " +
+                    "FOREIGN KEY(`genre_id`) REFERENCES `genre`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+            )
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_track_genre_genre_id` ON `track_genre` (`genre_id`)")
+            db.execSQL("UPDATE `track` SET `date_modified` = NULL")
+        }
+    }

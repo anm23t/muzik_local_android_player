@@ -11,11 +11,13 @@ import org.muzzzlo.player.core.database.entity.AlbumEntity
 import org.muzzzlo.player.core.database.entity.ArtistAliasEntity
 import org.muzzzlo.player.core.database.entity.ArtistCompoundEntity
 import org.muzzzlo.player.core.database.entity.ArtistEntity
+import org.muzzzlo.player.core.database.entity.GenreEntity
 import org.muzzzlo.player.core.database.entity.ListenEventEntity
 import org.muzzzlo.player.core.database.entity.PlaylistEntity
 import org.muzzzlo.player.core.database.entity.PlaylistTrackEntity
 import org.muzzzlo.player.core.database.entity.TrackArtistEntity
 import org.muzzzlo.player.core.database.entity.TrackEntity
+import org.muzzzlo.player.core.database.entity.TrackGenreEntity
 
 /** Library cache, the listen events of the statistics and the playlists. Schema is described in DATABASE.md. */
 @Database(
@@ -30,8 +32,10 @@ import org.muzzzlo.player.core.database.entity.TrackEntity
         ListenEventEntity::class,
         PlaylistEntity::class,
         PlaylistTrackEntity::class,
+        GenreEntity::class,
+        TrackGenreEntity::class,
     ],
-    version = 14,
+    version = 15,
     exportSchema = true,
 )
 abstract class MuzzzloDatabase : RoomDatabase() {

@@ -217,6 +217,30 @@ data class TrackArtistEntity(
     val position: Int,
 )
 
+/** A genre (task 2.5.4); genres come from the files, so the table is rebuilt by a scan like the artists. */
+@Entity(tableName = "genre", indices = [Index(value = ["name_key"], unique = true)])
+data class GenreEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val name: String,
+    @ColumnInfo(name = "name_key") val nameKey: String,
+)
+
+/** A genre of a track at [position] in tag order (task 2.5.4). */
+@Entity(
+    tableName = "track_genre",
+    primaryKeys = ["track_id", "genre_id"],
+    foreignKeys = [
+        ForeignKey(TrackEntity::class, ["id"], ["track_id"], onDelete = ForeignKey.CASCADE),
+        ForeignKey(GenreEntity::class, ["id"], ["genre_id"], onDelete = ForeignKey.CASCADE),
+    ],
+    indices = [Index("genre_id")],
+)
+data class TrackGenreEntity(
+    @ColumnInfo(name = "track_id") val trackId: Long,
+    @ColumnInfo(name = "genre_id") val genreId: Long,
+    val position: Int,
+)
+
 /** One listen (DATABASE.md, `listen_event`); survives the track through the snapshot columns. */
 @Entity(
     tableName = "listen_event",

@@ -83,6 +83,7 @@ internal class DefaultTrackFileDeletion
                 database.withTransaction {
                     if (dao.deleteExpiredTracks(TrashRules.cutoff(nowMs)) > 0) {
                         dao.deleteEmptyAlbums()
+                        dao.deleteEmptyGenres()
                         dao.deleteOrphanArtists()
                     }
                 }

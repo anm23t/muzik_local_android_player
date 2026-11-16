@@ -13,8 +13,10 @@ import org.muzzzlo.player.core.database.entity.AlbumEntity
 import org.muzzzlo.player.core.database.entity.ArtistAliasEntity
 import org.muzzzlo.player.core.database.entity.ArtistCompoundEntity
 import org.muzzzlo.player.core.database.entity.ArtistEntity
+import org.muzzzlo.player.core.database.entity.GenreEntity
 import org.muzzzlo.player.core.database.entity.TrackArtistEntity
 import org.muzzzlo.player.core.database.entity.TrackEntity
+import org.muzzzlo.player.core.database.entity.TrackGenreEntity
 import org.muzzzlo.player.core.database.entity.TrackScanFields
 
 /**
@@ -74,6 +76,12 @@ data class TrackArtistRow(
     val id: Long,
     val name: String,
     @ColumnInfo(name = "photo_uri") val photoPath: String?,
+)
+
+/** Track to genre name pair, already ordered by `position` in the query (task 2.5.4). */
+data class TrackGenreName(
+    @ColumnInfo(name = "track_id") val trackId: Long,
+    val name: String,
 )
 
 /** Album to artist name pair, already ordered by `position` in the query. */
@@ -364,6 +372,46 @@ interface LibraryDao {
 
     @Query("DELETE FROM album WHERE id NOT IN (SELECT DISTINCT album_id FROM track WHERE album_id IS NOT NULL)")
     suspend fun deleteEmptyAlbums()
+
+    @Query("SELECT id FROM genre WHERE name_key = :key")
+    suspend fun genreIdByKey(key: String): Long?
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertGenre(genre: GenreEntity): Long
+
+    /** Finds a genre by its comparison key or creates it; the first spelling met names it. */
+    @Transaction
+    suspend fun genreId(
+        name: String,
+        key: String,
+    ): Long {
+        genreIdByKey(key)?.let { return it }
+        insertGenre(GenreEntity(name = name, nameKey = key))
+        return checkNotNull(genreIdByKey(key))
+    }
+
+    @Query("DELETE FROM track_genre WHERE track_id = :trackId")
+    suspend fun clearTrackGenres(trackId: Long)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertTrackGenres(rows: List<TrackGenreEntity>)
+
+    /** Genres no track has any more; a missing track keeps its genres until it is forgotten. */
+    @Query("DELETE FROM genre WHERE id NOT IN (SELECT DISTINCT genre_id FROM track_genre)")
+    suspend fun deleteEmptyGenres()
+
+    /** Genres of every track in tag order (task 2.5.4). */
+    @Query(
+        "SELECT tg.track_id, g.name FROM track_genre tg JOIN genre g ON g.id = tg.genre_id " +
+            "ORDER BY tg.track_id, tg.position",
+    )
+    fun observeTrackGenres(): Flow<List<TrackGenreName>>
+
+    @Query(
+        "SELECT tg.track_id, g.name FROM track_genre tg JOIN genre g ON g.id = tg.genre_id " +
+            "WHERE tg.track_id IN (:trackIds) ORDER BY tg.track_id, tg.position",
+    )
+    suspend fun genreNamesFor(trackIds: List<Long>): List<TrackGenreName>
 
     @Query("SELECT artist_id FROM artist_alias WHERE alias_key = :key")
     suspend fun aliasArtistId(key: String): Long?

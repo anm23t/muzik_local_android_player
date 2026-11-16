@@ -92,6 +92,18 @@ class TrackMetadataTest {
     }
 
     @Test
+    fun `genre values are split by semicolon, never by comma`() {
+        val tags = TrackTags(genres = listOf("Rock; Pop", "Rhythm, Blues", "rock"))
+
+        assertEquals(listOf("Rock", "Pop", "Rhythm, Blues"), trackMetadata(mediaStore, success(tags, null)).genres)
+    }
+
+    @Test
+    fun `a file read from MediaStore only has no genres`() {
+        assertEquals(emptyList<String>(), trackMetadata(mediaStore, TagReadResult.Unreadable).genres)
+    }
+
+    @Test
     fun `album artists fall back to the track artists`() {
         val cases =
             listOf(

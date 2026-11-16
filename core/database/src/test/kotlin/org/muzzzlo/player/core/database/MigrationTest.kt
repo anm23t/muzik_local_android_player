@@ -304,6 +304,33 @@ class MigrationTest {
         }
     }
 
+    @Test
+    fun `14 to 15 adds genre tables and makes the next scan read every file`() {
+        helper.createDatabase(DB_NAME, 14).use { db ->
+            db.execSQL(
+                "INSERT INTO track (id, media_store_id, uri, title, title_key, artist_tag_values, duration_ms, " +
+                    "date_modified, has_cover, has_lyrics, is_missing, is_favorite, rating_tenths) " +
+                    "VALUES (1, 10, 'content://media/10', 'Song', 'song', '[]', 1000, 55, 0, 0, 0, 1, 67)",
+            )
+        }
+
+        helper.runMigrationsAndValidate(DB_NAME, 15, true, MIGRATION_14_15).use { db ->
+            db.query("SELECT title, date_modified, rating_tenths, is_favorite FROM track WHERE id = 1").use {
+                it.moveToFirst()
+                assertEquals("Song", it.getString(0))
+                assertTrue(it.isNull(1))
+                assertEquals(67, it.getInt(2))
+                assertEquals(1, it.getInt(3))
+            }
+            db.execSQL("INSERT INTO genre (id, name, name_key) VALUES (1, 'Rock', 'rock')")
+            db.execSQL("INSERT INTO track_genre (track_id, genre_id, position) VALUES (1, 1, 0)")
+            db.query("SELECT COUNT(*) FROM track_genre").use {
+                it.moveToFirst()
+                assertEquals(1, it.getInt(0))
+            }
+        }
+    }
+
     private companion object {
         const val DB_NAME = "migration-test.db"
     }

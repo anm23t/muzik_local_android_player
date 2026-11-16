@@ -3,6 +3,7 @@ package org.muzzzlo.player.core.library
 import org.muzzzlo.player.core.model.ArtistSplitter
 import org.muzzzlo.player.core.model.AudioFormat
 import org.muzzzlo.player.core.model.CompoundNames
+import org.muzzzlo.player.core.model.GenreSplitter
 import org.muzzzlo.player.core.model.ReplayGainInfo
 import org.muzzzlo.player.core.model.TagReadResult
 
@@ -14,6 +15,7 @@ import org.muzzzlo.player.core.model.TagReadResult
  * @property artists the track artists: [artistTagValues] split by [ArtistSplitter] (ARCHITECTURE.md, section 4).
  * @property albumArtistValues artists the album is credited to: the album artist tag split the same way, or the
  * track artists when the file has none (DESIGN.md, section 3: the album artist comes from its own tag).
+ * @property genres genres of the file split by [GenreSplitter] (task 2.5.4); empty when the tags could not be read.
  * @property isDamaged the file crashed the native tag reader and is quarantined.
  * @property replayGain ReplayGain values from the tags; none when the tags could not be read.
  */
@@ -35,6 +37,7 @@ internal data class TrackMetadata(
     val hasLyrics: Boolean,
     val isDamaged: Boolean,
     val replayGain: ReplayGainInfo = ReplayGainInfo.NONE,
+    val genres: List<String> = emptyList(),
 )
 
 /**
@@ -75,6 +78,7 @@ internal fun trackMetadata(
                 hasLyrics = tags.lyrics != null,
                 isDamaged = false,
                 replayGain = result.fileTags.replayGain,
+                genres = GenreSplitter.split(tags.genres),
             )
         }
         TagReadResult.Unreadable -> mediaStoreMetadata(file, isDamaged = false, compounds)
