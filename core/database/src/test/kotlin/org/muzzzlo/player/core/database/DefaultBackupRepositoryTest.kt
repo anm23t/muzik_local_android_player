@@ -136,6 +136,8 @@ class DefaultBackupRepositoryTest {
                     stats = StatsSettings(thresholdPercent = 30),
                     listSorts = mapOf(SortedList.ALBUMS to StoredSort("Rating", ascending = false)),
                     folderCovers = true,
+                    onlySelectedFolders = true,
+                    selectedFolders = setOf("Music/"),
                 )
             compounds.rules += CompoundRule(1, "Tyler, The Creator", null, true)
             compounds.rules += CompoundRule(2, "Built, In", "b1", false)
@@ -143,7 +145,7 @@ class DefaultBackupRepositoryTest {
 
             val other = fresh()
             val newId = track("song", "[\"a\",\"b\"]", target = other, durationMs = 200_500)
-            settings.state.value = AppSettings()
+            settings.state.value = AppSettings(selectedFolders = setOf("Old/"))
             compounds.rules.clear()
             compounds.rules += CompoundRule(2, "Built, In", "b1", true)
             val result = repository(other).importJson(json)
@@ -164,6 +166,8 @@ class DefaultBackupRepositoryTest {
             assertEquals(AppLanguage.RUSSIAN, settings.state.value.language)
             assertEquals(30, settings.state.value.stats.thresholdPercent)
             assertTrue(settings.state.value.folderCovers)
+            assertTrue(settings.state.value.onlySelectedFolders)
+            assertEquals(setOf("Music/"), settings.state.value.selectedFolders)
             assertEquals(
                 mapOf(SortedList.ALBUMS to StoredSort("Rating", ascending = false)),
                 settings.state.value.listSorts,
@@ -306,6 +310,21 @@ class DefaultBackupRepositoryTest {
                 state.value.copy(
                     excludedFolders =
                         state.value.excludedFolders.let { if (included) it - relativePath else it + relativePath },
+                )
+        }
+
+        override suspend fun setOnlySelectedFolders(enabled: Boolean) {
+            state.value = state.value.copy(onlySelectedFolders = enabled)
+        }
+
+        override suspend fun setFolderSelected(
+            relativePath: String,
+            selected: Boolean,
+        ) {
+            state.value =
+                state.value.copy(
+                    selectedFolders =
+                        state.value.selectedFolders.let { if (selected) it + relativePath else it - relativePath },
                 )
         }
 

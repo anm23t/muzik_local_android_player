@@ -24,6 +24,7 @@ import org.muzzzlo.player.core.designsystem.theme.MuzzzloDimens
 import org.muzzzlo.player.core.model.AppLanguage
 import org.muzzzlo.player.core.model.AppSettings
 import org.muzzzlo.player.core.model.EqualizerSettings
+import org.muzzzlo.player.core.model.FolderSelection
 import org.muzzzlo.player.core.model.ReplayGainSettings
 
 /**
@@ -211,8 +212,12 @@ private fun equalizerSummary(equalizer: EqualizerSettings): String =
 
 @Composable
 private fun foldersSummary(settings: AppSettings): String? =
-    settings.excludedFolders.size.takeIf { it > 0 }?.let {
-        pluralStringResource(R.plurals.settings_folders_excluded, it, it)
+    if (FolderSelection.selectionApplies(settings)) {
+        settings.selectedFolders.size.let { pluralStringResource(R.plurals.settings_folders_selected, it, it) }
+    } else {
+        settings.excludedFolders.size.takeIf { it > 0 }?.let {
+            pluralStringResource(R.plurals.settings_folders_excluded, it, it)
+        }
     }
 
 @Composable

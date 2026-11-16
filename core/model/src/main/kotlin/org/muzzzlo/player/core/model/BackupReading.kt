@@ -4,6 +4,11 @@ internal fun Map<*, *>.long(key: String): Long? = (this[key] as? Number)?.toLong
 
 internal fun Map<*, *>.str(key: String): String = this[key] as? String ?: throw BackupFormatException("Missing '$key'")
 
+internal fun Map<*, *>.bool(
+    key: String,
+    default: Boolean,
+): Boolean = this[key] as? Boolean ?: default
+
 internal fun Map<*, *>.strings(key: String): List<String> = (this[key] as? List<*>).orEmpty().filterIsInstance<String>()
 
 internal fun Map<*, *>.items(key: String): List<Map<*, *>> =
@@ -16,6 +21,8 @@ internal object BackupSettingsJson {
     fun settingsMap(s: AppSettings): Map<String, Any?> =
         mapOf(
             "excludedFolders" to s.excludedFolders.sorted(),
+            "onlySelectedFolders" to s.onlySelectedFolders,
+            "selectedFolders" to s.selectedFolders.sorted(),
             "minTrackSeconds" to s.minTrackSeconds,
             "id3v2VersionForNewTags" to s.id3v2VersionForNewTags,
             "confirmBeforeWrite" to s.confirmBeforeWrite,
@@ -63,35 +70,37 @@ internal object BackupSettingsJson {
         val d = AppSettings()
         return AppSettings(
             excludedFolders = m.strings("excludedFolders").toSet(),
+            onlySelectedFolders = m.bool("onlySelectedFolders", d.onlySelectedFolders),
+            selectedFolders = m.strings("selectedFolders").toSet(),
             minTrackSeconds =
                 AppSettings.clampMinTrackSeconds(m.long("minTrackSeconds")?.toInt() ?: d.minTrackSeconds),
             id3v2VersionForNewTags =
                 m.long("id3v2VersionForNewTags")?.toInt()?.takeIf {
                     it in AppSettings.ID3V2_VERSIONS
                 } ?: d.id3v2VersionForNewTags,
-            confirmBeforeWrite = m["confirmBeforeWrite"] as? Boolean ?: d.confirmBeforeWrite,
+            confirmBeforeWrite = m.bool("confirmBeforeWrite", d.confirmBeforeWrite),
             language = enumOf(m["language"], d.language),
-            dynamicAccent = m["dynamicAccent"] as? Boolean ?: d.dynamicAccent,
-            gapless = m["gapless"] as? Boolean ?: d.gapless,
+            dynamicAccent = m.bool("dynamicAccent", d.dynamicAccent),
+            gapless = m.bool("gapless", d.gapless),
             replayGain = replayGainOf(m, d.replayGain),
             crossfade =
                 CrossfadeSettings(
                     seconds = m.long("crossfadeSeconds")?.toInt() ?: d.crossfade.seconds,
-                    withinAlbum = m["crossfadeWithinAlbum"] as? Boolean ?: d.crossfade.withinAlbum,
+                    withinAlbum = m.bool("crossfadeWithinAlbum", d.crossfade.withinAlbum),
                 ).clamped(),
             playbackBehavior = playbackBehaviorOf(m, d.playbackBehavior),
             stats =
                 StatsSettings(
                     thresholdPercent = m.long("statsThresholdPercent")?.toInt() ?: d.stats.thresholdPercent,
                     thresholdMinutes = m.long("statsThresholdMinutes")?.toInt() ?: d.stats.thresholdMinutes,
-                    privateMode = m["statsPrivateMode"] as? Boolean ?: d.stats.privateMode,
+                    privateMode = m.bool("statsPrivateMode", d.stats.privateMode),
                 ).clamped(),
             theme = enumOf(m["theme"], d.theme),
-            waveform = m["waveform"] as? Boolean ?: d.waveform,
+            waveform = m.bool("waveform", d.waveform),
             equalizer = equalizerOf(m, d.equalizer),
             listSorts = sortsOf(m),
-            animatedBackground = m["animatedBackground"] as? Boolean ?: d.animatedBackground,
-            folderCovers = m["folderCovers"] as? Boolean ?: d.folderCovers,
+            animatedBackground = m.bool("animatedBackground", d.animatedBackground),
+            folderCovers = m.bool("folderCovers", d.folderCovers),
         )
     }
 

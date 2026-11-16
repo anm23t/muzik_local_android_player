@@ -12,6 +12,8 @@ class BackupJsonTest {
             settings =
                 AppSettings(
                     excludedFolders = setOf("Music/Podcasts/", "Music/\"Q\"/"),
+                    onlySelectedFolders = true,
+                    selectedFolders = setOf("Music/", "Download/Rock/"),
                     minTrackSeconds = 45,
                     language = AppLanguage.RUSSIAN,
                     replayGain = ReplayGainSettings(mode = ReplayGainMode.TRACK, preampDb = 2.5f),

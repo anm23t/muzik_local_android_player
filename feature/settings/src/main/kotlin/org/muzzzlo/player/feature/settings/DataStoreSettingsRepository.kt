@@ -55,6 +55,20 @@ class DataStoreSettingsRepository
             }
         }
 
+        override suspend fun setOnlySelectedFolders(enabled: Boolean) {
+            store.edit { it[ONLY_SELECTED_FOLDERS] = enabled }
+        }
+
+        override suspend fun setFolderSelected(
+            relativePath: String,
+            selected: Boolean,
+        ) {
+            store.edit {
+                val current = it[SELECTED_FOLDERS].orEmpty()
+                it[SELECTED_FOLDERS] = if (selected) current + relativePath else current - relativePath
+            }
+        }
+
         override suspend fun setMinTrackSeconds(seconds: Int) {
             store.edit { it[MIN_TRACK_SECONDS] = AppSettings.clampMinTrackSeconds(seconds) }
         }
@@ -161,6 +175,8 @@ class DataStoreSettingsRepository
 
         internal companion object {
             val EXCLUDED_FOLDERS = stringSetPreferencesKey("excluded_folders")
+            val ONLY_SELECTED_FOLDERS = booleanPreferencesKey("only_selected_folders")
+            val SELECTED_FOLDERS = stringSetPreferencesKey("selected_folders")
             val MIN_TRACK_SECONDS = intPreferencesKey("min_track_seconds")
             val ID3V2_VERSION = intPreferencesKey("id3v2_version_for_new_tags")
             val CONFIRM_BEFORE_WRITE = booleanPreferencesKey("confirm_before_write")
@@ -211,6 +227,8 @@ class DataStoreSettingsRepository
                 val defaults = AppSettings()
                 return AppSettings(
                     excludedFolders = preferences[EXCLUDED_FOLDERS].orEmpty(),
+                    onlySelectedFolders = preferences[ONLY_SELECTED_FOLDERS] ?: false,
+                    selectedFolders = preferences[SELECTED_FOLDERS].orEmpty(),
                     minTrackSeconds = minTrackSecondsOf(preferences, defaults),
                     id3v2VersionForNewTags = id3v2VersionOf(preferences, defaults),
                     confirmBeforeWrite = preferences[CONFIRM_BEFORE_WRITE] ?: defaults.confirmBeforeWrite,

@@ -265,6 +265,9 @@ class DefaultBackupRepository
             val current = settings.settings.first()
             val folders = current.excludedFolders + incoming.excludedFolders
             folders.forEach { settings.setFolderIncluded(it, it !in incoming.excludedFolders) }
+            val selected = current.selectedFolders + incoming.selectedFolders
+            selected.forEach { settings.setFolderSelected(it, it in incoming.selectedFolders) }
+            settings.setOnlySelectedFolders(incoming.onlySelectedFolders)
             settings.setMinTrackSeconds(incoming.minTrackSeconds)
             settings.setId3v2VersionForNewTags(incoming.id3v2VersionForNewTags)
             settings.setConfirmBeforeWrite(incoming.confirmBeforeWrite)

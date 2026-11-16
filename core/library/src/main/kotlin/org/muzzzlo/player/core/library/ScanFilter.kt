@@ -1,15 +1,19 @@
 package org.muzzzlo.player.core.library
 
 import org.muzzzlo.player.core.model.AppSettings
+import org.muzzzlo.player.core.model.FolderSelection
 
-/** Leaves out the files the user excluded in the settings: whole folders and files that are too short. */
+/**
+ * Leaves out the files the user keeps out in the settings: folders outside the library ([FolderSelection]) and files
+ * that are too short.
+ */
 internal object ScanFilter {
     fun accepts(
         file: ScannedFile,
         settings: AppSettings,
     ): Boolean =
         file.durationMs >= settings.minTrackSeconds * MS_PER_SECOND &&
-            (file.relativePath ?: "") !in settings.excludedFolders
+            FolderSelection.includes(file.relativePath ?: "", settings)
 
     fun apply(
         files: List<ScannedFile>,

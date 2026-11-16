@@ -13,7 +13,15 @@
         <item quantity="one">%d folder excluded</item>
         <item quantity="other">%d folders excluded</item>
     </plurals>
+    <plurals name="settings_folders_selected">
+        <item quantity="one">Only %d selected folder</item>
+        <item quantity="other">Only %d selected folders</item>
+    </plurals>
     <string name="settings_folders_empty">No folders with music found</string>
+    <string name="settings_folders_only_selected">Only selected folders</string>
+    <string name="settings_folders_only_selected_hint">The library takes only the folders you select, with their subfolders.</string>
+    <string name="settings_folders_select_hint">No folder selected yet: until you select one, all folders are scanned.</string>
+    <string name="settings_folder_included_with">Included with %1$s</string>
     <string name="settings_folder_root">Storage root</string>
     <plurals name="settings_folder_tracks">
         <item quantity="one">%d track</item>

@@ -15,7 +15,17 @@
         <item quantity="many">Исключено %d папок</item>
         <item quantity="other">Исключено %d папки</item>
     </plurals>
+    <plurals name="settings_folders_selected">
+        <item quantity="one">Только %d выбранная папка</item>
+        <item quantity="few">Только %d выбранные папки</item>
+        <item quantity="many">Только %d выбранных папок</item>
+        <item quantity="other">Только %d выбранной папки</item>
+    </plurals>
     <string name="settings_folders_empty">Папок с музыкой не найдено</string>
+    <string name="settings_folders_only_selected">Только выбранные папки</string>
+    <string name="settings_folders_only_selected_hint">В библиотеку попадают только отмеченные папки вместе с подпапками.</string>
+    <string name="settings_folders_select_hint">Пока ни одна папка не выбрана, сканируются все папки.</string>
+    <string name="settings_folder_included_with">Входит вместе с %1$s</string>
     <string name="settings_folder_root">Корень хранилища</string>
     <plurals name="settings_folder_tracks">
         <item quantity="one">%d трек</item>

@@ -116,6 +116,13 @@ class DefaultTrackTagRepositoryTest {
             included: Boolean,
         ) = Unit
 
+        override suspend fun setOnlySelectedFolders(enabled: Boolean) = Unit
+
+        override suspend fun setFolderSelected(
+            relativePath: String,
+            selected: Boolean,
+        ) = Unit
+
         override suspend fun setMinTrackSeconds(seconds: Int) = Unit
 
         override suspend fun setId3v2VersionForNewTags(version: Int) = Unit

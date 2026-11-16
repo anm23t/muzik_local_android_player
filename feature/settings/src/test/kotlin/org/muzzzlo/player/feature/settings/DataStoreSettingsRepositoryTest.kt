@@ -114,6 +114,21 @@ class DataStoreSettingsRepositoryTest {
             assertEquals(setOf("B/"), repository.settings.first().excludedFolders)
         }
 
+    @Test
+    fun `the selected mode has its own list and switching keeps both lists`() =
+        runBlocking {
+            repository.setFolderIncluded("A/", included = false)
+            repository.setFolderSelected("Music/", selected = true)
+            repository.setFolderSelected("Other/", selected = true)
+            repository.setFolderSelected("Other/", selected = false)
+            repository.setOnlySelectedFolders(true)
+            repository.setOnlySelectedFolders(false)
+            val settings = repository.settings.first()
+            assertEquals(false, settings.onlySelectedFolders)
+            assertEquals(setOf("Music/"), settings.selectedFolders)
+            assertEquals(setOf("A/"), settings.excludedFolders)
+        }
+
     @ParameterizedTest
     @CsvSource("-1, 0", "0, 0", "45, 45", "9999, 600")
     fun `the minimum length is clamped when saved`(

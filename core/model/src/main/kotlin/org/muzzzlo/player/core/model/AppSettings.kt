@@ -39,6 +39,9 @@ data class StoredSort(
  *
  * @property excludedFolders MediaStore `RELATIVE_PATH` values (for example `Music/Podcasts/`) of folders that stay
  *   out of the library; matched exactly, a subfolder is its own entry. Empty: every folder is included.
+ * @property onlySelectedFolders the library takes only [selectedFolders] and their subfolders (task 2.5.5); the rule
+ *   is [FolderSelection]. The two lists are kept apart, switching the mode clears neither.
+ * @property selectedFolders folders of the selected mode, MediaStore `RELATIVE_PATH` values.
  * @property minTrackSeconds shorter files are left out of the library; 0 keeps everything.
  * @property id3v2VersionForNewTags 3 or 4: the ID3v2 version for an MP3 file that has no ID3v2 tag yet.
  * @property confirmBeforeWrite show the "was, will be" dialog before the tag editor writes one track; the album
@@ -65,6 +68,8 @@ data class StoredSort(
  */
 data class AppSettings(
     val excludedFolders: Set<String> = emptySet(),
+    val onlySelectedFolders: Boolean = false,
+    val selectedFolders: Set<String> = emptySet(),
     val minTrackSeconds: Int = DEFAULT_MIN_TRACK_SECONDS,
     val id3v2VersionForNewTags: Int = TagWriter.DEFAULT_ID3V2_VERSION,
     val confirmBeforeWrite: Boolean = true,
@@ -107,6 +112,15 @@ interface SettingsRepository {
     suspend fun setFolderIncluded(
         relativePath: String,
         included: Boolean,
+    )
+
+    /** Turns the mode "Only selected folders" on or off (task 2.5.5); neither folder list changes. */
+    suspend fun setOnlySelectedFolders(enabled: Boolean)
+
+    /** Adds [relativePath] to the folders of the selected mode or takes it out. */
+    suspend fun setFolderSelected(
+        relativePath: String,
+        selected: Boolean,
     )
 
     suspend fun setMinTrackSeconds(seconds: Int)

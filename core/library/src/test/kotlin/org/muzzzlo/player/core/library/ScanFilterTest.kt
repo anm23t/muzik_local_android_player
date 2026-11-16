@@ -68,4 +68,12 @@ class ScanFilterTest {
         val result = ScanFilter.apply(files, AppSettings(excludedFolders = setOf("B/")))
         assertEquals(listOf(kept), result)
     }
+
+    @Test
+    fun `the selected mode keeps selected folders with their subfolders only`() {
+        val settings = AppSettings(minTrackSeconds = 0, onlySelectedFolders = true, selectedFolders = setOf("Music/"))
+        assertEquals(true, ScanFilter.accepts(file(path = "Music/Rock/"), settings))
+        assertEquals(false, ScanFilter.accepts(file(path = "Music2/"), settings))
+        assertEquals(false, ScanFilter.accepts(file(path = null), settings))
+    }
 }
