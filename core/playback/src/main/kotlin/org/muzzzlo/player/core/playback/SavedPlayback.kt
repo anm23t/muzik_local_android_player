@@ -9,6 +9,8 @@ internal data class SavedPlayback(
     val positionMs: Long,
     val shuffleEnabled: Boolean,
     val repeatMode: RepeatMode,
+    /** Order of the queue before shuffle reordered it (task 2.5.3); null when shuffle is off or unknown. */
+    val originalIds: List<Long>? = null,
 )
 
 internal fun encodeIds(ids: List<Long>): String = ids.joinToString(",")

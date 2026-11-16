@@ -25,6 +25,7 @@ import org.muzzzlo.player.core.model.RepeatMode
 import org.muzzzlo.player.core.model.Track
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.random.Random
 
 /** Talks to [PlaybackService] through a [MediaController] and exposes the player as [PlayerState]. */
 @Singleton
@@ -48,12 +49,19 @@ internal class MediaControllerPlayer
         /** Saving starts only after the previous run was restored, otherwise an empty queue would overwrite it. */
         private var restored = false
 
+        /**
+         * Track ids in the order the queue had before shuffle reordered it (task 2.5.3); null while the queue is in
+         * that order. Shuffle on and this set always go together: [syncShuffleOrder] keeps them so.
+         */
+        private var originalIds: List<Long>? = null
+
         private val listener =
             object : Player.Listener {
                 override fun onEvents(
                     player: Player,
                     events: Player.Events,
                 ) {
+                    if (events.contains(Player.EVENT_SHUFFLE_MODE_ENABLED_CHANGED)) syncShuffleOrder(player)
                     publish(player, queueChanged = events.contains(Player.EVENT_TIMELINE_CHANGED))
                     if (restored && PERSISTED_EVENTS.any(events::contains)) save(player)
                 }
@@ -105,6 +113,8 @@ internal class MediaControllerPlayer
             val tracks = library.tracksByIds(saved.trackIds)
             if (tracks.isEmpty()) return
             val index = restoredIndex(saved, tracks.map { it.id })
+            // The saved queue is already in play order; with the original order known, nothing is reshuffled.
+            originalIds = saved.originalIds?.takeIf { saved.shuffleEnabled }
             player.shuffleModeEnabled = saved.shuffleEnabled
             player.repeatMode = saved.repeatMode.toPlayerMode()
             player.setMediaItems(tracks.map(Track::toMediaItem), index ?: 0, if (index != null) saved.positionMs else 0)
@@ -116,7 +126,15 @@ internal class MediaControllerPlayer
             startIndex: Int,
             playlistId: Long?,
         ) = withController { player ->
-            player.setMediaItems(tracks.map { it.toMediaItem(playlistId) }, startIndex, 0)
+            val items = tracks.map { it.toMediaItem(playlistId) }
+            if (player.shuffleModeEnabled) {
+                // A new queue with shuffle on: the chosen track first, the rest shuffled.
+                originalIds = tracks.map { it.id }
+                val order = QueueShuffle.shuffledOrder(items.size, startIndex, Random.Default)
+                player.setMediaItems(order.map(items::get), 0, 0)
+            } else {
+                player.setMediaItems(items, startIndex, 0)
+            }
             player.prepare()
             player.play()
         }
@@ -164,6 +182,26 @@ internal class MediaControllerPlayer
             }
 
         override fun toggleShuffle() = withController { it.shuffleModeEnabled = !it.shuffleModeEnabled }
+
+        /**
+         * Reorders the queue after the shuffle flag changed, whoever changed it (this app or a Bluetooth control).
+         * Does nothing when the queue already matches the flag, for example right after [restore].
+         */
+        private fun syncShuffleOrder(player: Player) {
+            val ids = player.queueIds()
+            val current = player.currentMediaItemIndex
+            val original = originalIds
+            when {
+                player.shuffleModeEnabled && original == null -> {
+                    originalIds = ids
+                    player.applyOrder(QueueShuffle.shuffledOrder(ids.size, current, Random.Default))
+                }
+                !player.shuffleModeEnabled && original != null -> {
+                    originalIds = null
+                    player.applyOrder(QueueShuffle.unshuffledOrder(ids, current, original))
+                }
+            }
+        }
 
         override fun cycleRepeatMode() =
             withController {
@@ -236,6 +274,7 @@ internal class MediaControllerPlayer
                     positionMs = player.currentPosition.coerceAtLeast(0),
                     shuffleEnabled = player.shuffleModeEnabled,
                     repeatMode = player.repeatMode.toRepeatMode(),
+                    originalIds = originalIds,
                 )
             scope.launch { withContext(dispatchers.io) { store.save(snapshot) } }
         }
@@ -257,6 +296,7 @@ internal class MediaControllerPlayer
         private companion object {
             const val POSITION_INTERVAL_MS = 500L
             const val SAVE_EVERY_TICKS = 10
+
             val PERSISTED_EVENTS =
                 intArrayOf(
                     Player.EVENT_TIMELINE_CHANGED,
@@ -267,3 +307,27 @@ internal class MediaControllerPlayer
                 )
         }
     }
+
+/** Id of a queue item not made by this app; such items never match an original position. */
+private const val UNKNOWN_ID = -1L
+
+private fun Player.queueIds(): List<Long> =
+    (0 until mediaItemCount).map { getMediaItemAt(it).toTrack()?.id ?: UNKNOWN_ID }
+
+/**
+ * Puts the items in [order] (old indices) without touching the playing item: it is moved, everything around it is
+ * replaced, so playback goes on.
+ */
+private fun Player.applyOrder(order: List<Int>) {
+    if (order.size != mediaItemCount || order == order.indices.toList()) return
+    val items = order.map(::getMediaItemAt)
+    val target = order.indexOf(currentMediaItemIndex)
+    if (target < 0) {
+        replaceMediaItems(0, items.size, items)
+        return
+    }
+    moveMediaItem(currentMediaItemIndex, target)
+    val after = target + 1
+    if (after < items.size) replaceMediaItems(after, items.size, items.subList(after, items.size))
+    if (target > 0) replaceMediaItems(0, target, items.subList(0, target))
+}

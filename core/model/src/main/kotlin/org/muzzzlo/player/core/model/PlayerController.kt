@@ -25,7 +25,7 @@ data class PlayerState(
     val durationMs: Long = 0,
     val hasNext: Boolean = false,
     val hasPrevious: Boolean = false,
-    /** Queue in its original order; with shuffle on the player visits it in a different order. */
+    /** Queue in the order of playback; turning shuffle on really reorders it (task 2.5.3). */
     val queue: List<Track> = emptyList(),
     /** Index of [currentTrack] in [queue], -1 when the queue is empty. */
     val currentIndex: Int = -1,

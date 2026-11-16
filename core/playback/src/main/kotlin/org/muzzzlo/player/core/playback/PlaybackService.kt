@@ -5,10 +5,8 @@ import android.os.Handler
 import android.os.Looper
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
-import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.exoplayer.source.ShuffleOrder.DefaultShuffleOrder
 import androidx.media3.session.DefaultMediaNotificationProvider
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
@@ -76,9 +74,7 @@ class PlaybackService : MediaSessionService() {
                 .distinctUntilChanged()
                 .collect { replayGain -> renderers.forEach { it.replayGain.settings = replayGain } }
         }
-        // The same seed gives both decks the same shuffle order, so they agree on the next track.
-        val shuffleSeed = System.nanoTime()
-        val player = CrossfadePlayer(this, renderers.map { buildDeck(it, shuffleSeed) }, Looper.getMainLooper())
+        val player = CrossfadePlayer(this, renderers.map(::buildDeck), Looper.getMainLooper())
         player.crossfade = initial.crossfade
         scope.launch(Dispatchers.Main) {
             settings.settings.map { it.crossfade }.distinctUntilChanged().collect { player.crossfade = it }
@@ -117,34 +113,19 @@ class PlaybackService : MediaSessionService() {
      * One deck of [CrossfadePlayer]. Audio focus is off here: the crossfade player holds it for both decks, otherwise
      * the decks would take it from each other.
      */
-    private fun buildDeck(
-        renderers: AudioRenderersFactory,
-        shuffleSeed: Long,
-    ): ExoPlayer {
-        val deck =
-            ExoPlayer.Builder(this, renderers)
-                .setAudioAttributes(
-                    AudioAttributes.Builder()
-                        .setUsage(C.USAGE_MEDIA)
-                        .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
-                        .build(),
-                    // handleAudioFocus =
-                    false,
-                )
-                .setHandleAudioBecomingNoisy(true)
-                .setWakeMode(C.WAKE_MODE_LOCAL)
-                .build()
-        deck.setShuffleOrder(DefaultShuffleOrder(0, shuffleSeed))
-        renderers.shuffle = deck.shuffleModeEnabled
-        deck.addListener(
-            object : Player.Listener {
-                override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
-                    renderers.shuffle = shuffleModeEnabled
-                }
-            },
-        )
-        return deck
-    }
+    private fun buildDeck(renderers: AudioRenderersFactory): ExoPlayer =
+        ExoPlayer.Builder(this, renderers)
+            .setAudioAttributes(
+                AudioAttributes.Builder()
+                    .setUsage(C.USAGE_MEDIA)
+                    .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
+                    .build(),
+                // handleAudioFocus =
+                false,
+            )
+            .setHandleAudioBecomingNoisy(true)
+            .setWakeMode(C.WAKE_MODE_LOCAL)
+            .build()
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? = session
 

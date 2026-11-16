@@ -27,15 +27,13 @@ internal class AlacAudioRenderer private constructor(
     eventHandler: Handler?,
     eventListener: AudioRendererEventListener?,
     private val trackSink: TrackFormatSink,
-    private val isShuffled: () -> Boolean,
 ) : DecoderAudioRenderer<AlacDecoder>(eventHandler, eventListener, trackSink) {
     constructor(
         eventHandler: Handler?,
         eventListener: AudioRendererEventListener?,
         audioSink: AudioSink,
         isGapless: () -> Boolean,
-        isShuffled: () -> Boolean,
-    ) : this(eventHandler, eventListener, TrackFormatSink(audioSink, isGapless), isShuffled)
+    ) : this(eventHandler, eventListener, TrackFormatSink(audioSink, isGapless))
 
     override fun getName(): String = NAME
 
@@ -64,7 +62,7 @@ internal class AlacAudioRenderer private constructor(
         offsetUs: Long,
         mediaPeriodId: MediaSource.MediaPeriodId,
     ) {
-        trackSink.stream = replayGainStreamOf(timeline, mediaPeriodId.periodUid, isShuffled())
+        trackSink.stream = replayGainStreamOf(timeline, mediaPeriodId.periodUid)
         super.onStreamChanged(formats, startPositionUs, offsetUs, mediaPeriodId)
     }
 

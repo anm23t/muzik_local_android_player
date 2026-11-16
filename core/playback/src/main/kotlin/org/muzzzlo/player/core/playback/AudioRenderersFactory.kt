@@ -44,8 +44,9 @@ internal fun Format.withReplayGain(stream: ReplayGainStream): Format =
  *   for it, so the renderer can ignore the trim data. [gapless] is read when a track starts, a change applies from
  *   the next track.
  * - ReplayGain: the renderer finds the queue item of each new stream and passes its ReplayGain values in the
- *   format to the sink, where [replayGain] applies them from the first sample of the track. [shuffle] tells which
- *   tracks are its neighbours for [org.muzzzlo.player.core.model.ReplayGainMode.AUTO].
+ *   format to the sink, where [replayGain] applies them from the first sample of the track. The neighbours for
+ *   [org.muzzzlo.player.core.model.ReplayGainMode.AUTO] are the list neighbours: the list is the play order, also with
+ *   shuffle on (task 2.5.3).
  * - silence: [silenceTrim] drops the silence at the start and the end of a track; the sink adds the dropped frames to
  *   its position ([TrimChain]).
  * - equalizer: [equalizer] runs after ReplayGain, with the same clip protection setting.
@@ -58,8 +59,6 @@ internal class AudioRenderersFactory(
     @Volatile var gapless: Boolean,
     replayGainSettings: ReplayGainSettings,
 ) : DefaultRenderersFactory(context) {
-    @Volatile var shuffle: Boolean = false
-
     val replayGain = ReplayGainAudioProcessor(replayGainSettings)
 
     /** Drops the silence at the start and the end of each track while enabled. */
@@ -115,11 +114,10 @@ internal class AudioRenderersFactory(
                 eventListener,
                 audioSink,
                 isGapless = { gapless },
-                isShuffled = { shuffle },
             )
         // Renderers are asked in order, so ALAC goes to the bundled decoder before MediaCodec gets it.
         val alacRenderer =
-            AlacAudioRenderer(eventHandler, eventListener, audioSink, isGapless = { gapless }, isShuffled = { shuffle })
+            AlacAudioRenderer(eventHandler, eventListener, audioSink, isGapless = { gapless })
         out.add(index, alacRenderer)
     }
 }
@@ -155,7 +153,6 @@ private class PlaybackAudioRenderer(
     eventListener: AudioRendererEventListener,
     audioSink: AudioSink,
     private val isGapless: () -> Boolean,
-    private val isShuffled: () -> Boolean,
 ) : MediaCodecAudioRenderer(
         context,
         codecAdapterFactory,
@@ -174,7 +171,7 @@ private class PlaybackAudioRenderer(
         offsetUs: Long,
         mediaPeriodId: MediaSource.MediaPeriodId,
     ) {
-        stream = replayGainStreamOf(timeline, mediaPeriodId.periodUid, isShuffled())
+        stream = replayGainStreamOf(timeline, mediaPeriodId.periodUid)
         super.onStreamChanged(formats, startPositionUs, offsetUs, mediaPeriodId)
     }
 
@@ -186,13 +183,12 @@ private class PlaybackAudioRenderer(
 
 /**
  * ReplayGain values of the queue item that plays the period [periodUid], and whether its album plays in order:
- * the neighbours are taken in play order, which depends on [shuffled].
+ * the neighbours in the list are the neighbours in play order, the decks never shuffle (task 2.5.3).
  */
 @UnstableApi
 internal fun replayGainStreamOf(
     timeline: Timeline,
     periodUid: Any,
-    shuffled: Boolean,
 ): ReplayGainStream {
     val periodIndex = timeline.getIndexOfPeriod(periodUid)
     if (periodIndex == C.INDEX_UNSET) return ReplayGainStream.NONE
@@ -202,8 +198,8 @@ internal fun replayGainStreamOf(
     fun itemAt(index: Int): MediaItem? =
         if (index == C.INDEX_UNSET) null else timeline.getWindow(index, window).mediaItem
     val item = itemAt(windowIndex) ?: return ReplayGainStream.NONE
-    val previous = itemAt(timeline.getPreviousWindowIndex(windowIndex, Player.REPEAT_MODE_OFF, shuffled))
-    val next = itemAt(timeline.getNextWindowIndex(windowIndex, Player.REPEAT_MODE_OFF, shuffled))
+    val previous = itemAt(timeline.getPreviousWindowIndex(windowIndex, Player.REPEAT_MODE_OFF, false))
+    val next = itemAt(timeline.getNextWindowIndex(windowIndex, Player.REPEAT_MODE_OFF, false))
     return ReplayGainStream(
         info = item.replayGainInfo(),
         albumInOrder = playsAlbumInOrder(item.albumId(), previous?.albumId(), next?.albumId()),

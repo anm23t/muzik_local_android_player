@@ -82,6 +82,9 @@ internal class CrossfadePlayer(
             reschedule()
         }
 
+    /** Shuffle flag shown to controllers; see [handleSetShuffleModeEnabled]. */
+    private var shuffleEnabled = false
+
     init {
         require(decks.size == DECKS) { "CrossfadePlayer needs two decks" }
         decks.forEach { deck -> deck.addListener(DeckListener(deck)) }
@@ -99,7 +102,7 @@ internal class CrossfadePlayer(
                 )
                 .setPlayerError(deck.playerError)
                 .setRepeatMode(deck.repeatMode)
-                .setShuffleModeEnabled(deck.shuffleModeEnabled)
+                .setShuffleModeEnabled(shuffleEnabled)
                 .setIsLoading(deck.isLoading)
                 .setAudioAttributes(deck.audioAttributes)
                 .setVolume(volume)
@@ -146,8 +149,13 @@ internal class CrossfadePlayer(
         return done()
     }
 
+    /**
+     * Only remembers the flag: the decks always play in list order. The app reorders the items itself when the flag
+     * changes (task 2.5.3), so the queue on screen is the order of playback and "Play next" lands right after the
+     * current track.
+     */
     override fun handleSetShuffleModeEnabled(shuffleModeEnabled: Boolean): ListenableFuture<*> {
-        idleFirst.forEach { it.shuffleModeEnabled = shuffleModeEnabled }
+        shuffleEnabled = shuffleModeEnabled
         return done()
     }
 
