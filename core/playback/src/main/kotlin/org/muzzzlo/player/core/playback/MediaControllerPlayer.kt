@@ -125,8 +125,9 @@ internal class MediaControllerPlayer
             tracks: List<Track>,
             startIndex: Int,
             playlistId: Long?,
+            generatedKind: String?,
         ) = withController { player ->
-            val items = tracks.map { it.toMediaItem(playlistId) }
+            val items = tracks.map { it.toMediaItem(playlistId, generatedKind) }
             if (player.shuffleModeEnabled) {
                 // A new queue with shuffle on: the chosen track first, the rest shuffled.
                 originalIds = tracks.map { it.id }

@@ -18,6 +18,8 @@ import org.junit.jupiter.api.Test
 import org.muzzzlo.player.core.designsystem.component.PlaylistChoice
 import org.muzzzlo.player.core.designsystem.component.TrackAction
 import org.muzzzlo.player.core.model.AutoPlaylist
+import org.muzzzlo.player.core.model.GeneratedKind
+import org.muzzzlo.player.core.model.GeneratedPlaylist
 import org.muzzzlo.player.core.model.PlayerState
 import org.muzzzlo.player.core.model.Track
 
@@ -30,6 +32,7 @@ class PlaylistViewModelsTest {
     private val autoPlaylists = FakeAutoPlaylists()
     private val player = FakePlayerController()
     private val transfer = FakePlaylistTransfer()
+    private val generated = FakeGeneratedPlaylists()
 
     @BeforeEach
     fun setUp() = Dispatchers.setMain(UnconfinedTestDispatcher())
@@ -43,6 +46,49 @@ class PlaylistViewModelsTest {
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.state.collect {} }
         return viewModel
     }
+
+    private fun TestScope.generatedCard(key: String): GeneratedPlaylistViewModel {
+        val savedState = SavedStateHandle(mapOf(GENERATED_KIND_ARG to key))
+        val viewModel =
+            GeneratedPlaylistViewModel(generated, playlists, FakeLibrary(), player, FakeTrackMarks(), savedState)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.state.collect {} }
+        return viewModel
+    }
+
+    @Test
+    fun `a generated card plays its set marked with the kind and keeps it with Add`() =
+        runTest {
+            val set = GeneratedPlaylist(GeneratedKind.ON_REPEAT, 1, gradient = 4, trackCount = 5, createdAtMs = 0)
+            generated.playlists.value = listOf(set)
+            generated.tracks.value = mapOf(GeneratedKind.ON_REPEAT to listOf(b, a))
+            val viewModel = generatedCard(GeneratedKind.ON_REPEAT.key)
+
+            assertEquals(set, viewModel.state.value.playlist)
+            assertEquals(listOf(b, a), viewModel.state.value.tracks)
+
+            viewModel.onTrackClicked(1)
+            assertEquals(listOf(listOf(b, a) to 1), player.played)
+            assertEquals(listOf<String?>("onRepeat"), player.playedGenerated)
+            assertEquals(listOf<Long?>(null), player.playedFrom)
+
+            viewModel.onAdd("On Repeat")
+            assertEquals(listOf(GeneratedKind.ON_REPEAT to "On Repeat"), generated.snapshots)
+            assertEquals("On Repeat 2", viewModel.state.value.savedAs)
+            viewModel.onSavedMessageDismissed()
+            assertNull(viewModel.state.value.savedAs)
+        }
+
+    @Test
+    fun `an unknown kind shows nothing and plays nothing`() =
+        runTest {
+            val viewModel = generatedCard("rage")
+            assertNull(viewModel.state.value.kind)
+            assertTrue(viewModel.state.value.isLoaded)
+            viewModel.onPlay()
+            viewModel.onAdd("Rage")
+            assertTrue(player.played.isEmpty())
+            assertTrue(generated.snapshots.isEmpty())
+        }
 
     private suspend fun mix(vararg tracks: Track): Long =
         playlists.create("Mix").also { playlists.addTracks(it, tracks.map(Track::id)) }

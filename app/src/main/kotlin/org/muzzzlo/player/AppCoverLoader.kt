@@ -45,6 +45,8 @@ class AppCoverLoader
                     is CoverSource.Album -> covers.albumCover(source.id)
                     // A picked picture is already a small file; it only goes through the memory cache.
                     is CoverSource.File -> source.path
+                    // Drawn by CoverImage itself, there is nothing to load.
+                    is CoverSource.Gradient -> null
                 } ?: return null
             val bitmap = memory.get(path) ?: decode(path)?.also { memory.put(path, it) }
             bitmap?.let { lastBySource.put(source, it) }

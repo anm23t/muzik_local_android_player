@@ -37,6 +37,7 @@ internal fun ListenEvent.toEntity(): ListenEventEntity =
         titleSnapshot = titleSnapshot,
         artistsSnapshot = jsonArray(artistsSnapshot),
         playlistId = playlistId,
+        sourceKind = generatedKind,
     )
 
 /** Encodes strings as a JSON array (`listen_event.artists_snapshot`), the same way as `track.artist_tag_values`. */

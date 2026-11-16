@@ -17,6 +17,7 @@
     </plurals>
 
     <string name="home_welcome">Welcome!</string>
+    <string name="home_playlists_for_you">Playlists for you</string>
     <string name="home_continue_listening">Continue listening</string>
     <string name="home_all_songs">All songs</string>
     <string name="home_settings">Settings</string>

@@ -19,6 +19,7 @@
     </plurals>
 
     <string name="home_welcome">Добро пожаловать!</string>
+    <string name="home_playlists_for_you">Плейлисты для Вас!</string>
     <string name="home_continue_listening">Продолжить прослушивание?</string>
     <string name="home_all_songs">Все песни</string>
     <string name="home_settings">Настройки</string>

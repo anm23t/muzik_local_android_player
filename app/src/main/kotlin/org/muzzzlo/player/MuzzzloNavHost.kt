@@ -47,6 +47,8 @@ import org.muzzzlo.player.feature.player.PlayerScreen
 import org.muzzzlo.player.feature.player.QueueScreen
 import org.muzzzlo.player.feature.playlists.AUTO_PLAYLIST_ARG
 import org.muzzzlo.player.feature.playlists.AutoPlaylistScreen
+import org.muzzzlo.player.feature.playlists.GENERATED_KIND_ARG
+import org.muzzzlo.player.feature.playlists.GeneratedPlaylistScreen
 import org.muzzzlo.player.feature.playlists.PLAYLIST_ID_ARG
 import org.muzzzlo.player.feature.playlists.PlaylistListScreen
 import org.muzzzlo.player.feature.playlists.PlaylistScreen
@@ -80,6 +82,7 @@ private const val ROUTE_QUEUE = "queue"
 private const val ROUTE_PLAYLISTS = "playlists"
 private const val ROUTE_PLAYLIST = "playlist/{$PLAYLIST_ID_ARG}"
 private const val ROUTE_AUTO_PLAYLIST = "auto-playlist/{$AUTO_PLAYLIST_ARG}"
+private const val ROUTE_GENERATED_PLAYLIST = "generated/{$GENERATED_KIND_ARG}"
 private const val ROUTE_TAG_EDITOR = "tagEditor/{$TRACK_ID_ARG}"
 private const val ROUTE_BATCH_TAG_EDITOR = "tagEditorAlbum/{$BATCH_ALBUM_ID_ARG}"
 private const val ROUTE_ARTIST_PROFILE = "artistProfile/{$PROFILE_ARTIST_ID_ARG}"
@@ -196,6 +199,20 @@ fun MuzzzloNavHost(backgroundViewModel: LiveBackgroundViewModel) {
                         onOpenStats = { navController.navigate(ROUTE_STATS) },
                         onOpenPlaylists = { navController.navigate(ROUTE_PLAYLISTS) },
                         onOpenPlaylist = { navController.navigate("playlist/$it") },
+                        onOpenGenerated = { navController.navigate("generated/${it.key}") },
+                        miniPlayer = miniPlayer,
+                    )
+                }
+                composable(
+                    ROUTE_GENERATED_PLAYLIST,
+                    arguments = listOf(navArgument(GENERATED_KIND_ARG) { type = NavType.StringType }),
+                ) {
+                    GeneratedPlaylistScreen(
+                        onBack = { navController.popBackStack() },
+                        onHome = { navController.goHome() },
+                        onOpenAlbum = { navController.navigate(albumRoute(it)) },
+                        onEditTags = openTagEditor,
+                        onOpenArtist = openArtist,
                         miniPlayer = miniPlayer,
                     )
                 }

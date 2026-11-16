@@ -151,6 +151,7 @@ fun PlaylistScreen(
             trackCount = playlist.trackCount,
             firstTrackId = playlist.firstTrackId,
             coverPath = playlist.coverPath,
+            gradient = playlist.coverGradient,
             onCoverLongPress = { if (playlist.coverPath == null) pickCover() else coverMenuOpen = true },
             onManage = { dialog = PlaylistDialog.Actions },
             onPlay = viewModel::onPlay,
@@ -206,7 +207,9 @@ private fun CoverMenu(
 /**
  * Cover, name, number of tracks and "Play"; the pencil button is shown when there is something to [onManage].
  *
- * @param coverPath the picture the user picked; null shows the cover of the first track.
+ * @param coverPath the picture the user picked; null shows the [gradient] or else the cover of the first track.
+ * @param gradient the gradient cover of a generated or kept generated playlist (task 2.5.7).
+ * @param onAdd the "Add" button of a generated playlist (task 2.5.7): keeps it as a playlist of the user.
  * @param onCoverLongPress a long press on the cover (change it); null for a playlist whose cover cannot be changed.
  * @param onEditDone the "Done" button of the edit-order mode; when set, it takes the place of the pencil and "Play".
  */
@@ -219,6 +222,8 @@ internal fun PlaylistHeader(
     onManage: (() -> Unit)?,
     onPlay: () -> Unit,
     coverPath: String? = null,
+    gradient: Int? = null,
+    onAdd: (() -> Unit)? = null,
     onCoverLongPress: (() -> Unit)? = null,
     onEditDone: (() -> Unit)? = null,
 ) {
@@ -246,7 +251,7 @@ internal fun PlaylistHeader(
             shape = MuzzzloDimens.MiniPlayerShape,
             coverShape = MuzzzloDimens.TileShape,
             inset = MuzzzloDimens.AlbumCardInset,
-            cover = { PlaylistCover(firstTrackId, it, coverPath) },
+            cover = { PlaylistCover(firstTrackId, it, coverPath, gradient) },
         )
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(MuzzzloDimens.SmallGap)) {
             Text(
@@ -281,6 +286,10 @@ internal fun PlaylistHeader(
                 onClick = onManage,
                 size = RoundIconButtonSize.Small,
             )
+            Spacer(Modifier.size(MuzzzloDimens.ItemGap))
+        }
+        if (onAdd != null && trackCount > 0) {
+            PillButton(text = stringResource(R.string.generated_add), onClick = onAdd, icon = DesignR.drawable.ic_plus)
             Spacer(Modifier.size(MuzzzloDimens.ItemGap))
         }
         if (trackCount > 0 && onEditDone == null) {

@@ -33,6 +33,13 @@ interface ListenEventDao {
     )
     fun observeTrackPlayStats(): Flow<List<TrackPlayStatRow>>
 
+    /** Counted listens per track since [fromMs], for "On Repeat" (task 2.5.7). */
+    @Query(
+        "SELECT track_id, COUNT(*) AS plays, MAX(started_at) AS last_played_at FROM listen_event " +
+            "WHERE counted = 1 AND track_id IS NOT NULL AND started_at >= :fromMs GROUP BY track_id",
+    )
+    suspend fun trackPlayStatsSince(fromMs: Long): List<TrackPlayStatRow>
+
     /** Every event, the latest first. */
     @Query("SELECT * FROM listen_event ORDER BY started_at DESC, id DESC")
     suspend fun all(): List<ListenEventEntity>
@@ -152,7 +159,7 @@ interface ListenEventDao {
         SELECT t.album_id AS albumId, MAX(e.started_at) AS lastListenedAt
         FROM listen_event e
         JOIN track t ON t.id = e.track_id
-        WHERE t.album_id IS NOT NULL AND e.playlist_id IS NULL
+        WHERE t.album_id IS NOT NULL AND e.playlist_id IS NULL AND e.source_kind IS NULL
         GROUP BY t.album_id
         ORDER BY MAX(e.started_at) DESC, MAX(e.id) DESC
         LIMIT :limit

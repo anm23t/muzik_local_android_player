@@ -31,6 +31,8 @@ import org.muzzzlo.player.core.model.CompoundRepository
 import org.muzzzlo.player.core.model.CompoundRules
 import org.muzzzlo.player.core.model.ContinueItem
 import org.muzzzlo.player.core.model.ContinueListening
+import org.muzzzlo.player.core.model.GeneratedPlaylist
+import org.muzzzlo.player.core.model.GeneratedPlaylistRepository
 import org.muzzzlo.player.core.model.LibraryRepository
 import org.muzzzlo.player.core.model.PlayerController
 import org.muzzzlo.player.core.model.PlaylistRepository
@@ -67,9 +69,11 @@ private fun PlayerController.currentTrackId(): Flow<Long?> = state.map { it.curr
  *
  * @property continueItems tiles of "Continue listening": up to five albums and playlists of the latest listens
  * ([ContinueListening]), the album of the restored queue while there is no history. Empty hides the section.
+ * @property generated "Playlists for you": today's generated playlists (task 2.5.7). Empty hides the section.
  */
 data class HomeUiState(
     val continueItems: List<ContinueItem> = emptyList(),
+    val generated: List<GeneratedPlaylist> = emptyList(),
     val hasMusic: Boolean = true,
     val isScanning: Boolean = false,
     val scanFailed: Boolean = false,
@@ -84,6 +88,7 @@ class HomeViewModel
         stats: StatsRepository,
         player: PlayerController,
         playlists: PlaylistRepository,
+        private val generatedPlaylists: GeneratedPlaylistRepository,
     ) : ViewModel() {
         private val scanning = MutableStateFlow(false)
         private val scanFailed = MutableStateFlow(false)
@@ -94,19 +99,28 @@ class HomeViewModel
                 library.observeAlbums(),
                 library.observeTracks().map { it.isNotEmpty() }.distinctUntilChanged(),
                 currentAlbumId,
-                combine(stats.recentAlbums(ContinueListening.MAX_TILES), playlists.observePlaylists(), ::Pair),
+                combine(
+                    stats.recentAlbums(ContinueListening.MAX_TILES),
+                    playlists.observePlaylists(),
+                    generatedPlaylists.observePlaylists(),
+                    ::Triple,
+                ),
                 combine(scanning, scanFailed) { isScanning, failed -> isScanning to failed },
-            ) { albums, hasMusic, currentId, (recent, playlistList), scan ->
+            ) { albums, hasMusic, currentId, (recent, playlistList, generated), scan ->
                 val queueAlbum = albums.firstOrNull { it.id == currentId }
                 HomeUiState(
-                    ContinueListening.items(recent, albums, playlistList, queueAlbum),
+                    ContinueListening.items(recent, albums, playlistList, queueAlbum, generated = generated),
+                    generated = generated,
                     hasMusic = hasMusic,
                     isScanning = scan.first,
                     scanFailed = scan.second,
                 )
             }.stateIn(this, HomeUiState())
 
-        /** Called once the audio permission is granted. Rescanning from the screen moves to the settings in 0.5.1. */
+        /**
+         * Called once the audio permission is granted. After the scan the generated playlists of the day are built,
+         * so the first run of a day sees the library as it is now.
+         */
         fun onScanRequested() {
             if (scanning.value) return
             viewModelScope.launch {
@@ -120,6 +134,7 @@ class HomeViewModel
                 } finally {
                     scanning.update { false }
                 }
+                runCatching { generatedPlaylists.ensureToday() }.onFailure { if (it is CancellationException) throw it }
             }
         }
     }

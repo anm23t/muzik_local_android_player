@@ -125,6 +125,7 @@ class DefaultBackupRepository
                     entries[playlist.id].orEmpty().map {
                         BackupPlaylistTrack(it.title, stringList(it.artistTagValues), it.durationMs)
                     },
+                    playlist.coverGradient,
                 )
             }
         }
@@ -139,6 +140,7 @@ class DefaultBackupRepository
                     it.skipped,
                     it.titleSnapshot,
                     stringList(it.artistsSnapshot),
+                    it.sourceKind,
                 )
             }
 
@@ -206,6 +208,7 @@ class DefaultBackupRepository
                         name = playlist.name,
                         createdAt = playlist.createdAtMs,
                         lastPlayedAt = playlist.lastPlayedAtMs,
+                        coverGradient = playlist.coverGradient,
                     )
                 playlists.append(playlists.insertPlaylist(entity), trackIds)
             }
@@ -270,6 +273,7 @@ class DefaultBackupRepository
                         skipped = event.skipped,
                         titleSnapshot = event.title,
                         artistsSnapshot = Json.write(event.artists),
+                        sourceKind = event.generatedKind,
                     ),
                 )
                 added++

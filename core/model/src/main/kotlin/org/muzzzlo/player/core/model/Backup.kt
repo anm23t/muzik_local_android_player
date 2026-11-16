@@ -53,6 +53,8 @@ data class BackupPlaylist(
     val createdAtMs: Long,
     val lastPlayedAtMs: Long?,
     val tracks: List<BackupPlaylistTrack>,
+    /** Gradient cover of a kept generated playlist (task 2.5.7); null for older backups and other playlists. */
+    val coverGradient: Int? = null,
 )
 
 /** A smart playlist with its rules (schema version 3, task 2.5.6); [name] with [createdAtMs] tells a duplicate. */
@@ -86,6 +88,8 @@ data class BackupEvent(
     val skipped: Boolean,
     val title: String,
     val artists: List<String>,
+    /** The kind of the generated playlist the listen came from (task 2.5.7); null otherwise. */
+    val generatedKind: String? = null,
 ) {
     /** Two events with the same key are one listen; used to merge without duplicates. */
     val key: String get() = "$startedAtMs|$playedMs|$title"
@@ -141,6 +145,7 @@ object BackupJson {
                             "skipped" to it.skipped,
                             "title" to it.title,
                             "artists" to it.artists,
+                            "sourceKind" to it.generatedKind,
                         )
                     },
                 "playlists" to data.playlists.map(::playlistMap),
@@ -204,6 +209,7 @@ object BackupJson {
             "name" to it.name,
             "createdAt" to it.createdAtMs,
             "lastPlayedAt" to it.lastPlayedAtMs,
+            "coverGradient" to it.coverGradient,
             "tracks" to
                 it.tracks.map { track ->
                     mapOf("title" to track.title, "artists" to track.artistTags, "durationMs" to track.durationMs)
@@ -218,6 +224,7 @@ object BackupJson {
             it.items("tracks").map { track ->
                 BackupPlaylistTrack(track.str("title"), track.strings("artists"), track.long("durationMs") ?: 0L)
             },
+            it.long("coverGradient")?.toInt()?.takeIf { gradient -> gradient in 0 until CoverGradients.COUNT },
         )
 
     private fun compoundOf(it: Map<*, *>) =
@@ -247,6 +254,7 @@ object BackupJson {
             it["skipped"] as? Boolean ?: false,
             it.str("title"),
             it.strings("artists"),
+            it["sourceKind"] as? String,
         )
 
     private const val MAX_RATING = 100

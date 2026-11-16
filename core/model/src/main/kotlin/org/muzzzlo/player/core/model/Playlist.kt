@@ -10,6 +10,8 @@ import kotlinx.coroutines.flow.Flow
  * @property lastPlayedAtMs when playback last started from the playlist, null before the first time.
  * @property coverPath picture the user picked for the playlist (a file of the app); null shows the cover of the
  *   first track.
+ * @property coverGradient the gradient of a kept generated playlist ([CoverGradients], task 2.5.7); shown while no
+ *   picture is picked, instead of the cover of the first track.
  */
 data class Playlist(
     val id: Long,
@@ -19,6 +21,7 @@ data class Playlist(
     val createdAtMs: Long,
     val lastPlayedAtMs: Long?,
     val coverPath: String? = null,
+    val coverGradient: Int? = null,
 )
 
 /** A track in a playlist. The same track may be there twice, so an entry has its own [entryId]. */
@@ -98,6 +101,19 @@ object PlaylistNames {
      */
     fun clean(name: String): String? =
         name.trim().replace(WHITESPACE, " ").take(MAX_LENGTH).trimEnd().takeIf { it.isNotEmpty() }
+
+    /**
+     * [name] when no playlist in [existing] has it, otherwise the name with the first free number from 2:
+     * "Daily Mix 2", "Daily Mix 3" (task 2.5.7). Names compare without case and extra spaces.
+     */
+    fun numbered(
+        name: String,
+        existing: Collection<String>,
+    ): String {
+        val taken = existing.mapTo(HashSet()) { NameNormalizer.key(it) }
+        if (NameNormalizer.key(name) !in taken) return name
+        return generateSequence(2) { it + 1 }.map { "$name $it" }.first { NameNormalizer.key(it) !in taken }
+    }
 
     private val WHITESPACE = Regex("\\s+")
 }

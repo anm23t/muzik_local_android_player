@@ -12,15 +12,11 @@ import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -39,18 +35,12 @@ import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.muzzzlo.player.core.designsystem.component.BottomNav
 import org.muzzzlo.player.core.designsystem.component.BottomNavItem
-import org.muzzzlo.player.core.designsystem.component.CoverImage
-import org.muzzzlo.player.core.designsystem.component.CoverSource
-import org.muzzzlo.player.core.designsystem.component.CoverTile
 import org.muzzzlo.player.core.designsystem.component.PillButton
 import org.muzzzlo.player.core.designsystem.component.RoundIconButton
 import org.muzzzlo.player.core.designsystem.component.ScreenFrame
-import org.muzzzlo.player.core.designsystem.component.SectionTitle
-import org.muzzzlo.player.core.designsystem.component.playlistCoverSource
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloColors
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloDimens
-import org.muzzzlo.player.core.model.Album
-import org.muzzzlo.player.core.model.ContinueItem
+import org.muzzzlo.player.core.model.GeneratedKind
 import org.muzzzlo.player.core.designsystem.R as DesignR
 
 private val audioPermission: String
@@ -61,13 +51,11 @@ private val audioPermission: String
             Manifest.permission.READ_EXTERNAL_STORAGE
         }
 
-/** Tiles in one row of the home screen (28:620). */
-private const val TILES_PER_ROW = 3
-
 /**
- * Home screen (28:620). Only the parts that need neither statistics nor smart playlists: the greeting,
- * "Continue listening", the mini player and the bottom menu.
+ * Home screen (28:620): the greeting, "Playlists for you" (generated playlists, task 2.5.7), "Continue listening",
+ * the mini player and the bottom menu.
  *
+ * @param onOpenGenerated opens the card of today's generated playlist of this kind.
  * @param miniPlayer the mini player of `feature:player`, passed in by the app.
  */
 @Composable
@@ -81,6 +69,7 @@ fun HomeScreen(
     onOpenStats: () -> Unit,
     onOpenPlaylists: () -> Unit,
     onOpenPlaylist: (Long) -> Unit,
+    onOpenGenerated: (GeneratedKind) -> Unit,
     miniPlayer: @Composable () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel(),
@@ -127,7 +116,10 @@ fun HomeScreen(
                     Modifier.weight(1f),
                 )
             !state.hasMusic -> Notice(stringResource(R.string.library_empty), Modifier.weight(1f))
-            else -> ContinueListening(state.continueItems, onOpenAlbum, onOpenPlaylist)
+            else -> {
+                PlaylistsForYou(state.generated, onOpenGenerated)
+                ContinueListening(state.continueItems, onOpenAlbum, onOpenPlaylist, onOpenGenerated)
+            }
         }
         Spacer(Modifier.weight(1f))
         miniPlayer()
@@ -164,49 +156,6 @@ private fun HomeHeader(
             contentDescription = stringResource(R.string.home_settings),
             onClick = onOpenSettings,
         )
-    }
-}
-
-@Composable
-private fun ContinueListening(
-    items: List<ContinueItem>,
-    onOpenAlbum: (Long) -> Unit,
-    onOpenPlaylist: (Long) -> Unit,
-) {
-    if (items.isEmpty()) return
-    Column(verticalArrangement = Arrangement.spacedBy(MuzzzloDimens.ContentGap)) {
-        SectionTitle(stringResource(R.string.home_continue_listening), maxLines = 2)
-        BoxWithConstraints(Modifier.fillMaxWidth()) {
-            // Three tiles fill the width (28:620), the others wait behind the edge.
-            val gap = MuzzzloDimens.SectionGap
-            val tileWidth = (maxWidth - gap * (TILES_PER_ROW - 1)) / TILES_PER_ROW
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(gap)) {
-                items(items, key = ::tileKey) { item ->
-                    when (item) {
-                        is ContinueItem.AlbumItem ->
-                            CoverTile(
-                                title = item.album.title,
-                                onClick = { onOpenAlbum(item.album.id) },
-                                modifier = Modifier.width(tileWidth),
-                                cover = { CoverImage(CoverSource.Album(item.album.id), it, MuzzzloDimens.TileShape) },
-                            )
-                        // A playlist shows its own picture or the cover of its first track, like in the list of
-                        // playlists.
-                        is ContinueItem.PlaylistItem ->
-                            CoverTile(
-                                title = item.playlist.name,
-                                onClick = { onOpenPlaylist(item.playlist.id) },
-                                modifier = Modifier.width(tileWidth),
-                                cover = {
-                                    val source =
-                                        playlistCoverSource(item.playlist.coverPath, item.playlist.firstTrackId)
-                                    CoverImage(source, it, MuzzzloDimens.TileShape)
-                                },
-                            )
-                    }
-                }
-            }
-        }
     }
 }
 
@@ -291,8 +240,3 @@ private fun homeNavItems(
     )
 
 /** Albums and playlists have their own ids; the key keeps them apart. */
-private fun tileKey(item: ContinueItem): String =
-    when (item) {
-        is ContinueItem.AlbumItem -> "album-${item.album.id}"
-        is ContinueItem.PlaylistItem -> "playlist-${item.playlist.id}"
-    }

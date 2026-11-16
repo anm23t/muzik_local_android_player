@@ -263,6 +263,8 @@ data class ListenEventEntity(
     @ColumnInfo(name = "artists_snapshot") val artistsSnapshot: String,
     /** The playlist the queue was started from (version 9); a deleted playlist leaves null. */
     @ColumnInfo(name = "playlist_id") val playlistId: Long? = null,
+    /** The kind of the generated playlist the queue was started from (version 17, task 2.5.7); null otherwise. */
+    @ColumnInfo(name = "source_kind") val sourceKind: String? = null,
 )
 
 /** A playlist of the user (DATABASE.md, `playlist`); lives only in the database and in the backup. */
@@ -276,6 +278,8 @@ data class PlaylistEntity(
     @ColumnInfo(name = "last_played_at") val lastPlayedAt: Long? = null,
     /** Picture the user picked, a file in the app's private folder; null: the cover of the first track. */
     @ColumnInfo(name = "cover_path") val coverPath: String? = null,
+    /** Gradient of a kept generated playlist (version 17, task 2.5.7); a picked picture is shown over it. */
+    @ColumnInfo(name = "cover_gradient") val coverGradient: Int? = null,
 )
 
 /**
@@ -308,4 +312,36 @@ data class SmartPlaylistEntity(
     @ColumnInfo(name = "rules_json") val rulesJson: String,
     /** Milliseconds since the epoch. */
     @ColumnInfo(name = "created_at") val createdAt: Long,
+)
+
+/**
+ * Today's set of one generated playlist (task 2.5.7): one row per kind, replaced on the first start of a new day.
+ * Not in the backup: the sets can be made again.
+ *
+ * @property day the local day of the set (`LocalDate.toEpochDay`).
+ * @property gradient index of the gradient cover (`CoverGradients`).
+ */
+@Entity(tableName = "generated_playlist", indices = [Index(value = ["kind"], unique = true)])
+data class GeneratedPlaylistEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val kind: String,
+    val day: Long,
+    val gradient: Int,
+    @ColumnInfo(name = "created_at") val createdAt: Long,
+)
+
+/** A track of a generated set at [position] (0 first). */
+@Entity(
+    tableName = "generated_playlist_track",
+    primaryKeys = ["generated_id", "position"],
+    foreignKeys = [
+        ForeignKey(GeneratedPlaylistEntity::class, ["id"], ["generated_id"], onDelete = ForeignKey.CASCADE),
+        ForeignKey(TrackEntity::class, ["id"], ["track_id"], onDelete = ForeignKey.CASCADE),
+    ],
+    indices = [Index("track_id")],
+)
+data class GeneratedPlaylistTrackEntity(
+    @ColumnInfo(name = "generated_id") val generatedId: Long,
+    @ColumnInfo(name = "track_id") val trackId: Long,
+    val position: Int,
 )

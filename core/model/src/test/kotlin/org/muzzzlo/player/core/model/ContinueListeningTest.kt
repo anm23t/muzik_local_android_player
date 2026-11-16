@@ -23,11 +23,38 @@ class ContinueListeningTest {
         playlists: List<Playlist> = emptyList(),
         queue: Album? = null,
         limit: Int = ContinueListening.MAX_TILES,
-    ) = ContinueListening.items(recent, library, playlists, queue, limit).map {
+        generated: List<GeneratedPlaylist> = emptyList(),
+    ) = ContinueListening.items(recent, library, playlists, queue, limit, generated).map {
         when (it) {
             is ContinueItem.AlbumItem -> "a${it.album.id}"
             is ContinueItem.PlaylistItem -> "p${it.playlist.id}"
+            is ContinueItem.GeneratedItem -> "g${it.playlist.kind.key}"
         }
+    }
+
+    private fun generated(
+        kind: GeneratedKind,
+        startedAt: Long?,
+        trackCount: Int = 20,
+    ) = GeneratedPlaylist(
+        kind,
+        epochDay = 1,
+        gradient = 0,
+        trackCount = trackCount,
+        createdAtMs = 0,
+        lastStartedAtMs = startedAt,
+    )
+
+    @Test
+    fun `a played generated playlist goes in by its latest listen, an unplayed or hidden one does not`() {
+        val sets =
+            listOf(
+                generated(GeneratedKind.ON_REPEAT, startedAt = 985),
+                generated(GeneratedKind.BEST_RATED, startedAt = null),
+                generated(GeneratedKind.RECENTLY_ADDED, startedAt = 999, trackCount = 3),
+            )
+
+        assertEquals(listOf("a3", "a1", "gonRepeat", "a2"), tiles(history(3, 1, 2), generated = sets))
     }
 
     @Test

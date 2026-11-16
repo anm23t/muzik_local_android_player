@@ -96,6 +96,8 @@ class ListenWriterTest {
 
         override fun observeTrackPlayStats() = emptyFlow<List<TrackPlayStatRow>>()
 
+        override suspend fun trackPlayStatsSince(fromMs: Long) = emptyList<TrackPlayStatRow>()
+
         override fun observeTotals(
             from: Long,
             to: Long,

@@ -58,4 +58,7 @@
     <string name="playlist_export_done">Плейлист сохранён в файл M3U8.</string>
     <string name="playlist_file_error_title">Ошибка файла</string>
     <string name="playlist_file_error">Файл не удалось открыть или записать. Попробуйте другой файл или папку.</string>
+    <string name="generated_add">Добавить</string>
+    <string name="generated_added_title">Добавлено в плейлисты</string>
+    <string name="generated_added">Сегодняшний набор сохранён как плейлист «%1$s».</string>
 </resources>

@@ -35,6 +35,8 @@ import org.muzzzlo.player.core.model.CompoundNames
 import org.muzzzlo.player.core.model.CompoundRepository
 import org.muzzzlo.player.core.model.CompoundRule
 import org.muzzzlo.player.core.model.ContinueItem
+import org.muzzzlo.player.core.model.GeneratedKind
+import org.muzzzlo.player.core.model.GeneratedPlaylist
 import org.muzzzlo.player.core.model.LibraryRepository
 import org.muzzzlo.player.core.model.PlayerState
 import org.muzzzlo.player.core.model.Playlist
@@ -64,6 +66,7 @@ class LibraryViewModelsTest {
     private val player = FakePlayerController()
     private val stats = FakeStats()
     private val playlists = FakePlaylists()
+    private val generated = FakeGeneratedPlaylists()
 
     private fun tracksViewModel(
         lib: LibraryRepository,
@@ -265,7 +268,7 @@ class LibraryViewModelsTest {
     @Test
     fun `continue listening shows the album of the track in the queue while there is no history`() =
         runTest {
-            val viewModel = HomeViewModel(library, stats, player, playlists)
+            val viewModel = HomeViewModel(library, stats, player, playlists, generated)
             subscribe(viewModel.state)
             assertEquals(emptyList<ContinueItem>(), viewModel.state.value.continueItems)
 
@@ -279,7 +282,7 @@ class LibraryViewModelsTest {
     @Test
     fun `continue listening follows the history and drops the queue album`() =
         runTest {
-            val viewModel = HomeViewModel(library, stats, player, playlists)
+            val viewModel = HomeViewModel(library, stats, player, playlists, generated)
             subscribe(viewModel.state)
             player.state.value = PlayerState(currentTrack = second)
 
@@ -293,7 +296,7 @@ class LibraryViewModelsTest {
     @Test
     fun `continue listening puts a started playlist among the albums`() =
         runTest {
-            val viewModel = HomeViewModel(library, stats, player, playlists)
+            val viewModel = HomeViewModel(library, stats, player, playlists, generated)
             subscribe(viewModel.state)
             stats.recent.value = listOf(RecentAlbum(album.id, 10))
             val mix = Playlist(1, "Mix", 2, first.id, 0, lastPlayedAtMs = 20)
@@ -315,7 +318,7 @@ class LibraryViewModelsTest {
                     listOf(album),
                     emptyList(),
                 ).apply { scanError = IllegalStateException() }
-            val viewModel = HomeViewModel(failing, stats, player, playlists)
+            val viewModel = HomeViewModel(failing, stats, player, playlists, generated)
             subscribe(viewModel.state)
 
             viewModel.onScanRequested()
@@ -325,6 +328,25 @@ class LibraryViewModelsTest {
             failing.scanError = null
             viewModel.onScanRequested()
             assertEquals(false, viewModel.state.value.scanFailed)
+        }
+
+    @Test
+    fun `the generated playlists of the day are built after each scan and shown when big enough`() =
+        runTest {
+            val viewModel = HomeViewModel(library, stats, player, playlists, generated)
+            subscribe(viewModel.state)
+            viewModel.onScanRequested()
+            assertEquals(1, generated.ensured)
+
+            val onRepeat = GeneratedPlaylist(GeneratedKind.ON_REPEAT, 1, 0, trackCount = 20, createdAtMs = 0)
+            val tiny = GeneratedPlaylist(GeneratedKind.BEST_RATED, 1, 2, trackCount = 4, createdAtMs = 0)
+            generated.playlists.value = listOf(onRepeat, tiny)
+            assertEquals(listOf(onRepeat), viewModel.state.value.generated)
+            assertEquals(emptyList<ContinueItem>(), viewModel.state.value.continueItems)
+
+            val played = onRepeat.copy(lastStartedAtMs = 30)
+            generated.playlists.value = listOf(played)
+            assertEquals(listOf(ContinueItem.GeneratedItem(played)), viewModel.state.value.continueItems)
         }
 
     @Test
@@ -457,7 +479,8 @@ class LibraryViewModelsTest {
     @Test
     fun `home knows when the library is empty`() =
         runTest {
-            val viewModel = HomeViewModel(FakeLibrary(emptyList(), emptyList(), emptyList()), stats, player, playlists)
+            val viewModel =
+                HomeViewModel(FakeLibrary(emptyList(), emptyList(), emptyList()), stats, player, playlists, generated)
             subscribe(viewModel.state)
 
             assertEquals(false, viewModel.state.value.hasMusic)

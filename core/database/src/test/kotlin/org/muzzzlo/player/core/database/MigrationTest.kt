@@ -347,6 +347,30 @@ class MigrationTest {
         }
     }
 
+    @Test
+    fun `16 to 17 adds generated playlists, the source of listens and the gradient of playlists`() {
+        helper.createDatabase(DB_NAME, 16).use { db ->
+            db.execSQL(
+                "INSERT INTO listen_event (id, track_id, started_at, played_ms, duration_ms, counted, skipped, " +
+                    "title_snapshot, artists_snapshot) VALUES (1, NULL, 5, 1, 1, 1, 0, 'Song', '[]')",
+            )
+            db.execSQL("INSERT INTO playlist (id, name, created_at) VALUES (1, 'Mine', 5)")
+        }
+
+        helper.runMigrationsAndValidate(DB_NAME, 17, true, MIGRATION_16_17).use { db ->
+            db.query("SELECT (SELECT source_kind FROM listen_event), (SELECT cover_gradient FROM playlist)").use {
+                it.moveToFirst()
+                assertTrue(it.isNull(0))
+                assertTrue(it.isNull(1))
+            }
+            db.execSQL("INSERT INTO generated_playlist (kind, day, gradient, created_at) VALUES ('onRepeat', 1, 0, 2)")
+            db.query("SELECT kind FROM generated_playlist").use {
+                it.moveToFirst()
+                assertEquals("onRepeat", it.getString(0))
+            }
+        }
+    }
+
     private companion object {
         const val DB_NAME = "migration-test.db"
     }

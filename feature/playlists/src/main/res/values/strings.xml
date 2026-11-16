@@ -50,4 +50,7 @@
     <string name="playlist_export_done">The playlist was saved as an M3U8 file.</string>
     <string name="playlist_file_error_title">File error</string>
     <string name="playlist_file_error">The file could not be opened or written. Try another file or folder.</string>
+    <string name="generated_add">Add</string>
+    <string name="generated_added_title">Added to playlists</string>
+    <string name="generated_added">Today\'s set is kept as the playlist “%1$s”.</string>
 </resources>

@@ -81,6 +81,7 @@ object ListenRules {
             titleSnapshot = track.title,
             artistsSnapshot = track.artists,
             playlistId = listen.playlistId,
+            generatedKind = listen.generatedKind,
         )
     }
 }

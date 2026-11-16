@@ -115,5 +115,6 @@ internal class DefaultPlaylistRepository
                 createdAt,
                 lastPlayedAt,
                 coverPath,
+                coverGradient,
             )
     }

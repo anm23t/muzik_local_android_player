@@ -24,6 +24,9 @@ data class ListenEvent(
     /** The playlist the queue was started from, null otherwise; such a listen does not move the album up in
      * "Continue listening" (task 1.1.5). */
     val playlistId: Long? = null,
+    /** The kind of the generated playlist the queue was started from ([GeneratedKind.key], task 2.5.7); null otherwise.
+     * The daily mix weighs such listens low, "Continue listening" shows the generated playlist. */
+    val generatedKind: String? = null,
 )
 
 /** How a listen ended. */
@@ -46,6 +49,8 @@ data class FinishedListen(
     val end: ListenEnd,
     /** The playlist the queue item came from, see [PlayerController.play]. */
     val playlistId: Long? = null,
+    /** The generated playlist the queue item came from, see [PlayerController.play]. */
+    val generatedKind: String? = null,
 )
 
 /**

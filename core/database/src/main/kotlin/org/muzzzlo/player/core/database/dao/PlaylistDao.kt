@@ -12,7 +12,7 @@ import org.muzzzlo.player.core.database.entity.PlaylistTrackEntity
 import org.muzzzlo.player.core.database.entity.TrackEntity
 
 private const val PLAYLIST_ROWS =
-    "SELECT p.id, p.name, p.created_at, p.last_played_at, p.cover_path, " +
+    "SELECT p.id, p.name, p.created_at, p.last_played_at, p.cover_path, p.cover_gradient, " +
         "(SELECT COUNT(*) FROM playlist_track pt JOIN track t ON t.id = pt.track_id AND t.is_missing = 0 " +
         "WHERE pt.playlist_id = p.id) AS track_count, " +
         "(SELECT pt.track_id FROM playlist_track pt JOIN track t ON t.id = pt.track_id AND t.is_missing = 0 " +
@@ -28,6 +28,7 @@ data class PlaylistRow(
     @ColumnInfo(name = "track_count") val trackCount: Int,
     @ColumnInfo(name = "first_track_id") val firstTrackId: Long?,
     @ColumnInfo(name = "cover_path") val coverPath: String?,
+    @ColumnInfo(name = "cover_gradient") val coverGradient: Int? = null,
 )
 
 /** A visible entry of a playlist with its track. */

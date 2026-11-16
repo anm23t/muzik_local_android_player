@@ -18,13 +18,17 @@ private const val KEY_TRACK_PEAK = "rg_track_peak"
 private const val KEY_ALBUM_GAIN = "rg_album_gain"
 private const val KEY_ALBUM_PEAK = "rg_album_peak"
 private const val KEY_PLAYLIST_ID = "playlist_id"
+private const val KEY_GENERATED_KIND = "generated_kind"
 private const val ABSENT = -1L
 
 /**
  * Builds the Media3 item. The full [Track] rides in the metadata extras, so the player can give it back, together
  * with the playlist the queue was started from ([playlistId]).
  */
-internal fun Track.toMediaItem(playlistId: Long? = null): MediaItem {
+internal fun Track.toMediaItem(
+    playlistId: Long? = null,
+    generatedKind: String? = null,
+): MediaItem {
     val extras =
         Bundle().apply {
             putLong(KEY_ID, id)
@@ -38,6 +42,7 @@ internal fun Track.toMediaItem(playlistId: Long? = null): MediaItem {
             putOptionalFloat(KEY_ALBUM_GAIN, replayGain.albumGainDb)
             putOptionalFloat(KEY_ALBUM_PEAK, replayGain.albumPeak)
             if (playlistId != null) putLong(KEY_PLAYLIST_ID, playlistId)
+            if (generatedKind != null) putString(KEY_GENERATED_KIND, generatedKind)
         }
     return MediaItem.Builder()
         .setMediaId(id.toString())
@@ -74,6 +79,9 @@ internal fun MediaItem.toTrack(): Track? {
 /** The playlist stored by [toMediaItem]; null for items queued another way. */
 internal fun MediaItem.playlistId(): Long? =
     mediaMetadata.extras?.takeIf { it.containsKey(KEY_PLAYLIST_ID) }?.getLong(KEY_PLAYLIST_ID)
+
+/** The kind of the generated playlist stored by [toMediaItem] (task 2.5.7); null for other items. */
+internal fun MediaItem.generatedKind(): String? = mediaMetadata.extras?.getString(KEY_GENERATED_KIND)
 
 /** ReplayGain values stored by [toMediaItem]; none for other items. */
 internal fun MediaItem.replayGainInfo(): ReplayGainInfo {

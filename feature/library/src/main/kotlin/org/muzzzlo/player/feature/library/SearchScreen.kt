@@ -173,7 +173,12 @@ private fun SearchResultsList(
                 title = playlist.name,
                 subtitle = playlistCounts.getValue(playlist.id),
                 onClick = { onOpenPlaylist(playlist.id) },
-                cover = { CoverImage(playlistCoverSource(playlist.coverPath, playlist.firstTrackId), it) },
+                cover = {
+                    CoverImage(
+                        playlistCoverSource(playlist.coverPath, playlist.firstTrackId, playlist.coverGradient),
+                        it,
+                    )
+                },
             )
         }
     }

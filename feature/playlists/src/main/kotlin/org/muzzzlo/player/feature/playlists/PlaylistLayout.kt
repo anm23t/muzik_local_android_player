@@ -88,15 +88,17 @@ internal fun Notice(text: String) {
 internal fun trackCountText(count: Int): String = pluralStringResource(R.plurals.playlist_track_count, count, count)
 
 /**
- * A playlist stands for itself with the picture the user picked ([coverPath]) or else the cover of its first track;
- * an empty playlist without a picture shows the placeholder.
+ * A playlist stands for itself with the picture the user picked ([coverPath]), else its [gradient] (generated and
+ * kept generated playlists, task 2.5.7), else the cover of its first track; an empty playlist without a picture shows
+ * the placeholder.
  */
 @Composable
 internal fun PlaylistCover(
     firstTrackId: Long?,
     modifier: Modifier,
     coverPath: String? = null,
-) = CoverImage(playlistCoverSource(coverPath, firstTrackId), modifier)
+    gradient: Int? = null,
+) = CoverImage(playlistCoverSource(coverPath, firstTrackId, gradient), modifier)
 
 /** The name of an automatic playlist. */
 @Composable

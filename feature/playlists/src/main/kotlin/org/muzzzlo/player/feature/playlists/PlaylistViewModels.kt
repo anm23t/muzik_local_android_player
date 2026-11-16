@@ -42,7 +42,7 @@ const val PLAYLIST_ID_ARG = "playlistId"
 
 private const val STOP_TIMEOUT_MS = 5_000L
 
-private fun <T> Flow<T>.stateIn(
+internal fun <T> Flow<T>.stateIn(
     viewModel: ViewModel,
     initial: T,
 ): StateFlow<T> = stateIn(viewModel.viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), initial)

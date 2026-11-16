@@ -11,6 +11,7 @@ import org.muzzzlo.player.core.library.DefaultAutoPlaylistRepository
 import org.muzzzlo.player.core.library.DefaultBackgroundPaletteRepository
 import org.muzzzlo.player.core.library.DefaultCompoundRepository
 import org.muzzzlo.player.core.library.DefaultCoverRepository
+import org.muzzzlo.player.core.library.DefaultGeneratedPlaylistRepository
 import org.muzzzlo.player.core.library.DefaultLibraryMaintenance
 import org.muzzzlo.player.core.library.DefaultLibraryRepository
 import org.muzzzlo.player.core.library.DefaultLyricsRepository
@@ -31,6 +32,7 @@ import org.muzzzlo.player.core.model.AutoPlaylistRepository
 import org.muzzzlo.player.core.model.BackgroundPaletteRepository
 import org.muzzzlo.player.core.model.CompoundRepository
 import org.muzzzlo.player.core.model.CoverRepository
+import org.muzzzlo.player.core.model.GeneratedPlaylistRepository
 import org.muzzzlo.player.core.model.LibraryMaintenance
 import org.muzzzlo.player.core.model.LibraryRepository
 import org.muzzzlo.player.core.model.LyricsRepository
@@ -53,6 +55,9 @@ internal abstract class LibraryModule {
 
     @Binds
     abstract fun trackFacts(impl: DefaultTrackFactsSource): TrackFactsSource
+
+    @Binds
+    abstract fun generatedPlaylists(impl: DefaultGeneratedPlaylistRepository): GeneratedPlaylistRepository
 
     @Binds
     @Singleton

@@ -225,6 +225,7 @@ class StatsViewModelTest {
             tracks: List<Track>,
             startIndex: Int,
             playlistId: Long?,
+            generatedKind: String?,
         ) {
             played += tracks to startIndex
         }

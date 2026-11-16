@@ -205,6 +205,7 @@ class TrackDeletionViewModelTest {
             tracks: List<Track>,
             startIndex: Int,
             playlistId: Long?,
+            generatedKind: String?,
         ) = Unit
 
         override fun togglePlayPause() = Unit

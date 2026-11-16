@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import org.muzzzlo.player.core.designsystem.theme.MuzzzloCoverGradients
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloDimens
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloMotion
 
@@ -27,13 +28,23 @@ sealed interface CoverSource {
 
     /** A picture the user picked, a file in the app's private folder (the cover of a playlist). */
     data class File(val path: String) : CoverSource
+
+    /** A gradient of [MuzzzloCoverGradients] (generated and smart playlists, task 2.5.7); drawn, not loaded. */
+    data class Gradient(val index: Int) : CoverSource
 }
 
-/** The cover a playlist stands for itself with: the picture the user picked, else the cover of its first track. */
+/**
+ * The cover a playlist stands for itself with: the picture the user picked, else its gradient (a kept generated
+ * playlist, task 2.5.7), else the cover of its first track.
+ */
 fun playlistCoverSource(
     coverPath: String?,
     firstTrackId: Long?,
-): CoverSource? = coverPath?.let { CoverSource.File(it) } ?: firstTrackId?.let { CoverSource.Track(it) }
+    gradient: Int? = null,
+): CoverSource? =
+    coverPath?.let { CoverSource.File(it) }
+        ?: gradient?.let { CoverSource.Gradient(it) }
+        ?: firstTrackId?.let { CoverSource.Track(it) }
 
 /** Loads the small covers for [CoverImage]; the app provides the implementation (cover cache of task 0.3.7). */
 fun interface CoverLoader {
@@ -65,6 +76,10 @@ fun CoverImage(
     placeholderShape: Shape = MuzzzloDimens.RowShape,
     fadeIn: Boolean = false,
 ) {
+    if (source is CoverSource.Gradient) {
+        GradientCover(source.index, modifier, placeholderShape)
+        return
+    }
     val loader = LocalCoverLoader.current
     // The picture is kept with its source, so after a change of source the old picture is never shown as the new.
     val loaded by produceState(initialValue = source to source?.let(loader::cached), source, loader) {

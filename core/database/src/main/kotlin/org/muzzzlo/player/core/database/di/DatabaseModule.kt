@@ -13,6 +13,7 @@ import org.muzzzlo.player.core.database.MIGRATION_12_13
 import org.muzzzlo.player.core.database.MIGRATION_13_14
 import org.muzzzlo.player.core.database.MIGRATION_14_15
 import org.muzzzlo.player.core.database.MIGRATION_15_16
+import org.muzzzlo.player.core.database.MIGRATION_16_17
 import org.muzzzlo.player.core.database.MIGRATION_1_2
 import org.muzzzlo.player.core.database.MIGRATION_2_3
 import org.muzzzlo.player.core.database.MIGRATION_3_4
@@ -24,6 +25,7 @@ import org.muzzzlo.player.core.database.MIGRATION_8_9
 import org.muzzzlo.player.core.database.MIGRATION_9_10
 import org.muzzzlo.player.core.database.MuzzzloDatabase
 import org.muzzzlo.player.core.database.dao.BackupDao
+import org.muzzzlo.player.core.database.dao.GeneratedPlaylistDao
 import org.muzzzlo.player.core.database.dao.LibraryDao
 import org.muzzzlo.player.core.database.dao.ListenEventDao
 import org.muzzzlo.player.core.database.dao.PlaylistDao
@@ -55,6 +57,7 @@ object DatabaseModule {
                 MIGRATION_13_14,
                 MIGRATION_14_15,
                 MIGRATION_15_16,
+                MIGRATION_16_17,
             )
             .build()
 
@@ -69,6 +72,9 @@ object DatabaseModule {
 
     @Provides
     fun playlistDao(database: MuzzzloDatabase): PlaylistDao = database.playlistDao()
+
+    @Provides
+    fun generatedPlaylistDao(database: MuzzzloDatabase): GeneratedPlaylistDao = database.generatedPlaylistDao()
 
     @Provides
     fun smartPlaylistDao(database: MuzzzloDatabase): SmartPlaylistDao = database.smartPlaylistDao()

@@ -51,6 +51,7 @@ interface PlayerController {
         tracks: List<Track>,
         startIndex: Int,
         playlistId: Long? = null,
+        generatedKind: String? = null,
     )
 
     fun togglePlayPause()

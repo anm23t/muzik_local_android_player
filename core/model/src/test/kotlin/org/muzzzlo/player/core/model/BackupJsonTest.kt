@@ -60,6 +60,16 @@ class BackupJsonTest {
                         title = "Line\nbreak \"q\"",
                         artists = listOf("A"),
                     ),
+                    BackupEvent(
+                        11,
+                        20,
+                        30,
+                        counted = true,
+                        skipped = false,
+                        title = "G",
+                        artists = emptyList(),
+                        generatedKind = "onRepeat",
+                    ),
                 ),
             playlists =
                 listOf(
@@ -70,6 +80,7 @@ class BackupJsonTest {
                         List(2) { BackupPlaylistTrack("Song", listOf("A"), 1000) },
                     ),
                     BackupPlaylist("Empty", 6, null, emptyList()),
+                    BackupPlaylist("On Repeat", 7, null, emptyList(), coverGradient = 3),
                 ),
             smartPlaylists =
                 listOf(

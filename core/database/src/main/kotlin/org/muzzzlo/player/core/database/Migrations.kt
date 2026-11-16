@@ -216,3 +216,35 @@ val MIGRATION_15_16 =
             )
         }
     }
+
+/**
+ * Generated playlists of the home screen (task 2.5.7): their tables start empty and are filled on the next start,
+ * listens remember the kind of generated playlist they came from, a kept generated playlist keeps its gradient.
+ */
+val MIGRATION_16_17 =
+    object : Migration(16, 17) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                "CREATE TABLE IF NOT EXISTS `generated_playlist` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                    "`kind` TEXT NOT NULL, `day` INTEGER NOT NULL, `gradient` INTEGER NOT NULL, " +
+                    "`created_at` INTEGER NOT NULL)",
+            )
+            db.execSQL(
+                "CREATE UNIQUE INDEX IF NOT EXISTS `index_generated_playlist_kind` ON `generated_playlist` (`kind`)",
+            )
+            db.execSQL(
+                "CREATE TABLE IF NOT EXISTS `generated_playlist_track` (`generated_id` INTEGER NOT NULL, " +
+                    "`track_id` INTEGER NOT NULL, `position` INTEGER NOT NULL, " +
+                    "PRIMARY KEY(`generated_id`, `position`), " +
+                    "FOREIGN KEY(`generated_id`) REFERENCES `generated_playlist`(`id`) ON UPDATE NO ACTION " +
+                    "ON DELETE CASCADE , FOREIGN KEY(`track_id`) REFERENCES `track`(`id`) ON UPDATE NO ACTION " +
+                    "ON DELETE CASCADE )",
+            )
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS `index_generated_playlist_track_track_id` ON `generated_playlist_track` " +
+                    "(`track_id`)",
+            )
+            db.execSQL("ALTER TABLE `listen_event` ADD COLUMN `source_kind` TEXT")
+            db.execSQL("ALTER TABLE `playlist` ADD COLUMN `cover_gradient` INTEGER")
+        }
+    }

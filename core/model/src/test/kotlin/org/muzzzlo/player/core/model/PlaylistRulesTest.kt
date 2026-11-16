@@ -80,4 +80,13 @@ class PlaylistRulesTest {
     ) = assertEquals(expected.split(" "), PlaylistOrder.move(listOf("a", "b", "c", "d"), from, to))
 
     private fun slots(vararg ids: Long) = ids.map { Slot(it, true) }
+
+    @Test
+    fun `a taken name gets the first free number from 2`() {
+        assertEquals("Daily Mix", PlaylistNames.numbered("Daily Mix", listOf("Other")))
+        assertEquals("Daily Mix 2", PlaylistNames.numbered("Daily Mix", listOf("Daily Mix")))
+        assertEquals("Daily Mix 3", PlaylistNames.numbered("Daily Mix", listOf("daily  mix", "Daily Mix 2")))
+        assertEquals("Daily Mix 2", PlaylistNames.numbered("Daily Mix", listOf("Daily Mix", "Daily Mix 3")))
+        assertEquals("На повторе 2", PlaylistNames.numbered("На повторе", listOf("НА ПОВТОРЕ")))
+    }
 }
