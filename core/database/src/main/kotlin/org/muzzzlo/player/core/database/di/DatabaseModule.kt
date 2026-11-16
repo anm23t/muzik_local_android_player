@@ -12,6 +12,7 @@ import org.muzzzlo.player.core.database.MIGRATION_11_12
 import org.muzzzlo.player.core.database.MIGRATION_12_13
 import org.muzzzlo.player.core.database.MIGRATION_13_14
 import org.muzzzlo.player.core.database.MIGRATION_14_15
+import org.muzzzlo.player.core.database.MIGRATION_15_16
 import org.muzzzlo.player.core.database.MIGRATION_1_2
 import org.muzzzlo.player.core.database.MIGRATION_2_3
 import org.muzzzlo.player.core.database.MIGRATION_3_4
@@ -26,6 +27,7 @@ import org.muzzzlo.player.core.database.dao.BackupDao
 import org.muzzzlo.player.core.database.dao.LibraryDao
 import org.muzzzlo.player.core.database.dao.ListenEventDao
 import org.muzzzlo.player.core.database.dao.PlaylistDao
+import org.muzzzlo.player.core.database.dao.SmartPlaylistDao
 import javax.inject.Singleton
 
 @Module
@@ -52,6 +54,7 @@ object DatabaseModule {
                 MIGRATION_12_13,
                 MIGRATION_13_14,
                 MIGRATION_14_15,
+                MIGRATION_15_16,
             )
             .build()
 
@@ -66,4 +69,7 @@ object DatabaseModule {
 
     @Provides
     fun playlistDao(database: MuzzzloDatabase): PlaylistDao = database.playlistDao()
+
+    @Provides
+    fun smartPlaylistDao(database: MuzzzloDatabase): SmartPlaylistDao = database.smartPlaylistDao()
 }

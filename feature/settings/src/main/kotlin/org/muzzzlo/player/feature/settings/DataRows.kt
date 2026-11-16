@@ -136,6 +136,9 @@ private fun BackupMessageDialog(
                 ),
             )
             if (result.playlists > 0) Text(stringResource(R.string.settings_backup_playlists, result.playlists))
+            if (result.smartPlaylists > 0) {
+                Text(stringResource(R.string.settings_backup_smart_playlists, result.smartPlaylists))
+            }
             if (result.unmatchedMarks > 0) {
                 Text(stringResource(R.string.settings_backup_unmatched, result.unmatchedMarks))
             }

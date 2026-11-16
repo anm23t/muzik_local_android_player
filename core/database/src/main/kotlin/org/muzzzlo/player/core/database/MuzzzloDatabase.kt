@@ -6,6 +6,7 @@ import org.muzzzlo.player.core.database.dao.BackupDao
 import org.muzzzlo.player.core.database.dao.LibraryDao
 import org.muzzzlo.player.core.database.dao.ListenEventDao
 import org.muzzzlo.player.core.database.dao.PlaylistDao
+import org.muzzzlo.player.core.database.dao.SmartPlaylistDao
 import org.muzzzlo.player.core.database.entity.AlbumArtistEntity
 import org.muzzzlo.player.core.database.entity.AlbumEntity
 import org.muzzzlo.player.core.database.entity.ArtistAliasEntity
@@ -15,6 +16,7 @@ import org.muzzzlo.player.core.database.entity.GenreEntity
 import org.muzzzlo.player.core.database.entity.ListenEventEntity
 import org.muzzzlo.player.core.database.entity.PlaylistEntity
 import org.muzzzlo.player.core.database.entity.PlaylistTrackEntity
+import org.muzzzlo.player.core.database.entity.SmartPlaylistEntity
 import org.muzzzlo.player.core.database.entity.TrackArtistEntity
 import org.muzzzlo.player.core.database.entity.TrackEntity
 import org.muzzzlo.player.core.database.entity.TrackGenreEntity
@@ -34,8 +36,9 @@ import org.muzzzlo.player.core.database.entity.TrackGenreEntity
         PlaylistTrackEntity::class,
         GenreEntity::class,
         TrackGenreEntity::class,
+        SmartPlaylistEntity::class,
     ],
-    version = 15,
+    version = 16,
     exportSchema = true,
 )
 abstract class MuzzzloDatabase : RoomDatabase() {
@@ -46,6 +49,8 @@ abstract class MuzzzloDatabase : RoomDatabase() {
     abstract fun backupDao(): BackupDao
 
     abstract fun playlistDao(): PlaylistDao
+
+    abstract fun smartPlaylistDao(): SmartPlaylistDao
 
     companion object {
         const val NAME = "muzzzlo.db"

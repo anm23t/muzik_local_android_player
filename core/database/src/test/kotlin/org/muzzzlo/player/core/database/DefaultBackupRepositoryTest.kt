@@ -22,10 +22,13 @@ import org.muzzzlo.player.core.database.entity.ArtistAliasEntity
 import org.muzzzlo.player.core.database.entity.ArtistEntity
 import org.muzzzlo.player.core.database.entity.ListenEventEntity
 import org.muzzzlo.player.core.database.entity.PlaylistEntity
+import org.muzzzlo.player.core.database.entity.SmartPlaylistEntity
 import org.muzzzlo.player.core.database.entity.TrackEntity
 import org.muzzzlo.player.core.model.AppLanguage
 import org.muzzzlo.player.core.model.AppSettings
+import org.muzzzlo.player.core.model.AutoPlaylist
 import org.muzzzlo.player.core.model.BackupFormatException
+import org.muzzzlo.player.core.model.BackupJson
 import org.muzzzlo.player.core.model.CompoundRepository
 import org.muzzzlo.player.core.model.CompoundRule
 import org.muzzzlo.player.core.model.CrossfadeSettings
@@ -35,6 +38,7 @@ import org.muzzzlo.player.core.model.InterfaceTheme
 import org.muzzzlo.player.core.model.PlaybackBehaviorSettings
 import org.muzzzlo.player.core.model.ReplayGainSettings
 import org.muzzzlo.player.core.model.SettingsRepository
+import org.muzzzlo.player.core.model.SmartRulesJson
 import org.muzzzlo.player.core.model.SortedList
 import org.muzzzlo.player.core.model.StatsSettings
 import org.muzzzlo.player.core.model.StoredSort
@@ -266,9 +270,32 @@ class DefaultBackupRepositoryTest {
         }
 
     @Test
+    fun `smart playlists round trip and are not added twice`() =
+        runBlocking {
+            val rules = AutoPlaylist.TopSongs.rules.copy(limit = 25)
+            db.smartPlaylistDao().insert(
+                SmartPlaylistEntity(name = "Best", rulesJson = SmartRulesJson.encode(rules), createdAt = 42),
+            )
+            val json = repository().exportJson()
+
+            val other = fresh()
+            assertEquals(1, repository(other).importJson(json).smartPlaylists)
+            assertEquals(0, repository(other).importJson(json).smartPlaylists)
+            val row = other.smartPlaylistDao().all().single()
+            assertEquals("Best", row.name)
+            assertEquals(42L, row.createdAt)
+            assertEquals(rules, SmartRulesJson.decode(row.rulesJson))
+            other.close()
+        }
+
+    @Test
     fun `a version 1 backup without playlists still imports`() =
         runBlocking {
-            val json = repository().exportJson().replace("\"schemaVersion\": 2", "\"schemaVersion\": 1")
+            val json =
+                repository().exportJson().replace(
+                    "\"schemaVersion\": ${BackupJson.VERSION}",
+                    "\"schemaVersion\": 1",
+                )
             assertTrue(json.contains("\"schemaVersion\": 1"))
 
             assertEquals(0, repository().importJson(json).playlists)

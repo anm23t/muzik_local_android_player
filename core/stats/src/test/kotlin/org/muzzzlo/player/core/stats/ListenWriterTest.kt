@@ -14,6 +14,7 @@ import org.muzzzlo.player.core.database.dao.RecentAlbumRow
 import org.muzzzlo.player.core.database.dao.TopAlbumRow
 import org.muzzzlo.player.core.database.dao.TopTrackRow
 import org.muzzzlo.player.core.database.dao.TotalsRow
+import org.muzzzlo.player.core.database.dao.TrackPlayStatRow
 import org.muzzzlo.player.core.database.entity.ListenEventEntity
 import org.muzzzlo.player.core.model.FinishedListen
 import org.muzzzlo.player.core.model.ListenEnd
@@ -92,6 +93,8 @@ class ListenWriterTest {
         }
 
         override suspend fun all(): List<ListenEventEntity> = rows.reversed()
+
+        override fun observeTrackPlayStats() = emptyFlow<List<TrackPlayStatRow>>()
 
         override fun observeTotals(
             from: Long,

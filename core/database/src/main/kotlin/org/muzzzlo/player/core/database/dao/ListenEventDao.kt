@@ -13,11 +13,25 @@ data class RecentAlbumRow(
     val lastListenedAt: Long,
 )
 
+/** Counted listens of one track and the latest of them (task 2.5.6). */
+data class TrackPlayStatRow(
+    @ColumnInfo(name = "track_id") val trackId: Long,
+    val plays: Int,
+    @ColumnInfo(name = "last_played_at") val lastPlayedAt: Long,
+)
+
 /** Listen events of the statistics (DATABASE.md, `listen_event`). */
 @Dao
 interface ListenEventDao {
     @Insert
     suspend fun insert(event: ListenEventEntity): Long
+
+    /** Counted listens per track that still exists, for the rules of smart playlists. */
+    @Query(
+        "SELECT track_id, COUNT(*) AS plays, MAX(started_at) AS last_played_at FROM listen_event " +
+            "WHERE counted = 1 AND track_id IS NOT NULL GROUP BY track_id",
+    )
+    fun observeTrackPlayStats(): Flow<List<TrackPlayStatRow>>
 
     /** Every event, the latest first. */
     @Query("SELECT * FROM listen_event ORDER BY started_at DESC, id DESC")

@@ -71,6 +71,11 @@ class BackupJsonTest {
                     ),
                     BackupPlaylist("Empty", 6, null, emptyList()),
                 ),
+            smartPlaylists =
+                listOf(
+                    BackupSmartPlaylist("Top 50", 7, AutoPlaylist.TopSongs.rules.copy(limit = 50)),
+                    BackupSmartPlaylist("All", 8, SmartRules()),
+                ),
         )
 
     @Test
@@ -83,6 +88,24 @@ class BackupJsonTest {
         val v1 = """{"format":"muzzzlo-backup","schemaVersion":1,"marks":[]}"""
 
         assertEquals(emptyList<BackupPlaylist>(), BackupJson.decode(v1).playlists)
+    }
+
+    @Test
+    fun `a version 2 file reads with no smart playlists`() {
+        val v2 = """{"format":"muzzzlo-backup","schemaVersion":2,"playlists":[]}"""
+
+        assertEquals(emptyList<BackupSmartPlaylist>(), BackupJson.decode(v2).smartPlaylists)
+    }
+
+    @Test
+    fun `a smart playlist with unknown rules is kept, its broken rules match nothing`() {
+        val text =
+            """{"format":"muzzzlo-backup","schemaVersion":3,"smartPlaylists":[""" +
+                """{"name":"A","createdAt":1,"rules":{"groups":[{"conditions":[{"field":"mood","op":"is"}]}]}},""" +
+                """{"name":"B","createdAt":2,"rules":"broken"}]}"""
+        val playlists = BackupJson.decode(text).smartPlaylists
+        assertEquals(listOf(RuleGroup()), playlists[0].rules.groups)
+        assertEquals(SmartRules.NOTHING, playlists[1].rules)
     }
 
     @Test

@@ -296,3 +296,16 @@ data class PlaylistTrackEntity(
     @ColumnInfo(name = "track_id") val trackId: Long,
     val position: Int,
 )
+
+/**
+ * A smart playlist of the user (task 2.5.6): its rules as JSON (`SmartRulesJson`). Lives only in the database and in
+ * the backup (decision 4).
+ */
+@Entity(tableName = "smart_playlist")
+data class SmartPlaylistEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val name: String,
+    @ColumnInfo(name = "rules_json") val rulesJson: String,
+    /** Milliseconds since the epoch. */
+    @ColumnInfo(name = "created_at") val createdAt: Long,
+)

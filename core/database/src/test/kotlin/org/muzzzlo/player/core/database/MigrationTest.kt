@@ -331,6 +331,22 @@ class MigrationTest {
         }
     }
 
+    @Test
+    fun `15 to 16 adds the smart playlist table`() {
+        helper.createDatabase(DB_NAME, 15).use { db ->
+            db.execSQL("INSERT INTO playlist (id, name, created_at) VALUES (1, 'Mine', 5)")
+        }
+
+        helper.runMigrationsAndValidate(DB_NAME, 16, true, MIGRATION_15_16).use { db ->
+            db.execSQL("INSERT INTO smart_playlist (name, rules_json, created_at) VALUES ('Top', '{}', 7)")
+            db.query("SELECT (SELECT name FROM playlist), (SELECT name FROM smart_playlist)").use {
+                it.moveToFirst()
+                assertEquals("Mine", it.getString(0))
+                assertEquals("Top", it.getString(1))
+            }
+        }
+    }
+
     private companion object {
         const val DB_NAME = "migration-test.db"
     }

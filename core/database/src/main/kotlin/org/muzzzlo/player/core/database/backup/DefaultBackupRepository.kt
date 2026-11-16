@@ -8,11 +8,13 @@ import org.muzzzlo.player.core.database.dao.BackupDao
 import org.muzzzlo.player.core.database.dao.LibraryDao
 import org.muzzzlo.player.core.database.dao.ListenEventDao
 import org.muzzzlo.player.core.database.dao.PlaylistDao
+import org.muzzzlo.player.core.database.dao.SmartPlaylistDao
 import org.muzzzlo.player.core.database.dao.TrackIdentity
 import org.muzzzlo.player.core.database.entity.ArtistAliasEntity
 import org.muzzzlo.player.core.database.entity.ArtistEntity
 import org.muzzzlo.player.core.database.entity.ListenEventEntity
 import org.muzzzlo.player.core.database.entity.PlaylistEntity
+import org.muzzzlo.player.core.database.entity.SmartPlaylistEntity
 import org.muzzzlo.player.core.model.AppSettings
 import org.muzzzlo.player.core.model.BackupAlias
 import org.muzzzlo.player.core.model.BackupCompound
@@ -23,6 +25,7 @@ import org.muzzzlo.player.core.model.BackupJson
 import org.muzzzlo.player.core.model.BackupPlaylist
 import org.muzzzlo.player.core.model.BackupPlaylistTrack
 import org.muzzzlo.player.core.model.BackupRepository
+import org.muzzzlo.player.core.model.BackupSmartPlaylist
 import org.muzzzlo.player.core.model.BackupTrackMark
 import org.muzzzlo.player.core.model.CompoundRepository
 import org.muzzzlo.player.core.model.DispatcherProvider
@@ -31,6 +34,8 @@ import org.muzzzlo.player.core.model.ListenCsv
 import org.muzzzlo.player.core.model.NameNormalizer
 import org.muzzzlo.player.core.model.PlaylistNames
 import org.muzzzlo.player.core.model.SettingsRepository
+import org.muzzzlo.player.core.model.SmartRules
+import org.muzzzlo.player.core.model.SmartRulesJson
 import org.muzzzlo.player.core.model.TrackMatcher
 import java.time.Clock
 import java.time.Instant
@@ -54,6 +59,8 @@ class DefaultBackupRepository
         private val dispatchers: DispatcherProvider,
         private val clock: Clock,
     ) : BackupRepository {
+        private val smartPlaylists: SmartPlaylistDao get() = database.smartPlaylistDao()
+
         override suspend fun exportJson(): String = withContext(dispatchers.io) { BackupJson.encode(collect()) }
 
         override suspend fun exportEventsCsv(): String =
@@ -100,8 +107,13 @@ class DefaultBackupRepository
                     },
                 events = eventsOf(),
                 playlists = playlistsOf(),
+                smartPlaylists = smartPlaylists.all().map(::smartPlaylistOf),
             )
         }
+
+        /** Broken stored rules go out as rules that match nothing, so the backup still holds the playlist. */
+        private fun smartPlaylistOf(row: SmartPlaylistEntity) =
+            BackupSmartPlaylist(row.name, row.createdAt, SmartRulesJson.decode(row.rulesJson) ?: SmartRules.NOTHING)
 
         private suspend fun playlistsOf(): List<BackupPlaylist> {
             val entries = backup.playlistEntries().groupBy { it.playlistId }
@@ -149,7 +161,27 @@ class DefaultBackupRepository
                 unmatchedMarks = data.marks.size - matchedMarks,
                 playlists = playlistsResult.first,
                 unmatchedPlaylistTracks = playlistsResult.second,
+                smartPlaylists = mergeSmartPlaylists(data.smartPlaylists),
             )
+        }
+
+        /** Adds smart playlists that are not there yet (same name and creation time). */
+        private suspend fun mergeSmartPlaylists(incoming: List<BackupSmartPlaylist>): Int {
+            val known = smartPlaylists.all().mapTo(HashSet()) { it.name to it.createdAt }
+            val fresh =
+                incoming.mapNotNull { playlist ->
+                    PlaylistNames.clean(playlist.name)?.let { playlist.copy(name = it) }
+                }.filter { known.add(it.name to it.createdAtMs) }
+            for (playlist in fresh) {
+                smartPlaylists.insert(
+                    SmartPlaylistEntity(
+                        name = playlist.name,
+                        rulesJson = SmartRulesJson.encode(playlist.rules),
+                        createdAt = playlist.createdAtMs,
+                    ),
+                )
+            }
+            return fresh.size
         }
 
         /**

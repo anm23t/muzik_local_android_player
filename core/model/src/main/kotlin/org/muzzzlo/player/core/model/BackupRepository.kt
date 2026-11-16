@@ -4,6 +4,7 @@ package org.muzzzlo.player.core.model
  * What an import changed; `unmatched` marks and playlist tracks could not be linked to a track of the library.
  *
  * @property playlists playlists added; one that is already there (same name and creation time) is skipped.
+ * @property smartPlaylists smart playlists added, skipped the same way.
  */
 data class BackupImportResult(
     val aliases: Int,
@@ -13,6 +14,7 @@ data class BackupImportResult(
     val unmatchedMarks: Int,
     val playlists: Int = 0,
     val unmatchedPlaylistTracks: Int = 0,
+    val smartPlaylists: Int = 0,
 )
 
 /** Exports and imports the data that lives only in the app (ARCHITECTURE.md, section 8). */

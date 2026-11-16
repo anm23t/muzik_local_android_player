@@ -17,6 +17,8 @@ import org.muzzzlo.player.core.library.DefaultLyricsRepository
 import org.muzzzlo.player.core.library.DefaultPlaylistRepository
 import org.muzzzlo.player.core.library.DefaultPlaylistTransfer
 import org.muzzzlo.player.core.library.DefaultSearchRepository
+import org.muzzzlo.player.core.library.DefaultSmartPlaylistRepository
+import org.muzzzlo.player.core.library.DefaultTrackFactsSource
 import org.muzzzlo.player.core.library.DefaultTrackFileDeletion
 import org.muzzzlo.player.core.library.DefaultTrackMarksRepository
 import org.muzzzlo.player.core.library.DefaultTrackTagRepository
@@ -35,6 +37,8 @@ import org.muzzzlo.player.core.model.LyricsRepository
 import org.muzzzlo.player.core.model.PlaylistRepository
 import org.muzzzlo.player.core.model.PlaylistTransfer
 import org.muzzzlo.player.core.model.SearchRepository
+import org.muzzzlo.player.core.model.SmartPlaylistRepository
+import org.muzzzlo.player.core.model.TrackFactsSource
 import org.muzzzlo.player.core.model.TrackFileDeletion
 import org.muzzzlo.player.core.model.TrackMarksRepository
 import org.muzzzlo.player.core.model.TrackTagRepository
@@ -46,6 +50,13 @@ internal abstract class LibraryModule {
     @Binds
     @Singleton
     abstract fun repository(impl: DefaultLibraryRepository): LibraryRepository
+
+    @Binds
+    abstract fun trackFacts(impl: DefaultTrackFactsSource): TrackFactsSource
+
+    @Binds
+    @Singleton
+    abstract fun smartPlaylists(impl: DefaultSmartPlaylistRepository): SmartPlaylistRepository
 
     @Binds
     abstract fun trackFiles(impl: MediaStoreTrackFiles): TrackFiles

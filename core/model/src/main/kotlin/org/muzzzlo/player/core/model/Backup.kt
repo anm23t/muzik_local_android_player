@@ -55,6 +55,13 @@ data class BackupPlaylist(
     val tracks: List<BackupPlaylistTrack>,
 )
 
+/** A smart playlist with its rules (schema version 3, task 2.5.6); [name] with [createdAtMs] tells a duplicate. */
+data class BackupSmartPlaylist(
+    val name: String,
+    val createdAtMs: Long,
+    val rules: SmartRules,
+)
+
 /**
  * Everything the app keeps only in its own storage (ARCHITECTURE.md, section 8). Tags are not here, they live in
  * the files.
@@ -67,6 +74,7 @@ data class BackupData(
     val marks: List<BackupTrackMark>,
     val events: List<BackupEvent>,
     val playlists: List<BackupPlaylist> = emptyList(),
+    val smartPlaylists: List<BackupSmartPlaylist> = emptyList(),
 )
 
 /** A listen event without database ids; the track is found again like in [BackupTrackMark]. */
@@ -85,10 +93,11 @@ data class BackupEvent(
 
 /**
  * Reads and writes the JSON backup. `schemaVersion` is [VERSION]; a newer file is refused, an older one is read.
- * Version 2 (task 1.1.5) added `playlists`; a version 1 file reads with none.
+ * Version 2 (task 1.1.5) added `playlists`; a version 1 file reads with none. Version 3 (task 2.5.6) added
+ * `smartPlaylists`; an older file reads with none.
  */
 object BackupJson {
-    const val VERSION = 2
+    const val VERSION = 3
     private const val FORMAT = "muzzzlo-backup"
 
     fun encode(data: BackupData): String =
@@ -135,6 +144,14 @@ object BackupJson {
                         )
                     },
                 "playlists" to data.playlists.map(::playlistMap),
+                "smartPlaylists" to
+                    data.smartPlaylists.map {
+                        mapOf(
+                            "name" to it.name,
+                            "createdAt" to it.createdAtMs,
+                            "rules" to SmartRulesJson.toMap(it.rules),
+                        )
+                    },
             ),
             pretty = true,
         )
@@ -179,6 +196,7 @@ object BackupJson {
             marks = root.items("marks").map(::markOf),
             events = root.items("events").map(::eventOf),
             playlists = root.items("playlists").map(::playlistOf),
+            smartPlaylists = root.items("smartPlaylists").map(::smartPlaylistOf),
         )
 
     private fun playlistMap(it: BackupPlaylist) =
@@ -233,3 +251,11 @@ object BackupJson {
 
     private const val MAX_RATING = 100
 }
+
+/** Rules that are not a JSON object read as rules that match nothing, the playlist is still kept. */
+private fun smartPlaylistOf(it: Map<*, *>) =
+    BackupSmartPlaylist(
+        it.str("name"),
+        it.long("createdAt") ?: 0L,
+        (it["rules"] as? Map<*, *>)?.let(SmartRulesJson::fromMap) ?: SmartRules.NOTHING,
+    )

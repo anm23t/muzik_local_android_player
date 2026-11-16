@@ -205,3 +205,14 @@ val MIGRATION_14_15 =
             db.execSQL("UPDATE `track` SET `date_modified` = NULL")
         }
     }
+
+/** Smart playlists of the user (task 2.5.6); the table starts empty. */
+val MIGRATION_15_16 =
+    object : Migration(15, 16) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                "CREATE TABLE IF NOT EXISTS `smart_playlist` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                    "`name` TEXT NOT NULL, `rules_json` TEXT NOT NULL, `created_at` INTEGER NOT NULL)",
+            )
+        }
+    }
