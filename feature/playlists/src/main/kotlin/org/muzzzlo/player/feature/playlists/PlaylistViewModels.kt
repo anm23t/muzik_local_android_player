@@ -231,6 +231,7 @@ data class PlaylistUiState(
     val currentTrackId: Long? = null,
     val isLoaded: Boolean = false,
     val message: PlaylistFileMessage? = null,
+    val isEditingOrder: Boolean = false,
 ) {
     val tracks: List<Track> get() = entries.map { it.track }
 }
@@ -254,15 +255,25 @@ class PlaylistViewModel
 
         private val file = MutableStateFlow(FileState())
 
+        /** The "Edit order" mode: rows show drag handles and moves are accepted; off otherwise. */
+        private val editingOrder = MutableStateFlow(false)
+
         val state: StateFlow<PlaylistUiState> =
             combine(
                 playlists.observePlaylist(playlistId),
                 playlists.observeEntries(playlistId),
                 pendingOrder,
                 player.state.map { it.currentTrack?.id }.distinctUntilChanged(),
-                file,
-            ) { playlist, entries, pending, current, file ->
-                PlaylistUiState(playlist, ordered(entries, pending), current, isLoaded = true, file.message)
+                combine(file, editingOrder, ::Pair),
+            ) { playlist, entries, pending, current, (file, editing) ->
+                PlaylistUiState(
+                    playlist = playlist,
+                    entries = ordered(entries, pending),
+                    currentTrackId = current,
+                    isLoaded = true,
+                    message = file.message,
+                    isEditingOrder = editing,
+                )
             }.stateIn(this, PlaylistUiState())
 
         /** The "Play" button: the whole playlist from the first track. */
@@ -275,11 +286,22 @@ class PlaylistViewModel
             viewModelScope.launch { playlists.markPlayed(playlistId) }
         }
 
-        /** A row was dragged from [from] to [to] (indexes of the visible entries). */
+        /** "Edit order" of the pencil menu. */
+        fun onEditOrderStarted() {
+            editingOrder.value = true
+        }
+
+        /** "Done", or the user left the screen. */
+        fun onEditOrderFinished() {
+            editingOrder.value = false
+        }
+
+        /** A row was dragged from [from] to [to] (indexes of the visible entries); only in the edit-order mode. */
         fun onMoved(
             from: Int,
             to: Int,
         ) {
+            if (!editingOrder.value) return
             val ids = state.value.entries.map { it.entryId }
             val moved = PlaylistOrder.move(ids, from, to)
             if (moved == ids) return

@@ -28,6 +28,8 @@
     <string name="playlist_empty">Плейлист пуст. Добавляйте треки пунктом «Добавить в плейлист» в меню трека.</string>
     <string name="playlist_not_found">Этого плейлиста больше нет</string>
     <string name="playlist_reorder">Перетащите, чтобы переместить</string>
+    <string name="playlist_edit_order">Изменить порядок</string>
+    <string name="playlist_edit_done">Готово</string>
     <string name="playlist_import">Импорт плейлиста M3U</string>
     <string name="playlist_import_fallback_name">Импортированный плейлист</string>
     <string name="playlist_import_title">Плейлист импортирован</string>

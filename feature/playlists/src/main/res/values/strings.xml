@@ -26,6 +26,8 @@
     <string name="playlist_empty">The playlist is empty. Add tracks with “Add to playlist” in the menu of a track.</string>
     <string name="playlist_not_found">This playlist is gone</string>
     <string name="playlist_reorder">Drag to move</string>
+    <string name="playlist_edit_order">Edit order</string>
+    <string name="playlist_edit_done">Done</string>
     <string name="playlist_import">Import M3U playlist</string>
     <string name="playlist_import_fallback_name">Imported playlist</string>
     <string name="playlist_import_title">Playlist imported</string>

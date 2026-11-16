@@ -180,11 +180,40 @@ class PlaylistViewModelsTest {
             val viewModel = card(id)
             val ids = viewModel.state.value.entries.map { it.entryId }
 
+            viewModel.onEditOrderStarted()
             viewModel.onMoved(0, 2)
             viewModel.onMoved(1, 1)
 
             assertEquals(listOf(listOf(ids[1], ids[2], ids[0])), playlists.reordered)
             assertEquals(listOf(b, c, a), viewModel.state.value.tracks)
+        }
+
+    @Test
+    fun `the edit-order mode starts off, can be entered and left`() =
+        runTest {
+            val viewModel = card(mix(a, b, c))
+            assertEquals(false, viewModel.state.value.isEditingOrder)
+
+            viewModel.onEditOrderStarted()
+            assertTrue(viewModel.state.value.isEditingOrder)
+
+            viewModel.onEditOrderFinished()
+            assertEquals(false, viewModel.state.value.isEditingOrder)
+        }
+
+    @Test
+    fun `rows are moved only in the edit-order mode`() =
+        runTest {
+            val viewModel = card(mix(a, b, c))
+
+            viewModel.onMoved(0, 2)
+            assertTrue(playlists.reordered.isEmpty())
+            assertEquals(listOf(a, b, c), viewModel.state.value.tracks)
+
+            viewModel.onEditOrderStarted()
+            viewModel.onEditOrderFinished()
+            viewModel.onMoved(0, 2)
+            assertTrue(playlists.reordered.isEmpty())
         }
 
     @Test

@@ -18,6 +18,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -87,6 +88,8 @@ fun PlaylistScreen(
         rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument(PLAYLIST_EXPORT_TYPE)) { uri ->
             if (uri != null) viewModel.onExport(uri.toString())
         }
+    // The mode does not outlive the screen: the view model does, when the user opens an album and comes back.
+    DisposableEffect(viewModel) { onDispose(viewModel::onEditOrderFinished) }
     state.message?.let { PlaylistFileDialog(it, viewModel::onMessageDismissed) }
     if (playlist != null) {
         PlaylistDialogs(
@@ -94,6 +97,7 @@ fun PlaylistScreen(
             playlist = playlist,
             onChange = { dialog = it },
             onRename = viewModel::onRename,
+            onEditOrder = viewModel::onEditOrderStarted,
             onExport = { exportFile.launch("${playlist.name}.m3u8") },
             onDelete = {
                 viewModel.onDelete()
@@ -150,6 +154,7 @@ fun PlaylistScreen(
             onCoverLongPress = { if (playlist.coverPath == null) pickCover() else coverMenuOpen = true },
             onManage = { dialog = PlaylistDialog.Actions },
             onPlay = viewModel::onPlay,
+            onEditDone = viewModel::onEditOrderFinished.takeIf { state.isEditingOrder },
         )
         ContentWithMiniPlayer(miniPlayer) {
             if (state.entries.isEmpty()) {
@@ -158,6 +163,7 @@ fun PlaylistScreen(
                 PlaylistTracks(
                     state = state,
                     onClick = viewModel::onTrackClicked,
+                    isEditingOrder = state.isEditingOrder,
                     onMore = { menuEntry = it },
                     onMoved = viewModel::onMoved,
                 )
@@ -202,6 +208,7 @@ private fun CoverMenu(
  *
  * @param coverPath the picture the user picked; null shows the cover of the first track.
  * @param onCoverLongPress a long press on the cover (change it); null for a playlist whose cover cannot be changed.
+ * @param onEditDone the "Done" button of the edit-order mode; when set, it takes the place of the pencil and "Play".
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -213,6 +220,7 @@ internal fun PlaylistHeader(
     onPlay: () -> Unit,
     coverPath: String? = null,
     onCoverLongPress: (() -> Unit)? = null,
+    onEditDone: (() -> Unit)? = null,
 ) {
     Row(
         horizontalArrangement = Arrangement.spacedBy(MuzzzloDimens.SectionGap),
@@ -264,7 +272,9 @@ internal fun PlaylistHeader(
             style = MaterialTheme.typography.bodyMedium,
             color = MuzzzloColors.TextSecondary,
         )
-        if (onManage != null) {
+        if (onEditDone != null) {
+            PillButton(text = stringResource(R.string.playlist_edit_done), onClick = onEditDone)
+        } else if (onManage != null) {
             RoundIconButton(
                 icon = DesignR.drawable.ic_pencil,
                 contentDescription = stringResource(R.string.playlist_manage),
@@ -273,17 +283,21 @@ internal fun PlaylistHeader(
             )
             Spacer(Modifier.size(MuzzzloDimens.ItemGap))
         }
-        if (trackCount > 0) {
+        if (trackCount > 0 && onEditDone == null) {
             PillButton(text = stringResource(R.string.playlist_play), onClick = onPlay, icon = DesignR.drawable.ic_play)
         }
     }
 }
 
-/** Tracks with their covers; the handle on the right drags a row to a new place. */
+/**
+ * Tracks with their covers. Outside the edit-order mode a row works as in an album; in the mode the handle on the
+ * right drags a row to a new place, a tap does not play, and the track menu is hidden.
+ */
 @Composable
 private fun PlaylistTracks(
     state: PlaylistUiState,
     onClick: (Int) -> Unit,
+    isEditingOrder: Boolean,
     onMore: (PlaylistEntry) -> Unit,
     onMoved: (Int, Int) -> Unit,
 ) {
@@ -303,26 +317,28 @@ private fun PlaylistTracks(
             TrackRow(
                 title = entry.track.title,
                 ratingTenths = entry.track.ratingTenths,
-                onClick = { onClick(index) },
+                onClick = { if (!isEditingOrder) onClick(index) },
                 modifier =
                     reorderableItem(reorder, entry.entryId, index)
                         .onSizeChanged { rowHeightPx = it.height.toFloat() },
                 subtitle = entry.track.artistsText.ifEmpty { null },
                 cover = { PlaylistCover(entry.track.id, it) },
                 isCurrent = entry.track.id == state.currentTrackId,
-                onMoreClick = { onMore(entry) },
+                onMoreClick = if (isEditingOrder) null else ({ onMore(entry) }),
                 // Dark rows look heavy on the colored live background, as on the album card.
                 transparent = true,
                 trailing = {
-                    Icon(
-                        painter = painterResource(DesignR.drawable.ic_grip_vertical),
-                        contentDescription = stringResource(R.string.playlist_reorder),
-                        modifier =
-                            Modifier
-                                .size(MuzzzloDimens.SmallIcon)
-                                .reorderHandle(reorder, entry.entryId),
-                        tint = MuzzzloColors.TextSecondary,
-                    )
+                    if (isEditingOrder) {
+                        Icon(
+                            painter = painterResource(DesignR.drawable.ic_grip_vertical),
+                            contentDescription = stringResource(R.string.playlist_reorder),
+                            modifier =
+                                Modifier
+                                    .size(MuzzzloDimens.SmallIcon)
+                                    .reorderHandle(reorder, entry.entryId),
+                            tint = MuzzzloColors.TextSecondary,
+                        )
+                    }
                 },
             )
         }
@@ -338,6 +354,7 @@ private fun PlaylistDialogs(
     playlist: Playlist,
     onChange: (PlaylistDialog) -> Unit,
     onRename: (String) -> Unit,
+    onEditOrder: () -> Unit,
     onExport: () -> Unit,
     onDelete: () -> Unit,
 ) {
@@ -351,6 +368,16 @@ private fun PlaylistDialogs(
                     text = stringResource(R.string.playlist_rename),
                     onClick = { onChange(PlaylistDialog.Rename) },
                 )
+                if (playlist.trackCount > 1) {
+                    ActionRow(
+                        icon = DesignR.drawable.ic_grip_vertical,
+                        text = stringResource(R.string.playlist_edit_order),
+                        onClick = {
+                            close()
+                            onEditOrder()
+                        },
+                    )
+                }
                 ActionRow(
                     icon = DesignR.drawable.ic_upload,
                     text = stringResource(R.string.playlist_export),
