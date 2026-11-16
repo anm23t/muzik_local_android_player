@@ -10,6 +10,9 @@ import kotlin.random.Random
  * @property key stored in `generated_playlist.kind` and `listen_event.source_kind`; never changes.
  */
 enum class GeneratedKind(val key: String) {
+    /** One mix a day from the listens of the last two weeks ([DailyMix], task 2.5.8); first on the home screen. */
+    DAILY_MIX("dailyMix"),
+
     /** The most played tracks of the last 30 days. */
     ON_REPEAT("onRepeat"),
 
@@ -29,14 +32,16 @@ enum class GeneratedKind(val key: String) {
 }
 
 /**
- * What the sets are made of: the facts of the present tracks ([TrackFacts]) and the counted listens of each track in
- * the last [GeneratedSets.ON_REPEAT_DAYS] days.
+ * What the sets are made of: the facts of the present tracks ([TrackFacts]), the counted listens of each track in
+ * the last [GeneratedSets.ON_REPEAT_DAYS] days, and for the daily mix every counted listen and yesterday's mix.
  */
 data class GeneratedInput(
     val facts: List<TrackFacts>,
     val recentPlays: Map<Long, Int>,
     val nowMs: Long,
     val epochDay: Long,
+    val listens: List<MixListen> = emptyList(),
+    val yesterdayMix: Set<Long> = emptySet(),
 )
 
 /** The rules of the ready-made sets (task 2.5.7). Pure functions: the randomness comes from the day. */
@@ -71,6 +76,8 @@ object GeneratedSets {
                     )
                 GeneratedKind.BEST_RATED -> input.facts.filter { it.isHighlyRated() }.shuffled(random)
                 GeneratedKind.RECENTLY_ADDED -> recentlyAdded(input)
+                GeneratedKind.DAILY_MIX ->
+                    return DailyMix.build(input.facts, input.listens, input.yesterdayMix, input.nowMs, random)
             }
         return tracks.take(SIZE).map { it.track.id }
     }
@@ -115,8 +122,23 @@ object GeneratedSets {
 object CoverGradients {
     const val COUNT = 12
 
-    /** The pair of a ready-made set: fixed per kind. */
-    fun forKind(kind: GeneratedKind): Int = kind.ordinal % COUNT
+    private const val ON_REPEAT = 0
+    private const val FORGOTTEN_FAVORITES = 1
+    private const val BEST_RATED = 2
+    private const val RECENTLY_ADDED = 3
+
+    /** The pair of a set: fixed per ready-made kind, by [epochDay] for the daily mix. */
+    fun forKind(
+        kind: GeneratedKind,
+        epochDay: Long,
+    ): Int =
+        when (kind) {
+            GeneratedKind.ON_REPEAT -> ON_REPEAT
+            GeneratedKind.FORGOTTEN_FAVORITES -> FORGOTTEN_FAVORITES
+            GeneratedKind.BEST_RATED -> BEST_RATED
+            GeneratedKind.RECENTLY_ADDED -> RECENTLY_ADDED
+            GeneratedKind.DAILY_MIX -> forDay(epochDay)
+        }
 
     /** The pair of the daily mix: changes with the day. */
     fun forDay(epochDay: Long): Int = Math.floorMod(epochDay, COUNT.toLong()).toInt()

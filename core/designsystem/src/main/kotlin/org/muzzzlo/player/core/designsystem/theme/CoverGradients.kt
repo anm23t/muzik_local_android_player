@@ -32,7 +32,7 @@ object MuzzzloCoverGradients {
             GradientPair(Color(0xFF7F7FD5), Color(0xFF86A8E7), GradientDirection.HORIZONTAL),
             GradientPair(Color(0xFFF7971E), Color(0xFFFFD200), GradientDirection.DIAGONAL),
             GradientPair(Color(0xFF11998E), Color(0xFF38EF7D), GradientDirection.HORIZONTAL),
-            // Seasons, the year and the daily mix take the next ones.
+            // Seasons and the year take the next ones; the daily mix goes through all twelve by date.
             GradientPair(Color(0xFFFC466B), Color(0xFF3F5EFB), GradientDirection.DIAGONAL),
             GradientPair(Color(0xFF00C6FF), Color(0xFF0072FF), GradientDirection.HORIZONTAL),
             GradientPair(Color(0xFF8E2DE2), Color(0xFF4A00E0), GradientDirection.DIAGONAL),

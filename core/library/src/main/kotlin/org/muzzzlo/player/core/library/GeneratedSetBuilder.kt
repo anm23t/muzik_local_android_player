@@ -22,7 +22,7 @@ internal class GeneratedSetBuilder
         fun build(
             kind: GeneratedKind,
             input: GeneratedInput,
-        ): BuiltSet = BuiltSet(GeneratedSets.build(kind, input), CoverGradients.forKind(kind))
+        ): BuiltSet = BuiltSet(GeneratedSets.build(kind, input), CoverGradients.forKind(kind, input.epochDay))
 
         /**
          * The kinds to build now: those without a set of [today] ([storedDays] maps a kind key to the day of its

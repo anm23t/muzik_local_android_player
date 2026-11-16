@@ -142,4 +142,17 @@ class GeneratedPlaylistDaoTest {
                 )
             assertEquals(7, db.playlistDao().observePlaylist(id).first()?.coverGradient)
         }
+
+    @Test
+    fun `the daily mix reads counted listens oldest first with their source`() =
+        runBlocking {
+            track(1)
+            db.listenEventDao().insert(event(1, startedAt = 30, sourceKind = "dailyMix"))
+            db.listenEventDao().insert(event(1, startedAt = 10))
+            db.listenEventDao().insert(event(1, startedAt = 20).copy(counted = false, skipped = true))
+
+            val listens = db.listenEventDao().countedListens()
+            assertEquals(listOf(10L, 30L), listens.map { it.startedAt })
+            assertEquals(listOf(null, "dailyMix"), listens.map { it.sourceKind })
+        }
 }

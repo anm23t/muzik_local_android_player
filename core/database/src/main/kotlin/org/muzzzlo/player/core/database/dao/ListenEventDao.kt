@@ -20,6 +20,14 @@ data class TrackPlayStatRow(
     @ColumnInfo(name = "last_played_at") val lastPlayedAt: Long,
 )
 
+/** A counted listen with its artist snapshot and source, for the daily mix (task 2.5.8). */
+data class MixListenRow(
+    @ColumnInfo(name = "track_id") val trackId: Long?,
+    @ColumnInfo(name = "started_at") val startedAt: Long,
+    @ColumnInfo(name = "artists_snapshot") val artistsSnapshot: String,
+    @ColumnInfo(name = "source_kind") val sourceKind: String?,
+)
+
 /** Listen events of the statistics (DATABASE.md, `listen_event`). */
 @Dao
 interface ListenEventDao {
@@ -39,6 +47,13 @@ interface ListenEventDao {
             "WHERE counted = 1 AND track_id IS NOT NULL AND started_at >= :fromMs GROUP BY track_id",
     )
     suspend fun trackPlayStatsSince(fromMs: Long): List<TrackPlayStatRow>
+
+    /** Every counted listen, oldest first, for the daily mix. */
+    @Query(
+        "SELECT track_id, started_at, artists_snapshot, source_kind FROM listen_event WHERE counted = 1 " +
+            "ORDER BY started_at, id",
+    )
+    suspend fun countedListens(): List<MixListenRow>
 
     /** Every event, the latest first. */
     @Query("SELECT * FROM listen_event ORDER BY started_at DESC, id DESC")

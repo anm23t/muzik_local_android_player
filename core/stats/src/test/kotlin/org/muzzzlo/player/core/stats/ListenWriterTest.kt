@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.muzzzlo.player.core.database.dao.ArtistPlaysRow
 import org.muzzzlo.player.core.database.dao.ListenEventDao
+import org.muzzzlo.player.core.database.dao.MixListenRow
 import org.muzzzlo.player.core.database.dao.OrphanPlayRow
 import org.muzzzlo.player.core.database.dao.RecentAlbumRow
 import org.muzzzlo.player.core.database.dao.TopAlbumRow
@@ -97,6 +98,8 @@ class ListenWriterTest {
         override fun observeTrackPlayStats() = emptyFlow<List<TrackPlayStatRow>>()
 
         override suspend fun trackPlayStatsSince(fromMs: Long) = emptyList<TrackPlayStatRow>()
+
+        override suspend fun countedListens() = emptyList<MixListenRow>()
 
         override fun observeTotals(
             from: Long,

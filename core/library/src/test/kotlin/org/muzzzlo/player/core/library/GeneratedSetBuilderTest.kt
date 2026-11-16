@@ -37,6 +37,6 @@ class GeneratedSetBuilderTest {
     @Test
     fun `a built set carries the gradient of its kind`() {
         val input = GeneratedInput(emptyList(), emptyMap(), nowMs = 0, epochDay = 1)
-        all.forEach { assertEquals(CoverGradients.forKind(it), builder.build(it, input).gradient) }
+        all.forEach { assertEquals(CoverGradients.forKind(it, 1), builder.build(it, input).gradient) }
     }
 }

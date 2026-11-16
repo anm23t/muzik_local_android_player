@@ -38,6 +38,7 @@
     <string name="delete_file_confirm">Delete</string>
     <string name="delete_file_failed">The file could not be deleted</string>
     <!-- Generated playlists of the home screen (task 2.5.7) -->
+    <string name="generated_daily_mix">Daily Mix</string>
     <string name="generated_on_repeat">On Repeat</string>
     <string name="generated_forgotten_favorites">Forgotten Favorites</string>
     <string name="generated_best_rated">Best Rated</string>

@@ -37,6 +37,7 @@
     <string name="delete_file_permanent">Файл удаляется насовсем: в этой версии Android нет корзины. Оценка и история прослушиваний останутся.</string>
     <string name="delete_file_confirm">Удалить</string>
     <string name="delete_file_failed">Не удалось удалить файл</string>
+    <string name="generated_daily_mix">Микс дня</string>
     <string name="generated_on_repeat">На повторе</string>
     <string name="generated_forgotten_favorites">Забытые любимые</string>
     <string name="generated_best_rated">Лучшее по оценкам</string>

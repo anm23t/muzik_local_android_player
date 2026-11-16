@@ -130,6 +130,7 @@ private fun SavedDialog(
 internal fun generatedName(kind: GeneratedKind): String =
     stringResource(
         when (kind) {
+            GeneratedKind.DAILY_MIX -> DesignR.string.generated_daily_mix
             GeneratedKind.ON_REPEAT -> DesignR.string.generated_on_repeat
             GeneratedKind.FORGOTTEN_FAVORITES -> DesignR.string.generated_forgotten_favorites
             GeneratedKind.BEST_RATED -> DesignR.string.generated_best_rated

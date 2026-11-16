@@ -107,8 +107,9 @@ class GeneratedSetsTest {
 
     @Test
     fun `gradients are one per ready-made kind, the daily one follows the day`() {
-        val kinds = GeneratedKind.entries.map(CoverGradients::forKind)
+        val kinds = (GeneratedKind.entries - GeneratedKind.DAILY_MIX).map { CoverGradients.forKind(it, 0) }
         assertEquals(kinds.size, kinds.toSet().size)
+        assertEquals(CoverGradients.forDay(5), CoverGradients.forKind(GeneratedKind.DAILY_MIX, 5))
         assertTrue(kinds.all { it in 0 until CoverGradients.COUNT })
         assertEquals(CoverGradients.forDay(3), CoverGradients.forDay(3 + CoverGradients.COUNT.toLong()))
         assertNotEquals(CoverGradients.forDay(3), CoverGradients.forDay(4))

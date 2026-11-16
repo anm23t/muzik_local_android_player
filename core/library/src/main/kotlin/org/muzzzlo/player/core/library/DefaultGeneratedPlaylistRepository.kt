@@ -14,6 +14,7 @@ import org.muzzzlo.player.core.database.dao.GeneratedPlaylistDao
 import org.muzzzlo.player.core.database.dao.GeneratedPlaylistRow
 import org.muzzzlo.player.core.database.dao.LibraryDao
 import org.muzzzlo.player.core.database.dao.ListenEventDao
+import org.muzzzlo.player.core.database.dao.MixListenRow
 import org.muzzzlo.player.core.database.dao.PlaylistDao
 import org.muzzzlo.player.core.database.entity.GeneratedPlaylistEntity
 import org.muzzzlo.player.core.database.entity.PlaylistEntity
@@ -22,12 +23,16 @@ import org.muzzzlo.player.core.model.GeneratedInput
 import org.muzzzlo.player.core.model.GeneratedKind
 import org.muzzzlo.player.core.model.GeneratedPlaylist
 import org.muzzzlo.player.core.model.GeneratedPlaylistRepository
+import org.muzzzlo.player.core.model.Json
+import org.muzzzlo.player.core.model.MixListen
 import org.muzzzlo.player.core.model.PlaylistNames
 import org.muzzzlo.player.core.model.SavedSnapshot
 import org.muzzzlo.player.core.model.Track
 import org.muzzzlo.player.core.model.TrackFactsSource
 import java.time.Clock
+import java.time.Instant
 import java.time.LocalDate
+import java.time.ZoneId
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -74,6 +79,8 @@ internal class DefaultGeneratedPlaylistRepository
                     recentPlays = recentPlays(now),
                     nowMs = now,
                     epochDay = today,
+                    listens = listens.countedListens().map { mixListenOf(it, clock.zone) },
+                    yesterdayMix = yesterdayMix(today),
                 )
             val sets = kinds.associateWith { builder.build(it, input) }
             database.withTransaction {
@@ -84,6 +91,12 @@ internal class DefaultGeneratedPlaylistRepository
                     )
                 }
             }
+        }
+
+        /** Yesterday's daily mix, read before it is replaced; empty when the last mix is older. */
+        private suspend fun yesterdayMix(today: Long): Set<Long> {
+            val mix = dao.byKind(GeneratedKind.DAILY_MIX.key)?.takeIf { it.day == today - 1 } ?: return emptySet()
+            return dao.trackIds(mix.kind).toSet()
         }
 
         private suspend fun recentPlays(nowMs: Long): Map<Long, Int> {
@@ -140,3 +153,18 @@ internal class DefaultGeneratedPlaylistRepository
                 GeneratedPlaylist(it, day, gradient, trackCount, createdAt, lastStartedAt)
             }
     }
+
+/** A counted listen for the daily mix: the local day, the artists of the snapshot, whether it came from a set. */
+internal fun mixListenOf(
+    row: MixListenRow,
+    zone: ZoneId,
+): MixListen =
+    MixListen(
+        trackId = row.trackId,
+        artists =
+            runCatching { (Json.parse(row.artistsSnapshot) as? List<*>).orEmpty().filterIsInstance<String>() }
+                .getOrDefault(emptyList()),
+        startedAtMs = row.startedAt,
+        epochDay = Instant.ofEpochMilli(row.startedAt).atZone(zone).toLocalDate().toEpochDay(),
+        fromGenerated = row.sourceKind != null,
+    )
