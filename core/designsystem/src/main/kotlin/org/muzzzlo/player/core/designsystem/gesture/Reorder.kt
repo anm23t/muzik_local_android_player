@@ -120,12 +120,17 @@ class ReorderState internal constructor(
         job?.cancel()
         val from = fromIndex
         val to = targetIndex
+        val firstIndex = listState.firstVisibleItemIndex
+        val firstOffset = listState.firstVisibleItemScrollOffset
         job =
             scope.launch {
                 if (to != from && to >= 0) {
                     onMove.value(from, to)
                     // The row glides from where it was let go into its new slot once the list shows it there.
                     val shown = withTimeoutOrNull(DROP_WAIT_MS) { awaitFrameWhere { currentIndexOfDragged() == to } }
+                    // A lazy list keeps its first visible row by key: when that row was the one moved, the list
+                    // would scroll after it and hide the rows above. The list stays where it was instead.
+                    if (listState.firstVisibleItemIndex != firstIndex) listState.scrollToItem(firstIndex, firstOffset)
                     settle(if (shown == null) 0f else (to - from) * stepPx)
                 } else {
                     settle(0f)
