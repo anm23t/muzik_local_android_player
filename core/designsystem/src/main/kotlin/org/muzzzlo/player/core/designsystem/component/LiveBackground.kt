@@ -7,6 +7,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloColors
 import kotlin.math.PI
 import kotlin.math.max
@@ -84,27 +85,38 @@ fun LiveBackground(
     dim: Float,
     modifier: Modifier = Modifier,
 ) {
-    Canvas(modifier) {
-        drawRect(MuzzzloColors.Background)
-        val amount = colorAmount().coerceIn(0f, 1f)
-        if (amount > 0f && colors.isNotEmpty()) {
-            val longer = max(size.width, size.height)
-            BlobMotion.blobs(colors.size, timeSec()).forEachIndexed { i, blob ->
-                val centre = Offset(blob.x * size.width, blob.y * size.height)
-                val radius = blob.radius * longer
-                val color = colors[i]
-                drawCircle(
-                    brush =
-                        Brush.radialGradient(
-                            colors = listOf(color.copy(alpha = color.alpha * amount), Color.Transparent),
-                            center = centre,
-                            radius = radius,
-                        ),
-                    radius = radius,
-                    center = centre,
-                )
-            }
+    Canvas(modifier) { drawLiveBackground(colors, timeSec(), colorAmount(), dim) }
+}
+
+/**
+ * Draws the live background on any canvas at the moment [timeSec]: on the screen ([LiveBackground]) and into the
+ * picture shared from the period summary (task 2.5.12), so both look the same.
+ */
+fun DrawScope.drawLiveBackground(
+    colors: List<Color>,
+    timeSec: Float,
+    colorAmount: Float,
+    dim: Float,
+) {
+    drawRect(MuzzzloColors.Background)
+    val amount = colorAmount.coerceIn(0f, 1f)
+    if (amount > 0f && colors.isNotEmpty()) {
+        val longer = max(size.width, size.height)
+        BlobMotion.blobs(colors.size, timeSec).forEachIndexed { i, blob ->
+            val centre = Offset(blob.x * size.width, blob.y * size.height)
+            val radius = blob.radius * longer
+            val color = colors[i]
+            drawCircle(
+                brush =
+                    Brush.radialGradient(
+                        colors = listOf(color.copy(alpha = color.alpha * amount), Color.Transparent),
+                        center = centre,
+                        radius = radius,
+                    ),
+                radius = radius,
+                center = centre,
+            )
         }
-        drawRect(MuzzzloColors.Background.copy(alpha = dim.coerceIn(0f, 1f)))
     }
+    drawRect(MuzzzloColors.Background.copy(alpha = dim.coerceIn(0f, 1f)))
 }

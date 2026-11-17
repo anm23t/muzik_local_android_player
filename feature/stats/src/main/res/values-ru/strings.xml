@@ -23,4 +23,22 @@
         <item quantity="many">%d прослушиваний</item>
         <item quantity="other">%d прослушивания</item>
     </plurals>
+    <string name="summary_week">Неделя %1$d</string>
+    <string name="summary_so_far">Пока что</string>
+    <string name="summary_share">Поделиться</string>
+    <string name="summary_share_chooser">Поделиться слайдом</string>
+    <string name="summary_close">Закрыть</string>
+    <string name="summary_not_found">В этом периоде нет прослушиваний</string>
+    <string name="summary_final_title">Коротко</string>
+    <string name="summary_top_track">Главный трек</string>
+    <string name="summary_top_album">Главный альбом</string>
+    <string name="summary_top_artist">Главный исполнитель</string>
+    <string name="summary_minutes_label">Минут прослушано</string>
+    <string name="summary_genre_label">Любимый жанр</string>
+    <plurals name="summary_minutes">
+        <item quantity="one">%d минута</item>
+        <item quantity="few">%d минуты</item>
+        <item quantity="many">%d минут</item>
+        <item quantity="other">%d минуты</item>
+    </plurals>
 </resources>

@@ -59,7 +59,9 @@ import org.muzzzlo.player.feature.settings.EqualizerScreen
 import org.muzzzlo.player.feature.settings.FoldersScreen
 import org.muzzzlo.player.feature.settings.QuarantineScreen
 import org.muzzzlo.player.feature.settings.SettingsScreen
+import org.muzzzlo.player.feature.stats.SUMMARY_PERIOD_ARG
 import org.muzzzlo.player.feature.stats.StatsScreen
+import org.muzzzlo.player.feature.stats.SummaryScreen
 import org.muzzzlo.player.feature.tageditor.ArtistProfileScreen
 import org.muzzzlo.player.feature.tageditor.BATCH_ALBUM_ID_ARG
 import org.muzzzlo.player.feature.tageditor.BatchTagEditorScreen
@@ -76,6 +78,9 @@ private const val ROUTE_ARTIST_CHECK = "artistCheck"
 private const val ROUTE_COMPOUND_NAMES = "compoundNames"
 private const val ROUTE_SETTINGS = "settings"
 private const val ROUTE_STATS = "stats"
+
+/** The slides of a period summary; the argument is `CalendarPeriod.key`. */
+private const val ROUTE_SUMMARY = "summary/{$SUMMARY_PERIOD_ARG}"
 private const val ROUTE_SEARCH = "search"
 private const val ROUTE_SETTINGS_FOLDERS = "settingsFolders"
 private const val ROUTE_SETTINGS_EQUALIZER = "settingsEqualizer"
@@ -301,6 +306,12 @@ fun MuzzzloNavHost(backgroundViewModel: LiveBackgroundViewModel) {
                         onEditTags = openTagEditor,
                         miniPlayer = miniPlayer,
                     )
+                }
+                composable(
+                    ROUTE_SUMMARY,
+                    arguments = listOf(navArgument(SUMMARY_PERIOD_ARG) { type = NavType.StringType }),
+                ) {
+                    SummaryScreen(onBack = { navController.popBackStack() })
                 }
                 composable(ROUTE_STATS) {
                     StatsScreen(

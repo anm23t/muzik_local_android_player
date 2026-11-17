@@ -21,4 +21,21 @@
         <item quantity="one">%d play</item>
         <item quantity="other">%d plays</item>
     </plurals>
+    <string name="summary_app_name" translatable="false">MUZZZLO</string>
+    <string name="summary_week">Week %1$d</string>
+    <string name="summary_so_far">So far</string>
+    <string name="summary_share">Share</string>
+    <string name="summary_share_chooser">Share slide</string>
+    <string name="summary_close">Close</string>
+    <string name="summary_not_found">No listens in this period</string>
+    <string name="summary_final_title">In short</string>
+    <string name="summary_top_track">Top track</string>
+    <string name="summary_top_album">Top album</string>
+    <string name="summary_top_artist">Top artist</string>
+    <string name="summary_minutes_label">Minutes listened</string>
+    <string name="summary_genre_label">Favorite genre</string>
+    <plurals name="summary_minutes">
+        <item quantity="one">%d minute</item>
+        <item quantity="other">%d minutes</item>
+    </plurals>
 </resources>
