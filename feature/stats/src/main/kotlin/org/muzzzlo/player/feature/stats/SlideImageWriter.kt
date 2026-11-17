@@ -8,6 +8,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.CanvasDrawScope
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntOffset
@@ -53,7 +54,7 @@ internal class DefaultSlideImageWriter
             palette: List<Int>,
             fileName: String,
         ): String {
-            val picture = withContext(dispatchers.default) { compose(slide, palette.map(::Color)) }
+            val picture = withContext(dispatchers.default) { compose(softwareCopy(slide), palette.map(::Color)) }
             val file =
                 withContext(dispatchers.io) {
                     val folder = File(context.cacheDir, ShareImage.FOLDER).apply { mkdirs() }
@@ -69,6 +70,13 @@ internal class DefaultSlideImageWriter
                 }
             return FileProvider.getUriForFile(context, "${context.packageName}.summaryshare", file).toString()
         }
+
+        /**
+         * A captured layer is a hardware bitmap, which a canvas in memory cannot draw (it throws); the copy lives in
+         * ordinary memory.
+         */
+        private fun softwareCopy(slide: ImageBitmap): ImageBitmap =
+            slide.asAndroidBitmap().copy(Bitmap.Config.ARGB_8888, false).asImageBitmap()
 
         private fun compose(
             slide: ImageBitmap,

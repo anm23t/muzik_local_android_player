@@ -76,14 +76,25 @@ class SummaryViewModelTest {
             }
         } as SettingsRepository
 
+    private var writeFails = false
+
     private val writer =
         object : SlideImageWriter {
             override suspend fun write(
                 slide: ImageBitmap,
                 palette: List<Int>,
                 fileName: String,
-            ) = "content://share/$fileName"
+            ): String {
+                check(!writeFails) { "Software rendering doesn't support hardware bitmaps" }
+                return "content://share/$fileName"
+            }
         }
+
+    /** A stand-in for a captured slide: the fake writer never looks at it. */
+    private val image =
+        Proxy.newProxyInstance(ImageBitmap::class.java.classLoader, arrayOf(ImageBitmap::class.java)) { _, _, _ ->
+            error("Not used")
+        } as ImageBitmap
 
     private fun viewModel(
         summary: PeriodSummary?,
@@ -136,6 +147,21 @@ class SummaryViewModelTest {
             val unknown = viewModel(full, key = "nonsense").state.value
             assertNull(unknown.period)
             assertNull(unknown.summary)
+        }
+
+    @Test
+    fun `share hands over the picture once and a failed picture does not break the screen`() =
+        runTest {
+            val viewModel = viewModel(full)
+            viewModel.onShare(SummarySlide.TRACKS, image)
+            assertEquals("content://share/muzzzlo-month-2026-11-tracks.png", viewModel.state.value.shareUri)
+            viewModel.onShareOpened()
+            assertNull(viewModel.state.value.shareUri)
+
+            writeFails = true
+            viewModel.onShare(SummarySlide.FINAL, image)
+            assertNull(viewModel.state.value.shareUri)
+            assertTrue(!viewModel.state.value.sharing)
         }
 
     @Test
