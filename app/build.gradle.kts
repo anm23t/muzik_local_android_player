@@ -16,8 +16,8 @@ android {
         applicationId = "org.muzzzlo.player"
         minSdk = 26
         targetSdk = 35
-        versionCode = 6
-        versionName = "2.5"
+        versionCode = 7
+        versionName = "2.5.1"
     }
 
     // The release key stays with the owner: keystore.properties (git-ignored) points at it. Without the file
