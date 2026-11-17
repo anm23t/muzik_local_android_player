@@ -183,6 +183,9 @@ object CoverGradients {
             else -> YEAR
         }
 
+    /** The pair of a smart playlist (task 2.5.10): chosen by its id, so it never changes. */
+    fun forSmart(id: Long): Int = Math.floorMod(id, COUNT.toLong()).toInt()
+
     /** The pair of the daily mix: changes with the day. */
     fun forDay(epochDay: Long): Int = Math.floorMod(epochDay, COUNT.toLong()).toInt()
 }

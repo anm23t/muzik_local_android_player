@@ -33,6 +33,7 @@ class PlaylistViewModelsTest {
     private val player = FakePlayerController()
     private val transfer = FakePlaylistTransfer()
     private val generated = FakeGeneratedPlaylists()
+    private val smart = FakeSmartPlaylists()
 
     @BeforeEach
     fun setUp() = Dispatchers.setMain(UnconfinedTestDispatcher())
@@ -123,7 +124,7 @@ class PlaylistViewModelsTest {
     @Test
     fun `the list shows playlists and creates one with a clean name`() =
         runTest {
-            val viewModel = PlaylistListViewModel(playlists, autoPlaylists, transfer)
+            val viewModel = PlaylistListViewModel(playlists, autoPlaylists, transfer, smart)
             backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.state.collect {} }
 
             viewModel.onCreate("  Road \n trip ")
@@ -145,7 +146,7 @@ class PlaylistViewModelsTest {
     fun `the list puts the automatic playlists first with their size and first cover`() =
         runTest {
             autoPlaylists.tracks.value = mapOf(AutoPlaylist.Favorites to listOf(c, a))
-            val viewModel = PlaylistListViewModel(playlists, autoPlaylists, transfer)
+            val viewModel = PlaylistListViewModel(playlists, autoPlaylists, transfer, smart)
             backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.state.collect {} }
 
             assertEquals(
@@ -331,7 +332,7 @@ class PlaylistViewModelsTest {
     @Test
     fun `import shows its result until dismissed`() =
         runTest {
-            val viewModel = PlaylistListViewModel(playlists, autoPlaylists, transfer)
+            val viewModel = PlaylistListViewModel(playlists, autoPlaylists, transfer, smart)
             backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.state.collect {} }
 
             viewModel.onImport("content://doc/1", "Playlist")
@@ -346,7 +347,7 @@ class PlaylistViewModelsTest {
     fun `unreadable import file becomes a file error`() =
         runTest {
             transfer.failing = true
-            val viewModel = PlaylistListViewModel(playlists, autoPlaylists, transfer)
+            val viewModel = PlaylistListViewModel(playlists, autoPlaylists, transfer, smart)
             backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.state.collect {} }
 
             viewModel.onImport("content://doc/1", "Playlist")

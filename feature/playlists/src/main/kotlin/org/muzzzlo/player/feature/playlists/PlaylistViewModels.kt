@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -11,6 +12,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -32,6 +34,7 @@ import org.muzzzlo.player.core.model.PlaylistNames
 import org.muzzzlo.player.core.model.PlaylistOrder
 import org.muzzzlo.player.core.model.PlaylistRepository
 import org.muzzzlo.player.core.model.PlaylistTransfer
+import org.muzzzlo.player.core.model.SmartPlaylistRepository
 import org.muzzzlo.player.core.model.Track
 import org.muzzzlo.player.core.model.TrackMarksRepository
 import java.io.IOException
@@ -76,10 +79,11 @@ private suspend fun fileTask(action: suspend () -> PlaylistFileMessage): Playlis
         PlaylistFileMessage.FileError
     }
 
-/** What the list of playlists renders: the automatic playlists first, then the user's own. */
+/** What the list of playlists renders: the automatic playlists first, then the smart ones, then the user's own. */
 data class PlaylistListUiState(
     val playlists: List<Playlist> = emptyList(),
     val auto: List<AutoPlaylistSummary> = emptyList(),
+    val smart: List<SmartPlaylistSummary> = emptyList(),
     val isLoaded: Boolean = false,
     val busy: Boolean = false,
     val message: PlaylistFileMessage? = null,
@@ -92,6 +96,7 @@ private data class FileState(
 )
 
 /** The list of playlists (button "Playlists" of the home screen), "New playlist" and the import of M3U files. */
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class PlaylistListViewModel
     @Inject
@@ -99,8 +104,20 @@ class PlaylistListViewModel
         private val playlists: PlaylistRepository,
         autoPlaylists: AutoPlaylistRepository,
         private val transfer: PlaylistTransfer,
+        smart: SmartPlaylistRepository,
     ) : ViewModel() {
         private val file = MutableStateFlow(FileState())
+
+        private val smartSummaries: Flow<List<SmartPlaylistSummary>> =
+            smart.observePlaylists().flatMapLatest { all ->
+                if (all.isEmpty()) {
+                    flowOf(emptyList())
+                } else {
+                    combine(all.map { playlist -> smart.observeTracks(playlist.rules).map { playlist to it.size } }) {
+                        it.map { (playlist, count) -> SmartPlaylistSummary(playlist.id, playlist.name, count) }
+                    }
+                }
+            }
 
         val state: StateFlow<PlaylistListUiState> =
             combine(
@@ -108,9 +125,11 @@ class PlaylistListViewModel
                 combine(AutoPlaylist.entries.map { kind -> autoPlaylists.observeTracks(kind).map { kind to it } }) {
                     it.map { (kind, tracks) -> AutoPlaylistSummary(kind, tracks.size, tracks.firstOrNull()?.id) }
                 },
+                smartSummaries,
                 file,
-            ) { user, auto, file -> PlaylistListUiState(user, auto, isLoaded = true, file.busy, file.message) }
-                .stateIn(this, PlaylistListUiState())
+            ) { user, auto, smart, file ->
+                PlaylistListUiState(user, auto, smart, isLoaded = true, busy = file.busy, message = file.message)
+            }.stateIn(this, PlaylistListUiState())
 
         /** Creates an empty playlist; a blank name does nothing. */
         fun onCreate(name: String) {

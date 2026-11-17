@@ -52,6 +52,9 @@ import org.muzzzlo.player.feature.playlists.GeneratedPlaylistScreen
 import org.muzzzlo.player.feature.playlists.PLAYLIST_ID_ARG
 import org.muzzzlo.player.feature.playlists.PlaylistListScreen
 import org.muzzzlo.player.feature.playlists.PlaylistScreen
+import org.muzzzlo.player.feature.playlists.SMART_PLAYLIST_ID_ARG
+import org.muzzzlo.player.feature.playlists.SmartEditorScreen
+import org.muzzzlo.player.feature.playlists.SmartPlaylistScreen
 import org.muzzzlo.player.feature.settings.EqualizerScreen
 import org.muzzzlo.player.feature.settings.FoldersScreen
 import org.muzzzlo.player.feature.settings.QuarantineScreen
@@ -83,6 +86,10 @@ private const val ROUTE_PLAYLISTS = "playlists"
 private const val ROUTE_PLAYLIST = "playlist/{$PLAYLIST_ID_ARG}"
 private const val ROUTE_AUTO_PLAYLIST = "auto-playlist/{$AUTO_PLAYLIST_ARG}"
 private const val ROUTE_GENERATED_PLAYLIST = "generated/{$GENERATED_KIND_ARG}"
+private const val ROUTE_SMART_PLAYLIST = "smart/{$SMART_PLAYLIST_ID_ARG}"
+
+/** The rules editor of a smart playlist; the id 0 makes a new one. */
+private const val ROUTE_SMART_EDITOR = "smartEditor/{$SMART_PLAYLIST_ID_ARG}"
 private const val ROUTE_TAG_EDITOR = "tagEditor/{$TRACK_ID_ARG}"
 private const val ROUTE_BATCH_TAG_EDITOR = "tagEditorAlbum/{$BATCH_ALBUM_ID_ARG}"
 private const val ROUTE_ARTIST_PROFILE = "artistProfile/{$PROFILE_ARTIST_ID_ARG}"
@@ -221,7 +228,42 @@ fun MuzzzloNavHost(backgroundViewModel: LiveBackgroundViewModel) {
                         onBack = { navController.popBackStack() },
                         onOpenPlaylist = { navController.navigate("playlist/$it") },
                         onOpenAutoPlaylist = { navController.navigate("auto-playlist/${it.key}") },
+                        onOpenSmart = { navController.navigate("smart/$it") },
+                        onNewSmart = { navController.navigate("smartEditor/0") },
                         miniPlayer = miniPlayer,
+                    )
+                }
+                composable(
+                    ROUTE_SMART_PLAYLIST,
+                    arguments = listOf(navArgument(SMART_PLAYLIST_ID_ARG) { type = NavType.LongType }),
+                ) {
+                    SmartPlaylistScreen(
+                        onBack = { navController.popBackStack() },
+                        onHome = { navController.goHome() },
+                        onEditRules = { navController.navigate("smartEditor/$it") },
+                        onOpenAlbum = { navController.navigate(albumRoute(it)) },
+                        onEditTags = openTagEditor,
+                        onOpenArtist = openArtist,
+                        miniPlayer = miniPlayer,
+                    )
+                }
+                composable(
+                    ROUTE_SMART_EDITOR,
+                    arguments = listOf(navArgument(SMART_PLAYLIST_ID_ARG) { type = NavType.LongType }),
+                ) { entry ->
+                    val isNew = entry.arguments?.getLong(SMART_PLAYLIST_ID_ARG) == 0L
+                    SmartEditorScreen(
+                        onBack = { navController.popBackStack() },
+                        onSaved = { id ->
+                            // A new playlist opens its card in place of the editor; an edited one goes back to it.
+                            if (isNew) {
+                                navController.navigate("smart/$id") {
+                                    popUpTo(ROUTE_SMART_EDITOR) { inclusive = true }
+                                }
+                            } else {
+                                navController.popBackStack()
+                            }
+                        },
                     )
                 }
                 composable(

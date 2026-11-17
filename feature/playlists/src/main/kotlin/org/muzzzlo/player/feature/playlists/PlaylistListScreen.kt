@@ -19,7 +19,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.muzzzlo.player.core.designsystem.component.AlbumRow
+import org.muzzzlo.player.core.designsystem.component.MuzzzloDialog
 import org.muzzzlo.player.core.designsystem.component.PlaylistNameDialog
+import org.muzzzlo.player.core.designsystem.component.RadioOptionRow
 import org.muzzzlo.player.core.designsystem.component.RoundIconButton
 import org.muzzzlo.player.core.designsystem.component.ScreenFrame
 import org.muzzzlo.player.core.designsystem.component.SectionTitle
@@ -31,9 +33,12 @@ import org.muzzzlo.player.core.designsystem.R as DesignR
 /**
  * List of playlists. Not in the mockup: the album list (15:3, 25:555) with the playlist name, its number of tracks
  * and the cover of its first track; the plus button in the header (15:114) creates a playlist (DESIGN.md, section 7).
- * "Favorites" and "Top songs" are the first two rows, built like the others. The download button left of the plus
- * imports an M3U or M3U8 file chosen with the system picker (task 1.2.5).
+ * "Favorites" and "Top songs" are the first two rows, built like the others, then the smart playlists with their
+ * gradient covers (task 2.5.10). The plus asks what to create: a playlist or a smart playlist. The download button
+ * left of the plus imports an M3U or M3U8 file chosen with the system picker (task 1.2.5).
  *
+ * @param onOpenSmart opens the card of the smart playlist with this id.
+ * @param onNewSmart opens the rules editor for a new smart playlist.
  * @param miniPlayer the mini player of `feature:player`, passed in by the app.
  */
 @Composable
@@ -41,18 +46,28 @@ fun PlaylistListScreen(
     onBack: () -> Unit,
     onOpenPlaylist: (Long) -> Unit,
     onOpenAutoPlaylist: (AutoPlaylist) -> Unit,
+    onOpenSmart: (Long) -> Unit,
+    onNewSmart: () -> Unit,
     miniPlayer: @Composable () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: PlaylistListViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     var creating by rememberSaveable { mutableStateOf(false) }
+    var choosingKind by rememberSaveable { mutableStateOf(false) }
     val fallbackName = stringResource(R.string.playlist_import_fallback_name)
     val importFile =
         rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
             if (uri != null) viewModel.onImport(uri.toString(), fallbackName)
         }
     state.message?.let { PlaylistFileDialog(it, viewModel::onMessageDismissed, onOpenPlaylist) }
+    if (choosingKind) {
+        CreateKindDialog(
+            onDismiss = { choosingKind = false },
+            onPlain = { creating = true },
+            onSmart = onNewSmart,
+        )
+    }
     if (creating) {
         PlaylistNameDialog(
             title = stringResource(DesignR.string.playlist_new),
@@ -71,7 +86,7 @@ fun PlaylistListScreen(
             RoundIconButton(
                 icon = DesignR.drawable.ic_plus,
                 contentDescription = stringResource(DesignR.string.playlist_new),
-                onClick = { creating = true },
+                onClick = { choosingKind = true },
             )
         }
         SectionTitle(stringResource(R.string.playlists_title))
@@ -86,6 +101,14 @@ fun PlaylistListScreen(
                         subtitle = trackCountText(auto.trackCount),
                         onClick = { onOpenAutoPlaylist(auto.playlist) },
                         cover = { PlaylistCover(auto.firstTrackId, it) },
+                    )
+                }
+                items(state.smart, key = { "smart-${it.id}" }) { smart ->
+                    AlbumRow(
+                        title = smart.name,
+                        subtitle = trackCountText(smart.trackCount),
+                        onClick = { onOpenSmart(smart.id) },
+                        cover = { PlaylistCover(null, it, gradient = smart.gradient) },
                     )
                 }
                 if (state.isLoaded && state.playlists.isEmpty()) {
@@ -122,4 +145,33 @@ private fun EmptyPlaylistsHint() {
         color = MuzzzloColors.TextSecondary,
         textAlign = TextAlign.Center,
     )
+}
+
+/** What the plus creates: a playlist filled by hand or a smart playlist filled by rules (task 2.5.10). */
+@Composable
+private fun CreateKindDialog(
+    onDismiss: () -> Unit,
+    onPlain: () -> Unit,
+    onSmart: () -> Unit,
+) {
+    MuzzzloDialog(title = stringResource(R.string.smart_create_title), onDismiss = onDismiss) {
+        RadioOptionRow(
+            text = stringResource(R.string.smart_create_plain),
+            selected = false,
+            onClick = {
+                onDismiss()
+                onPlain()
+            },
+            secondary = stringResource(R.string.smart_create_plain_hint),
+        )
+        RadioOptionRow(
+            text = stringResource(R.string.smart_create_smart),
+            selected = false,
+            onClick = {
+                onDismiss()
+                onSmart()
+            },
+            secondary = stringResource(R.string.smart_create_smart_hint),
+        )
+    }
 }
