@@ -28,6 +28,24 @@ data class MixListenRow(
     @ColumnInfo(name = "source_kind") val sourceKind: String?,
 )
 
+/** A counted listen of a period summary with the album and the current title of its track (task 2.5.11). */
+data class SummaryListenRow(
+    @ColumnInfo(name = "track_id") val trackId: Long?,
+    val title: String,
+    @ColumnInfo(name = "artists_snapshot") val artistsSnapshot: String,
+    @ColumnInfo(name = "album_id") val albumId: Long?,
+    @ColumnInfo(name = "album_title") val albumTitle: String?,
+    @ColumnInfo(name = "played_ms") val playedMs: Long,
+)
+
+/** A library artist of a track, in tag order, for period summaries. */
+data class TrackArtistLinkRow(
+    @ColumnInfo(name = "track_id") val trackId: Long,
+    @ColumnInfo(name = "artist_id") val artistId: Long,
+    val name: String,
+    @ColumnInfo(name = "photo_uri") val photoPath: String?,
+)
+
 /** Listen events of the statistics (DATABASE.md, `listen_event`). */
 @Dao
 interface ListenEventDao {
@@ -65,6 +83,49 @@ interface ListenEventDao {
             "ORDER BY started_at, id",
     )
     suspend fun countedListens(): List<MixListenRow>
+
+    /** Counted listens of `[fromMs, toMs)` in the order they started, for period summaries (task 2.5.11). */
+    @Query(
+        "SELECT e.track_id, COALESCE(t.title, e.title_snapshot) AS title, e.artists_snapshot, " +
+            "t.album_id, a.title AS album_title, e.played_ms FROM listen_event e " +
+            "LEFT JOIN track t ON t.id = e.track_id LEFT JOIN album a ON a.id = t.album_id " +
+            "WHERE e.counted = 1 AND e.started_at >= :fromMs AND e.started_at < :toMs ORDER BY e.started_at, e.id",
+    )
+    suspend fun summaryListens(
+        fromMs: Long,
+        toMs: Long,
+    ): List<SummaryListenRow>
+
+    /** The library artists of the tracks listened to in `[fromMs, toMs)`, in tag order. */
+    @Query(
+        "SELECT ta.track_id, ar.id AS artist_id, ar.name, ar.photo_uri FROM track_artist ta " +
+            "JOIN artist ar ON ar.id = ta.artist_id WHERE ta.track_id IN (SELECT DISTINCT track_id FROM listen_event " +
+            "WHERE counted = 1 AND started_at >= :fromMs AND started_at < :toMs) ORDER BY ta.track_id, ta.position",
+    )
+    suspend fun summaryTrackArtists(
+        fromMs: Long,
+        toMs: Long,
+    ): List<TrackArtistLinkRow>
+
+    /** Whether `[fromMs, toMs)` has a counted listen. */
+    @Query(
+        "SELECT EXISTS(SELECT 1 FROM listen_event WHERE counted = 1 AND started_at >= :fromMs AND started_at < :toMs)",
+    )
+    fun observeHasListens(
+        fromMs: Long,
+        toMs: Long,
+    ): Flow<Boolean>
+
+    /** Genres of the tracks listened to in `[fromMs, toMs)`, in tag order. */
+    @Query(
+        "SELECT tg.track_id, g.name FROM track_genre tg JOIN genre g ON g.id = tg.genre_id WHERE tg.track_id IN " +
+            "(SELECT DISTINCT track_id FROM listen_event WHERE counted = 1 AND started_at >= :fromMs " +
+            "AND started_at < :toMs) ORDER BY tg.track_id, tg.position",
+    )
+    suspend fun summaryTrackGenres(
+        fromMs: Long,
+        toMs: Long,
+    ): List<TrackGenreName>
 
     /** Every event, the latest first. */
     @Query("SELECT * FROM listen_event ORDER BY started_at DESC, id DESC")

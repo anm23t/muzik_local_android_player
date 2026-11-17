@@ -34,6 +34,9 @@ sealed interface CalendarPeriod {
 
     operator fun contains(date: LocalDate): Boolean = !date.isBefore(start) && date.isBefore(end)
 
+    /** The period is over on [today]; a running one is shown "so far". */
+    fun isFinishedOn(today: LocalDate): Boolean = !today.isBefore(end)
+
     /** The week that starts on Monday [start]. */
     data class Week(override val start: LocalDate) : CalendarPeriod {
         init {

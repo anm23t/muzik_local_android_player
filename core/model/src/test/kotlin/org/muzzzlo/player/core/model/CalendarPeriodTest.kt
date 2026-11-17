@@ -78,6 +78,13 @@ class CalendarPeriodTest {
     }
 
     @Test
+    fun `a running period is not finished until its last day is over`() {
+        val week = CalendarPeriod.weekOf(date("2026-11-17"))
+        assertFalse(week.isFinishedOn(date("2026-11-22")))
+        assertTrue(week.isFinishedOn(date("2026-11-23")))
+    }
+
+    @Test
     fun `every period comes back from its key`() {
         val periods =
             listOf(

@@ -2,6 +2,7 @@ package org.muzzzlo.player.core.stats
 
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
@@ -12,9 +13,12 @@ import org.muzzzlo.player.core.database.dao.ListenEventDao
 import org.muzzzlo.player.core.database.dao.MixListenRow
 import org.muzzzlo.player.core.database.dao.OrphanPlayRow
 import org.muzzzlo.player.core.database.dao.RecentAlbumRow
+import org.muzzzlo.player.core.database.dao.SummaryListenRow
 import org.muzzzlo.player.core.database.dao.TopAlbumRow
 import org.muzzzlo.player.core.database.dao.TopTrackRow
 import org.muzzzlo.player.core.database.dao.TotalsRow
+import org.muzzzlo.player.core.database.dao.TrackArtistLinkRow
+import org.muzzzlo.player.core.database.dao.TrackGenreName
 import org.muzzzlo.player.core.database.dao.TrackPlayStatRow
 import org.muzzzlo.player.core.database.entity.ListenEventEntity
 import org.muzzzlo.player.core.model.FinishedListen
@@ -105,6 +109,26 @@ class ListenWriterTest {
         ) = emptyList<TrackPlayStatRow>()
 
         override suspend fun countedListens() = emptyList<MixListenRow>()
+
+        override suspend fun summaryListens(
+            fromMs: Long,
+            toMs: Long,
+        ) = emptyList<SummaryListenRow>()
+
+        override suspend fun summaryTrackArtists(
+            fromMs: Long,
+            toMs: Long,
+        ) = emptyList<TrackArtistLinkRow>()
+
+        override fun observeHasListens(
+            fromMs: Long,
+            toMs: Long,
+        ) = flowOf(false)
+
+        override suspend fun summaryTrackGenres(
+            fromMs: Long,
+            toMs: Long,
+        ) = emptyList<TrackGenreName>()
 
         override fun observeTotals(
             from: Long,
