@@ -101,13 +101,47 @@ class GeneratedSetsTest {
     }
 
     @Test
+    fun `a seasonal set takes up to fifty most played of its period`() {
+        val facts = (1L..60L).map { fact(it, lastPlayed = it) }
+        val plays = (1L..60L).associateWith { (it % 7).toInt() }
+        val input = GeneratedInput(facts, emptyMap(), now, 20_000, periodPlays = plays)
+        val set = GeneratedSets.build(GeneratedKind.MOST_PLAYED_SEASON, input)
+
+        assertEquals(GeneratedSets.SEASONAL_SIZE, set.size)
+        assertEquals(listOf(55L, 48L, 41L), set.take(3))
+        assertTrue(set.none { it % 7 == 0L })
+    }
+
+    @Test
+    fun `a small history gives a short seasonal set that still shows`() {
+        val input = GeneratedInput(listOf(fact(1), fact(2)), emptyMap(), now, 20_000, periodPlays = mapOf(2L to 1))
+        assertEquals(listOf(2L), GeneratedSets.build(GeneratedKind.MOST_PLAYED_YEAR, input))
+        val playlist = GeneratedPlaylist(GeneratedKind.MOST_PLAYED_YEAR, 1, 0, trackCount = 1, createdAtMs = 0)
+        assertTrue(playlist.isShown)
+        assertFalse(playlist.copy(trackCount = 0).isShown)
+    }
+
+    @Test
+    fun `seasonal kinds are not built every day`() {
+        assertEquals(
+            listOf(GeneratedKind.MOST_PLAYED_SEASON, GeneratedKind.MOST_PLAYED_YEAR),
+            GeneratedKind.entries.filter { it.isSeasonal },
+        )
+        assertTrue(GeneratedKind.daily.none { it.isSeasonal })
+    }
+
+    @Test
     fun `an empty library gives empty sets`() {
         GeneratedKind.entries.forEach { assertEquals(emptyList<Long>(), GeneratedSets.build(it, input(emptyList()))) }
     }
 
     @Test
     fun `gradients are one per ready-made kind, the daily one follows the day`() {
-        val kinds = (GeneratedKind.entries - GeneratedKind.DAILY_MIX).map { CoverGradients.forKind(it, 0) }
+        val ready = (GeneratedKind.daily - GeneratedKind.DAILY_MIX).map { CoverGradients.forKind(it, 0) }
+        val seasonal =
+            (Season.entries.map { CalendarPeriod.SeasonOf(it, 2026) } + CalendarPeriod.Year(2026))
+                .map { CoverGradients.forKind(GeneratedKind.MOST_PLAYED_SEASON, 0, it) }
+        val kinds = ready + seasonal
         assertEquals(kinds.size, kinds.toSet().size)
         assertEquals(CoverGradients.forDay(5), CoverGradients.forKind(GeneratedKind.DAILY_MIX, 5))
         assertTrue(kinds.all { it in 0 until CoverGradients.COUNT })

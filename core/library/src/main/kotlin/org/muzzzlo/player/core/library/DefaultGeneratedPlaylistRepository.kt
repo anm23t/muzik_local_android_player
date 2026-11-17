@@ -18,6 +18,7 @@ import org.muzzzlo.player.core.database.dao.MixListenRow
 import org.muzzzlo.player.core.database.dao.PlaylistDao
 import org.muzzzlo.player.core.database.entity.GeneratedPlaylistEntity
 import org.muzzzlo.player.core.database.entity.PlaylistEntity
+import org.muzzzlo.player.core.model.CalendarPeriod
 import org.muzzzlo.player.core.model.DispatcherProvider
 import org.muzzzlo.player.core.model.GeneratedInput
 import org.muzzzlo.player.core.model.GeneratedKind
@@ -27,8 +28,10 @@ import org.muzzzlo.player.core.model.Json
 import org.muzzzlo.player.core.model.MixListen
 import org.muzzzlo.player.core.model.PlaylistNames
 import org.muzzzlo.player.core.model.SavedSnapshot
+import org.muzzzlo.player.core.model.SeasonalWindow
 import org.muzzzlo.player.core.model.Track
 import org.muzzzlo.player.core.model.TrackFactsSource
+import org.muzzzlo.player.core.model.rangeIn
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
@@ -65,8 +68,43 @@ internal class DefaultGeneratedPlaylistRepository
                     val empty = stored.filter { dao.trackIds(it.kind).isEmpty() }.mapTo(HashSet()) { it.kind }
                     val stale = builder.staleKinds(stored.associate { it.kind to it.day }, empty, today)
                     if (stale.isNotEmpty()) rebuild(stale, today)
+                    val seasonal =
+                        builder.seasonalToBuild(
+                            stored.associate { it.kind to StoredSeasonal(it.period, it.day) },
+                            LocalDate.ofEpochDay(today),
+                        )
+                    seasonal.forEach { (kind, period) -> rebuildSeasonal(kind, period, today) }
                 }
             }
+
+        /** The most played tracks of [period] (task 2.5.9); listens of the whole period, also after its end. */
+        private suspend fun rebuildSeasonal(
+            kind: GeneratedKind,
+            period: CalendarPeriod,
+            today: Long,
+        ) {
+            val now = clock.millis()
+            val range = period.rangeIn(clock.zone)
+            val input =
+                GeneratedInput(
+                    facts = facts.observeFacts().first(),
+                    recentPlays = emptyMap(),
+                    nowMs = now,
+                    epochDay = today,
+                    periodPlays =
+                        listens.trackPlayStatsBetween(range.fromMs, range.toMs).associate { it.trackId to it.plays },
+                )
+            val set = builder.build(kind, input, period)
+            val entity =
+                GeneratedPlaylistEntity(
+                    kind = kind.key,
+                    day = today,
+                    gradient = set.gradient,
+                    createdAt = now,
+                    period = period.key,
+                )
+            dao.replace(entity, set.trackIds)
+        }
 
         private suspend fun rebuild(
             kinds: List<GeneratedKind>,
@@ -108,7 +146,8 @@ internal class DefaultGeneratedPlaylistRepository
             dao.observeAll()
                 .map {
                         rows ->
-                    rows.mapNotNull { it.toModel() }.filter { it.isShown && it.isToday() }.sortedBy { it.kind.ordinal }
+                    rows.mapNotNull { it.toModel() }.filter { it.isShown && it.isVisibleToday() }
+                        .sortedBy { it.kind.ordinal }
                 }
                 .flowOn(dispatchers.default)
 
@@ -145,12 +184,30 @@ internal class DefaultGeneratedPlaylistRepository
                 }
             }
 
-        /** A set made before midnight stays in the table until the next [ensureToday] but is not shown. */
-        private fun GeneratedPlaylist.isToday() = epochDay == LocalDate.now(clock).toEpochDay()
+        /**
+         * A set made before midnight stays in the table until the next [ensureToday] but is not shown; a seasonal set
+         * shows in the window of its period.
+         */
+        private fun GeneratedPlaylist.isVisibleToday(): Boolean {
+            val today = LocalDate.now(clock)
+            return if (kind.isSeasonal) {
+                period?.let { SeasonalWindow.isShown(it, today) } == true
+            } else {
+                epochDay == today.toEpochDay()
+            }
+        }
 
         private fun GeneratedPlaylistRow.toModel(): GeneratedPlaylist? =
             GeneratedKind.fromKey(kind)?.let {
-                GeneratedPlaylist(it, day, gradient, trackCount, createdAt, lastStartedAt)
+                GeneratedPlaylist(
+                    it,
+                    day,
+                    gradient,
+                    trackCount,
+                    createdAt,
+                    lastStartedAt,
+                    CalendarPeriod.fromKey(period),
+                )
             }
     }
 

@@ -19,10 +19,14 @@ import org.muzzzlo.player.core.designsystem.component.ScreenFrame
 import org.muzzzlo.player.core.designsystem.component.TrackAction
 import org.muzzzlo.player.core.designsystem.component.TrackActionsMenu
 import org.muzzzlo.player.core.designsystem.component.TrackRow
+import org.muzzzlo.player.core.designsystem.component.seasonName
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloColors
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloDimens
+import org.muzzzlo.player.core.model.CalendarPeriod
 import org.muzzzlo.player.core.model.GeneratedKind
+import org.muzzzlo.player.core.model.GeneratedPlaylist
 import org.muzzzlo.player.core.model.Track
+import java.time.LocalDate
 import org.muzzzlo.player.core.designsystem.R as DesignR
 
 /**
@@ -77,7 +81,7 @@ fun GeneratedPlaylistScreen(
             }
             return@ScreenFrame
         }
-        val name = generatedName(kind)
+        val name = generatedName(playlist)
         PlaylistHeader(
             name = name,
             trackCount = state.tracks.size,
@@ -127,13 +131,25 @@ private fun SavedDialog(
 
 /** The name of a generated playlist; the same as on the home screen. */
 @Composable
-internal fun generatedName(kind: GeneratedKind): String =
-    stringResource(
-        when (kind) {
-            GeneratedKind.DAILY_MIX -> DesignR.string.generated_daily_mix
-            GeneratedKind.ON_REPEAT -> DesignR.string.generated_on_repeat
-            GeneratedKind.FORGOTTEN_FAVORITES -> DesignR.string.generated_forgotten_favorites
-            GeneratedKind.BEST_RATED -> DesignR.string.generated_best_rated
-            GeneratedKind.RECENTLY_ADDED -> DesignR.string.generated_recently_added
-        },
-    )
+internal fun generatedName(playlist: GeneratedPlaylist): String =
+    when (playlist.kind) {
+        GeneratedKind.DAILY_MIX -> stringResource(DesignR.string.generated_daily_mix)
+        GeneratedKind.ON_REPEAT -> stringResource(DesignR.string.generated_on_repeat)
+        GeneratedKind.FORGOTTEN_FAVORITES -> stringResource(DesignR.string.generated_forgotten_favorites)
+        GeneratedKind.BEST_RATED -> stringResource(DesignR.string.generated_best_rated)
+        GeneratedKind.RECENTLY_ADDED -> stringResource(DesignR.string.generated_recently_added)
+        GeneratedKind.MOST_PLAYED_SEASON, GeneratedKind.MOST_PLAYED_YEAR ->
+            when (val period = playlist.period) {
+                is CalendarPeriod.SeasonOf ->
+                    stringResource(
+                        DesignR.string.generated_most_played_season,
+                        seasonName(period.season.ordinal, period.year),
+                    )
+                is CalendarPeriod.Year -> stringResource(DesignR.string.generated_most_played_year, period.year)
+                else ->
+                    stringResource(
+                        DesignR.string.generated_most_played_year,
+                        LocalDate.ofEpochDay(playlist.epochDay).year,
+                    )
+            }
+    }

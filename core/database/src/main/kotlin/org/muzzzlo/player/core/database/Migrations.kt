@@ -248,3 +248,11 @@ val MIGRATION_16_17 =
             db.execSQL("ALTER TABLE `playlist` ADD COLUMN `cover_gradient` INTEGER")
         }
     }
+
+/** 17 to 18 (task 2.5.9): the calendar period of seasonal generated playlists. */
+val MIGRATION_17_18 =
+    object : Migration(17, 18) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE `generated_playlist` ADD COLUMN `period` TEXT")
+        }
+    }

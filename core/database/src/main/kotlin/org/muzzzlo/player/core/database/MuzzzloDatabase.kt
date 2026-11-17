@@ -43,7 +43,7 @@ import org.muzzzlo.player.core.database.entity.TrackGenreEntity
         GeneratedPlaylistEntity::class,
         GeneratedPlaylistTrackEntity::class,
     ],
-    version = 17,
+    version = 18,
     exportSchema = true,
 )
 abstract class MuzzzloDatabase : RoomDatabase() {

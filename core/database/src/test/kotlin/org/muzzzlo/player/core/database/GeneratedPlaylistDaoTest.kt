@@ -155,4 +155,20 @@ class GeneratedPlaylistDaoTest {
             assertEquals(listOf(10L, 30L), listens.map { it.startedAt })
             assertEquals(listOf(null, "dailyMix"), listens.map { it.sourceKind })
         }
+
+    @Test
+    fun `a seasonal set keeps its period and counts listens of its range only`() =
+        runBlocking {
+            (1L..2L).forEach { track(it) }
+            val dao = db.generatedPlaylistDao()
+            dao.replace(set("mostPlayedSeason").copy(period = "season:2026-autumn"), listOf(2))
+            assertEquals("season:2026-autumn", dao.observe("mostPlayedSeason").first()?.period)
+
+            listOf(99L, 100L, 150L, 150L, 200L).forEach { db.listenEventDao().insert(event(1, startedAt = it)) }
+            db.listenEventDao().insert(event(2, startedAt = 120))
+            db.listenEventDao().insert(event(2, startedAt = 130).copy(counted = false, skipped = true))
+
+            val stats = db.listenEventDao().trackPlayStatsBetween(100, 200).associate { it.trackId to it.plays }
+            assertEquals(mapOf(1L to 3, 2L to 1), stats)
+        }
 }

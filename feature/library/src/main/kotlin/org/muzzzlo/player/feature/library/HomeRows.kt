@@ -19,11 +19,14 @@ import org.muzzzlo.player.core.designsystem.component.CoverTile
 import org.muzzzlo.player.core.designsystem.component.GradientCover
 import org.muzzzlo.player.core.designsystem.component.SectionTitle
 import org.muzzzlo.player.core.designsystem.component.playlistCoverSource
+import org.muzzzlo.player.core.designsystem.component.seasonName
 import org.muzzzlo.player.core.designsystem.theme.MuzzzloDimens
 import org.muzzzlo.player.core.model.Album
+import org.muzzzlo.player.core.model.CalendarPeriod
 import org.muzzzlo.player.core.model.ContinueItem
 import org.muzzzlo.player.core.model.GeneratedKind
 import org.muzzzlo.player.core.model.GeneratedPlaylist
+import java.time.LocalDate
 import org.muzzzlo.player.core.designsystem.R as DesignR
 
 /** Tiles in one row of the home screen (28:620). */
@@ -38,7 +41,7 @@ internal fun PlaylistsForYou(
     if (playlists.isEmpty()) return
     TileRow(stringResource(R.string.home_playlists_for_you), playlists, key = { it.kind.key }) { playlist, width ->
         CoverTile(
-            title = generatedName(playlist.kind),
+            title = generatedName(playlist),
             onClick = { onOpen(playlist.kind) },
             modifier = Modifier.width(width),
             cover = { GradientCover(playlist.gradient, it, MuzzzloDimens.TileShape) },
@@ -68,16 +71,28 @@ private fun <T> TileRow(
 
 /** The name of a generated playlist. */
 @Composable
-internal fun generatedName(kind: GeneratedKind): String =
-    stringResource(
-        when (kind) {
-            GeneratedKind.DAILY_MIX -> DesignR.string.generated_daily_mix
-            GeneratedKind.ON_REPEAT -> DesignR.string.generated_on_repeat
-            GeneratedKind.FORGOTTEN_FAVORITES -> DesignR.string.generated_forgotten_favorites
-            GeneratedKind.BEST_RATED -> DesignR.string.generated_best_rated
-            GeneratedKind.RECENTLY_ADDED -> DesignR.string.generated_recently_added
-        },
-    )
+internal fun generatedName(playlist: GeneratedPlaylist): String =
+    when (playlist.kind) {
+        GeneratedKind.DAILY_MIX -> stringResource(DesignR.string.generated_daily_mix)
+        GeneratedKind.ON_REPEAT -> stringResource(DesignR.string.generated_on_repeat)
+        GeneratedKind.FORGOTTEN_FAVORITES -> stringResource(DesignR.string.generated_forgotten_favorites)
+        GeneratedKind.BEST_RATED -> stringResource(DesignR.string.generated_best_rated)
+        GeneratedKind.RECENTLY_ADDED -> stringResource(DesignR.string.generated_recently_added)
+        GeneratedKind.MOST_PLAYED_SEASON, GeneratedKind.MOST_PLAYED_YEAR ->
+            when (val period = playlist.period) {
+                is CalendarPeriod.SeasonOf ->
+                    stringResource(
+                        DesignR.string.generated_most_played_season,
+                        seasonName(period.season.ordinal, period.year),
+                    )
+                is CalendarPeriod.Year -> stringResource(DesignR.string.generated_most_played_year, period.year)
+                else ->
+                    stringResource(
+                        DesignR.string.generated_most_played_year,
+                        LocalDate.ofEpochDay(playlist.epochDay).year,
+                    )
+            }
+    }
 
 @Composable
 internal fun ContinueListening(
@@ -116,7 +131,7 @@ internal fun ContinueListening(
                 )
             is ContinueItem.GeneratedItem ->
                 CoverTile(
-                    title = generatedName(item.playlist.kind),
+                    title = generatedName(item.playlist),
                     onClick = { onOpenGenerated(item.playlist.kind) },
                     modifier = Modifier.width(tileWidth),
                     cover = { GradientCover(item.playlist.gradient, it, MuzzzloDimens.TileShape) },

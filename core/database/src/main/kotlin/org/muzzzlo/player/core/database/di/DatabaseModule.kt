@@ -14,6 +14,7 @@ import org.muzzzlo.player.core.database.MIGRATION_13_14
 import org.muzzzlo.player.core.database.MIGRATION_14_15
 import org.muzzzlo.player.core.database.MIGRATION_15_16
 import org.muzzzlo.player.core.database.MIGRATION_16_17
+import org.muzzzlo.player.core.database.MIGRATION_17_18
 import org.muzzzlo.player.core.database.MIGRATION_1_2
 import org.muzzzlo.player.core.database.MIGRATION_2_3
 import org.muzzzlo.player.core.database.MIGRATION_3_4
@@ -58,6 +59,7 @@ object DatabaseModule {
                 MIGRATION_14_15,
                 MIGRATION_15_16,
                 MIGRATION_16_17,
+                MIGRATION_17_18,
             )
             .build()
 

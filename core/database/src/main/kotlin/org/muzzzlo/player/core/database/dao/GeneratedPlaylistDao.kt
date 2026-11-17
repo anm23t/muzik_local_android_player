@@ -19,10 +19,11 @@ data class GeneratedPlaylistRow(
     @ColumnInfo(name = "created_at") val createdAt: Long,
     @ColumnInfo(name = "track_count") val trackCount: Int,
     @ColumnInfo(name = "last_started_at") val lastStartedAt: Long?,
+    val period: String? = null,
 )
 
 private const val GENERATED_ROWS =
-    "SELECT g.id, g.kind, g.day, g.gradient, g.created_at, " +
+    "SELECT g.id, g.kind, g.day, g.gradient, g.created_at, g.period, " +
         "(SELECT COUNT(*) FROM generated_playlist_track gt JOIN track t ON t.id = gt.track_id AND t.is_missing = 0 " +
         "WHERE gt.generated_id = g.id) AS track_count, " +
         "(SELECT MAX(e.started_at) FROM listen_event e " +

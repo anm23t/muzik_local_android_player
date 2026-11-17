@@ -328,6 +328,8 @@ data class GeneratedPlaylistEntity(
     val day: Long,
     val gradient: Int,
     @ColumnInfo(name = "created_at") val createdAt: Long,
+    /** [org.muzzzlo.player.core.model.CalendarPeriod.key] of a seasonal set (task 2.5.9); null for the others. */
+    val period: String? = null,
 )
 
 /** A track of a generated set at [position] (0 first). */

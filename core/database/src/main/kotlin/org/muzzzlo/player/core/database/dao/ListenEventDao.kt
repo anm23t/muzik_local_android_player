@@ -48,6 +48,17 @@ interface ListenEventDao {
     )
     suspend fun trackPlayStatsSince(fromMs: Long): List<TrackPlayStatRow>
 
+    /** Counted listens per track in `[fromMs, toMs)`, for the seasonal sets (task 2.5.9). */
+    @Query(
+        "SELECT track_id, COUNT(*) AS plays, MAX(started_at) AS last_played_at FROM listen_event " +
+            "WHERE counted = 1 AND track_id IS NOT NULL AND started_at >= :fromMs AND started_at < :toMs " +
+            "GROUP BY track_id",
+    )
+    suspend fun trackPlayStatsBetween(
+        fromMs: Long,
+        toMs: Long,
+    ): List<TrackPlayStatRow>
+
     /** Every counted listen, oldest first, for the daily mix. */
     @Query(
         "SELECT track_id, started_at, artists_snapshot, source_kind FROM listen_event WHERE counted = 1 " +

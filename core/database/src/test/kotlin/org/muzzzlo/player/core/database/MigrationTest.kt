@@ -371,6 +371,28 @@ class MigrationTest {
         }
     }
 
+    @Test
+    fun `migration 17 to 18 adds the period of seasonal sets`() {
+        helper.createDatabase(DB_NAME, 17).use { db ->
+            db.execSQL("INSERT INTO generated_playlist (kind, day, gradient, created_at) VALUES ('onRepeat', 1, 0, 2)")
+        }
+
+        helper.runMigrationsAndValidate(DB_NAME, 18, true, MIGRATION_17_18).use { db ->
+            db.query("SELECT period FROM generated_playlist").use {
+                it.moveToFirst()
+                assertTrue(it.isNull(0))
+            }
+            db.execSQL(
+                "INSERT INTO generated_playlist (kind, day, gradient, created_at, period) " +
+                    "VALUES ('mostPlayedYear', 1, 8, 2, 'year:2026')",
+            )
+            db.query("SELECT period FROM generated_playlist WHERE kind = 'mostPlayedYear'").use {
+                it.moveToFirst()
+                assertEquals("year:2026", it.getString(0))
+            }
+        }
+    }
+
     private companion object {
         const val DB_NAME = "migration-test.db"
     }

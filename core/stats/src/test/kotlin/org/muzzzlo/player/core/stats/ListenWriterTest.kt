@@ -99,6 +99,11 @@ class ListenWriterTest {
 
         override suspend fun trackPlayStatsSince(fromMs: Long) = emptyList<TrackPlayStatRow>()
 
+        override suspend fun trackPlayStatsBetween(
+            fromMs: Long,
+            toMs: Long,
+        ) = emptyList<TrackPlayStatRow>()
+
         override suspend fun countedListens() = emptyList<MixListenRow>()
 
         override fun observeTotals(
