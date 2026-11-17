@@ -154,7 +154,7 @@ class SummaryViewModelTest {
         runTest {
             val viewModel = viewModel(full)
             viewModel.onShare(SummarySlide.TRACKS, image)
-            assertEquals("content://share/muzzzlo-month-2026-11-tracks.png", viewModel.state.value.shareUri)
+            assertEquals("content://share/wuzzzik-month-2026-11-tracks.png", viewModel.state.value.shareUri)
             viewModel.onShareOpened()
             assertNull(viewModel.state.value.shareUri)
 
@@ -166,12 +166,12 @@ class SummaryViewModelTest {
 
     @Test
     fun `the shared file is named after the period and the slide`() {
-        assertEquals("muzzzlo-month-2026-11-tracks.png", ShareImage.fileName(month, SummarySlide.TRACKS))
+        assertEquals("wuzzzik-month-2026-11-tracks.png", ShareImage.fileName(month, SummarySlide.TRACKS))
         assertEquals(
-            "muzzzlo-season-2026-winter-final.png",
+            "wuzzzik-season-2026-winter-final.png",
             ShareImage.fileName(CalendarPeriod.SeasonOf(Season.WINTER, 2026), SummarySlide.FINAL),
         )
-        assertEquals("muzzzlo-year-2026-cover.png", ShareImage.fileName(CalendarPeriod.Year(2026), SummarySlide.COVER))
+        assertEquals("wuzzzik-year-2026-cover.png", ShareImage.fileName(CalendarPeriod.Year(2026), SummarySlide.COVER))
     }
 
     @Test

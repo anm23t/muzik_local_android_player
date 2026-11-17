@@ -39,13 +39,13 @@ object ShareImage {
     /** The folder in the cache that the file provider serves (`res/xml/summary_share_paths.xml`). */
     const val FOLDER = "summary"
 
-    /** "muzzzlo-month-2026-11-tracks.png": the period and the slide, letters, digits and dashes only. */
+    /** "wuzzzik-month-2026-11-tracks.png": the period and the slide, letters, digits and dashes only. */
     fun fileName(
         period: CalendarPeriod,
         slide: SummarySlide,
     ): String {
         val periodPart = period.key.lowercase().replace(Regex("[^a-z0-9]+"), "-").trim('-')
-        return "muzzzlo-$periodPart-${slide.key}.png"
+        return "wuzzzik-$periodPart-${slide.key}.png"
     }
 
     /** Where a slide of [width] x [height] goes in the picture: as large as fits inside the margins, centred. */
