@@ -116,7 +116,7 @@ class SafeTagWriterTest {
                 val bytes = file.readBytes()
                 assertTrue(bytes.contains("org.muzzzlo.test".toByteArray()), "PRIV frame of $name")
                 if (name == "extra_v23.mp3") {
-                    assertTrue(bytes.contains("MUZZZLO_APE".toByteArray()), "APEv2 tag")
+                    assertTrue(bytes.contains("WUZZZIK_APE".toByteArray()), "APEv2 tag")
                     assertEquals("TAG", String(bytes.copyOfRange(bytes.size - 128, bytes.size - 125)), "ID3v1 tag")
                 }
             }

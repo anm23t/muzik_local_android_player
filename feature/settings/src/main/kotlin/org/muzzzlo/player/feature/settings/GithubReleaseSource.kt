@@ -37,7 +37,7 @@ internal class GithubReleaseSource
                 connection.connectTimeout = TIMEOUT_MS
                 connection.readTimeout = TIMEOUT_MS
                 connection.setRequestProperty("Accept", "application/vnd.github+json")
-                connection.setRequestProperty("User-Agent", "MUZZZLO-update-check")
+                connection.setRequestProperty("User-Agent", "WUZZZIK-update-check")
                 return when (connection.responseCode) {
                     HttpURLConnection.HTTP_OK ->
                         connection.inputStream.use(::readLimited)

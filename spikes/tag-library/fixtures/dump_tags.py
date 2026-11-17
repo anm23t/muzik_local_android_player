@@ -26,7 +26,7 @@ def dump_id3(f):
     out["covers"] = [sha(p.data) for p in t.getall("APIC")]
     out["lyrics"] = [u.text for u in t.getall("USLT")]
     out["unknown"] = {
-        "TXXX:MUZZZLO_TEST": [str(x) for x in t.getall("TXXX:MUZZZLO_TEST")],
+        "TXXX:WUZZZIK_TEST": [str(x) for x in t.getall("TXXX:WUZZZIK_TEST")],
         "PRIV": [sha(p.data) for p in t.getall("PRIV")],
         "GEOB": [sha(g.data) for g in t.getall("GEOB")],
     }
@@ -40,7 +40,7 @@ def dump_vorbis(f, is_flac):
     out = {
         "artists": g("ARTIST"), "title": g("TITLE"), "album": g("ALBUM"), "albumartist": g("ALBUMARTIST"),
         "track": g("TRACKNUMBER"), "genre": g("GENRE"), "lyrics": g("LYRICS") + g("UNSYNCEDLYRICS"),
-        "unknown": {"MUZZZLO_TEST": g("MUZZZLO_TEST"), "REPLAYGAIN_TRACK_GAIN": g("REPLAYGAIN_TRACK_GAIN")},
+        "unknown": {"WUZZZIK_TEST": g("WUZZZIK_TEST"), "REPLAYGAIN_TRACK_GAIN": g("REPLAYGAIN_TRACK_GAIN")},
         "fields": sorted(set(k.upper() for k in t.keys())),
     }
     if is_flac:
@@ -58,7 +58,7 @@ def dump_mp4(f):
         "artists": g("\xa9ART"), "title": g("\xa9nam"), "album": g("\xa9alb"), "albumartist": g("aART"),
         "track": [list(x) for x in g("trkn")], "genre": g("\xa9gen"), "lyrics": g("\xa9lyr"),
         "covers": [sha(c) for c in g("covr")],
-        "unknown": {"MUZZZLO_TEST": [bytes(x).decode() for x in g("----:com.apple.iTunes:MUZZZLO_TEST")]},
+        "unknown": {"WUZZZIK_TEST": [bytes(x).decode() for x in g("----:com.apple.iTunes:WUZZZIK_TEST")]},
         "atoms": sorted(t.keys()),
     }
 

@@ -100,7 +100,7 @@
     <string name="settings_check_updates">Check for updates</string>
     <string name="settings_check_updates_hint">Once a day, when the app starts, it asks GitHub for the latest release and tells you if it is newer. Nothing is downloaded or installed. Needs the internet.</string>
     <string name="update_ask_title">Check for updates?</string>
-    <string name="update_ask_text">MUZZZLO can ask GitHub once a day whether a newer version has been released, and tell you. Only the latest release is looked up: nothing is downloaded or installed, and nothing about you or your music is sent. You can change this in Settings.</string>
+    <string name="update_ask_text">WUZZZIK can ask GitHub once a day whether a newer version has been released, and tell you. Only the latest release is looked up: nothing is downloaded or installed, and nothing about you or your music is sent. You can change this in Settings.</string>
     <string name="update_ask_yes">Yes, check</string>
     <string name="update_ask_no">No</string>
     <string name="update_available_title">New version</string>

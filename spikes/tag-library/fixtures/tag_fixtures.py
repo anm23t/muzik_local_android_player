@@ -38,7 +38,7 @@ def tag_id3(path, version):
     tags.add(APIC(encoding=3, mime="image/png", type=3, desc="", data=COVER))
     tags.add(USLT(encoding=3 if version == 4 else 1, lang="eng", desc="", text=LYRICS))
     # Unknown to the app: must survive any write.
-    tags.add(TXXX(encoding=3 if version == 4 else 1, desc="MUZZZLO_TEST", text="keep-me"))
+    tags.add(TXXX(encoding=3 if version == 4 else 1, desc="WUZZZIK_TEST", text="keep-me"))
     tags.add(PRIV(owner="org.muzzzlo.spike", data=b"\x00\x01\x02private"))
     tags.add(GEOB(encoding=0, mime="application/octet-stream", filename="blob.bin", desc="blob", data=b"geob-data"))
     tags.save(path, v2_version=version, v23_sep=None)
@@ -55,7 +55,7 @@ def tag_vorbis_like(f, is_flac):
     f["DATE"] = "2024"
     f["GENRE"] = "Test"
     f["LYRICS"] = LYRICS
-    f["MUZZZLO_TEST"] = "keep-me"
+    f["WUZZZIK_TEST"] = "keep-me"
     f["REPLAYGAIN_TRACK_GAIN"] = "-6.50 dB"
     if is_flac:
         f.add_picture(picture())
@@ -88,7 +88,7 @@ def tag_mp4(path):
     f["\xa9gen"] = "Test"
     f["\xa9lyr"] = LYRICS
     f["covr"] = [MP4Cover(COVER, imageformat=MP4Cover.FORMAT_PNG)]
-    f["----:com.apple.iTunes:MUZZZLO_TEST"] = [MP4FreeForm(b"keep-me")]
+    f["----:com.apple.iTunes:WUZZZIK_TEST"] = [MP4FreeForm(b"keep-me")]
     f.save()
 
 

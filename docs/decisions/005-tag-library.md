@@ -91,7 +91,7 @@ and a crash in native code takes the process down instead of throwing an excepti
 ## License
 
 - TagLib is dual-licensed: **LGPL-2.1** (version 2.1 only, not "or later") or **MPL-1.1**, per file headers and
-  `COPYING.LGPL` / `COPYING.MPL`. MUZZZLO uses it under **LGPL-2.1**; MPL-1.1 alone is not compatible with the GPL.
+  `COPYING.LGPL` / `COPYING.MPL`. WUZZZIK uses it under **LGPL-2.1**; MPL-1.1 alone is not compatible with the GPL.
 - **Compatible with GPLv3:** LGPL-2.1, section 3, allows any copy of the library to be used under the GNU GPL
   version 2 or any later version, so linking TagLib (statically, into `libtaglib_jni.so`) into a GPLv3 app is allowed.
   The FSF lists LGPL-2.1 as GPLv3-compatible.

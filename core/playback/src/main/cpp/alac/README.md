@@ -10,7 +10,7 @@ decoders of some phones fail in `MediaCodec` (`docs/decisions/012-alac-decoder.m
 
 ## Changes against the source
 
-Marked with `MUZZZLO:` comments in the code.
+Marked with `WUZZZIK:` comments in the code.
 
 1. `ALACDecoder.cpp`: a partial frame may not declare more samples than `frameLength`. Without the check a broken
    or crafted file writes past the decoding buffers.

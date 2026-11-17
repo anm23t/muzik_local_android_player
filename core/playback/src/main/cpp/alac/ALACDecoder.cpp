@@ -251,7 +251,7 @@ int32_t ALACDecoder::Decode( BitBuffer * bits, uint8_t * sampleBuffer, uint32_t 
 				{
 					numSamples  = BitBufferRead( bits, 16 ) << 16;
 					numSamples |= BitBufferRead( bits, 16 );
-					// MUZZZLO: the frame may not hold more samples than the buffers allocated for frameLength.
+					// WUZZZIK: the frame may not hold more samples than the buffers allocated for frameLength.
 					RequireAction( numSamples <= mConfig.frameLength, status = kALAC_ParamError; goto Exit; );
 				}
 
@@ -404,7 +404,7 @@ int32_t ALACDecoder::Decode( BitBuffer * bits, uint8_t * sampleBuffer, uint32_t 
 				{
 					numSamples  = BitBufferRead( bits, 16 ) << 16;
 					numSamples |= BitBufferRead( bits, 16 );
-					// MUZZZLO: the frame may not hold more samples than the buffers allocated for frameLength.
+					// WUZZZIK: the frame may not hold more samples than the buffers allocated for frameLength.
 					RequireAction( numSamples <= mConfig.frameLength, status = kALAC_ParamError; goto Exit; );
 				}
 
