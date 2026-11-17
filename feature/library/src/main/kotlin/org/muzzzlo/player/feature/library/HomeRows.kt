@@ -7,7 +7,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -114,7 +116,12 @@ private fun <T> TileRow(
         BoxWithConstraints(Modifier.fillMaxWidth()) {
             val gap = MuzzzloDimens.SectionGap
             val tileWidth = (maxWidth - gap * (TILES_PER_ROW - 1)) / TILES_PER_ROW
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(gap)) {
+            val listState = rememberLazyListState()
+            // A row keeps its first visible tile by key; a new tile in front ("Continue listening" after a listen)
+            // would stay hidden behind the left edge, so a new first tile brings the row back to the start.
+            val firstKey = items.firstOrNull()?.let(key)
+            LaunchedEffect(firstKey) { listState.scrollToItem(0) }
+            LazyRow(state = listState, horizontalArrangement = Arrangement.spacedBy(gap)) {
                 items(items, key = key) { tile(it, tileWidth) }
             }
         }

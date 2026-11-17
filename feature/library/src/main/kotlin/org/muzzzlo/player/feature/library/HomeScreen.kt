@@ -15,8 +15,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -118,13 +119,18 @@ fun HomeScreen(
                     Modifier.weight(1f),
                 )
             !state.hasMusic -> Notice(stringResource(R.string.library_empty), Modifier.weight(1f))
-            else -> {
-                PlaylistsForYou(state.generated, onOpenGenerated)
-                YourSummaries(state.summaries, onOpenSummary)
-                ContinueListening(state.continueItems, onOpenAlbum, onOpenPlaylist, onOpenGenerated)
-            }
+            else ->
+                // The rows scroll when they do not fit (seasonal summaries add one), so the mini player and the
+                // bottom menu always stay on screen.
+                Column(
+                    Modifier.weight(1f).verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(MuzzzloDimens.SectionGap),
+                ) {
+                    PlaylistsForYou(state.generated, onOpenGenerated)
+                    YourSummaries(state.summaries, onOpenSummary)
+                    ContinueListening(state.continueItems, onOpenAlbum, onOpenPlaylist, onOpenGenerated)
+                }
         }
-        Spacer(Modifier.weight(1f))
         miniPlayer()
         BottomNav(homeNavItems(onOpenArtists, onOpenAlbums, onOpenPlaylists, onOpenStats))
     }
