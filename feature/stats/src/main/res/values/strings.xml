@@ -21,7 +21,7 @@
         <item quantity="one">%d play</item>
         <item quantity="other">%d plays</item>
     </plurals>
-    <string name="summary_app_name" translatable="false">MUZZZLO</string>
+    <string name="summary_app_name" translatable="false">WUZZZIK</string>
     <string name="summary_week">Week %1$d</string>
     <string name="summary_so_far">So far</string>
     <string name="summary_share">Share</string>
