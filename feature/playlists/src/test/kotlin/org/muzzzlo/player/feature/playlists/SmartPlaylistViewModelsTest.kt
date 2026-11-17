@@ -117,6 +117,24 @@ class SmartPlaylistViewModelsTest {
         }
 
     @Test
+    fun `the draft is dirty once it differs from what was opened`() =
+        runTest {
+            val id = smart.create("Björk", bjorkRules)
+            val viewModel = editor(id)
+            assertFalse(viewModel.state.value.isDirty)
+
+            viewModel.onEdit(DraftEdit.Name("Björk!"))
+            assertTrue(viewModel.state.value.isDirty)
+            viewModel.onEdit(DraftEdit.Name("Björk"))
+            assertFalse(viewModel.state.value.isDirty)
+
+            val fresh = editor()
+            assertFalse(fresh.state.value.isDirty)
+            fresh.onEdit(DraftEdit.AddGroup)
+            assertTrue(fresh.state.value.isDirty)
+        }
+
+    @Test
     fun `save asks for a name and a complete condition`() =
         runTest {
             val viewModel = editor()

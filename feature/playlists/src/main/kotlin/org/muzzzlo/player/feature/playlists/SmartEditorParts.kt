@@ -12,6 +12,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import org.muzzzlo.player.core.designsystem.component.ActionRow
 import org.muzzzlo.player.core.designsystem.component.ChoiceChip
@@ -105,10 +106,16 @@ private fun ConditionEditor(
 ) {
     var dialog by rememberSaveable(condition.id) { mutableStateOf(ConditionDialog.None) }
     val close = { dialog = ConditionDialog.None }
+    // Without this the name field takes the focus back when a dialog closes and the keyboard covers the editor.
+    val focus = LocalFocusManager.current
+    val open = { which: ConditionDialog ->
+        focus.clearFocus()
+        dialog = which
+    }
     Row(verticalAlignment = Alignment.CenterVertically) {
         ValueRow(
             text = stringResource(R.string.smart_editor_field),
-            onClick = { dialog = ConditionDialog.Field },
+            onClick = { open(ConditionDialog.Field) },
             modifier = Modifier.weight(1f),
             value = fieldLabel(condition.field),
         )
@@ -123,11 +130,11 @@ private fun ConditionEditor(
     if (condition.field.operators.size > 1) {
         ValueRow(
             text = stringResource(R.string.smart_editor_operator),
-            onClick = { dialog = ConditionDialog.Operator },
+            onClick = { open(ConditionDialog.Operator) },
             value = operatorLabel(condition.operator, condition.field),
         )
     }
-    ConditionValue(groupId, condition, onChoose = { dialog = ConditionDialog.Name }, onEdit = onEdit)
+    ConditionValue(groupId, condition, onChoose = { open(ConditionDialog.Name) }, onEdit = onEdit)
     when (dialog) {
         ConditionDialog.None -> Unit
         ConditionDialog.Field ->

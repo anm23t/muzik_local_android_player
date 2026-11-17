@@ -151,6 +151,7 @@ data class RuleChoices(
  * @property matchingCount tracks the draft picks now; null until counted.
  * @property showErrors "Save" was pressed with a blank name or without conditions; the fields say what is missing.
  * @property savedId the id of the saved playlist; the screen leaves when it is set.
+ * @property isDirty the draft differs from what was opened; leaving then asks first.
  */
 data class SmartEditorUiState(
     val draft: SmartDraft = SmartDraft(),
@@ -160,6 +161,7 @@ data class SmartEditorUiState(
     val choices: RuleChoices = RuleChoices(),
     val showErrors: Boolean = false,
     val savedId: Long? = null,
+    val isDirty: Boolean = false,
 ) {
     val nameMissing: Boolean get() = PlaylistNames.clean(draft.name) == null
     val conditionsMissing: Boolean get() = draft.validConditionCount == 0
@@ -168,6 +170,7 @@ data class SmartEditorUiState(
 private data class EditorState(
     val draft: SmartDraft,
     val isLoaded: Boolean,
+    val opened: SmartDraft = draft,
     val showErrors: Boolean = false,
     val savedId: Long? = null,
 )
@@ -204,6 +207,7 @@ class SmartPlaylistEditorViewModel
                     choices = choices,
                     showErrors = editor.showErrors,
                     savedId = editor.savedId,
+                    isDirty = editor.draft != editor.opened,
                 )
             }.stateIn(this, SmartEditorUiState(isNew = playlistId == 0L))
 
@@ -212,7 +216,7 @@ class SmartPlaylistEditorViewModel
                 viewModelScope.launch {
                     val playlist = smart.playlist(playlistId)
                     val draft = playlist?.let { SmartDraft.of(it.name, it.rules) } ?: SmartDraft.new()
-                    editor.update { it.copy(draft = draft, isLoaded = true) }
+                    editor.update { it.copy(draft = draft, opened = draft, isLoaded = true) }
                 }
             }
         }

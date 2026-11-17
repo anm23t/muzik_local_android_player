@@ -132,4 +132,7 @@
     <string name="rule_operator_is_not_set">не задано</string>
     <string name="rule_operator_yes">да</string>
     <string name="rule_operator_no">нет</string>
+    <string name="smart_editor_discard_title">Отменить изменения?</string>
+    <string name="smart_editor_discard_text">Изменённые правила не сохранятся.</string>
+    <string name="smart_editor_discard">Не сохранять</string>
 </resources>

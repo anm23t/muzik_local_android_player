@@ -1,5 +1,6 @@
 package org.muzzzlo.player.feature.playlists
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -20,6 +21,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.muzzzlo.player.core.designsystem.component.ActionRow
 import org.muzzzlo.player.core.designsystem.component.ChoiceChip
+import org.muzzzlo.player.core.designsystem.component.MuzzzloDialog
 import org.muzzzlo.player.core.designsystem.component.PillButton
 import org.muzzzlo.player.core.designsystem.component.ScreenFrame
 import org.muzzzlo.player.core.designsystem.component.SectionTitle
@@ -45,9 +47,14 @@ fun SmartEditorScreen(
     viewModel: SmartPlaylistEditorViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    var askingDiscard by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(state.savedId) { state.savedId?.let(onSaved) }
+    // A changed draft is not dropped by a stray "back": the user is asked first, as in the tag editor.
+    val back = { if (state.isDirty) askingDiscard = true else onBack() }
+    BackHandler(enabled = state.isDirty, onBack = back)
+    if (askingDiscard) DiscardDialog(onDiscard = onBack, onDismiss = { askingDiscard = false })
     ScreenFrame(modifier) {
-        ScreenHeader(onBack) {
+        ScreenHeader(back) {
             PillButton(text = stringResource(R.string.smart_editor_save), onClick = viewModel::onSave)
         }
         SectionTitle(
@@ -174,6 +181,28 @@ private fun SortChoice(
             text = stringResource(R.string.smart_editor_sort_descending),
             selected = descending,
             onClick = { onEdit(DraftEdit.Sort(field, descending = true)) },
+        )
+    }
+}
+
+@Composable
+private fun DiscardDialog(
+    onDiscard: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    MuzzzloDialog(title = stringResource(R.string.smart_editor_discard_title), onDismiss = onDismiss) {
+        Text(
+            text = stringResource(R.string.smart_editor_discard_text),
+            style = MaterialTheme.typography.bodyLarge,
+            color = MuzzzloColors.TextPrimary,
+        )
+        PillButton(
+            text = stringResource(R.string.smart_editor_discard),
+            onClick = {
+                onDismiss()
+                onDiscard()
+            },
+            wide = true,
         )
     }
 }
