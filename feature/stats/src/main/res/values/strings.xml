@@ -38,4 +38,10 @@
         <item quantity="one">%d minute</item>
         <item quantity="other">%d minutes</item>
     </plurals>
+    <string name="summary_button_title">Summary</string>
+    <string name="summary_kind_week">Week</string>
+    <string name="summary_kind_month">Month</string>
+    <string name="summary_previous">Previous period</string>
+    <string name="summary_next">Next period</string>
+    <string name="summary_open">Open</string>
 </resources>

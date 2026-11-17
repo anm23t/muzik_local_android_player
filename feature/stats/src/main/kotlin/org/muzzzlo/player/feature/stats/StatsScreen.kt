@@ -29,16 +29,18 @@ import org.muzzzlo.player.core.model.StatsTotals
 import org.muzzzlo.player.core.designsystem.R as DesignR
 
 /**
- * Basic statistics screen (no mockup, DESIGN.md, section 7): the period row, the totals of the period in a framed
- * panel, then the top tracks, albums and artists.
+ * Basic statistics screen (no mockup, DESIGN.md, section 7): the summary button (task 2.5.13), the period row, the
+ * totals of the period in a framed panel, then the top tracks, albums and artists.
  *
  * @param onOpenArtist opens the artist card by id, or by name when the artist exists only in deleted tracks.
+ * @param onOpenSummary opens the summary slides of the period with this `CalendarPeriod.key`.
  */
 @Composable
 fun StatsScreen(
     onBack: () -> Unit,
     onOpenAlbum: (Long) -> Unit,
     onOpenArtist: (artistId: Long?, name: String) -> Unit,
+    onOpenSummary: (String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: StatsViewModel = hiltViewModel(),
 ) {
@@ -52,6 +54,7 @@ fun StatsScreen(
             )
         }
         SectionTitle(stringResource(R.string.stats_title))
+        SummaryPanel(onOpenSummary)
         PeriodRow(state.period, viewModel::onPeriodChosen)
         when {
             !state.isLoaded -> Unit

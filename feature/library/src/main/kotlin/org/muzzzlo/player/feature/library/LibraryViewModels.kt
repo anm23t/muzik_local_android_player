@@ -26,6 +26,7 @@ import org.muzzzlo.player.core.designsystem.component.TrackMarksMenu
 import org.muzzzlo.player.core.model.Album
 import org.muzzzlo.player.core.model.Artist
 import org.muzzzlo.player.core.model.ArtistDiscography
+import org.muzzzlo.player.core.model.CalendarPeriod
 import org.muzzzlo.player.core.model.CompoundNameProblem
 import org.muzzzlo.player.core.model.CompoundRepository
 import org.muzzzlo.player.core.model.CompoundRules
@@ -36,11 +37,15 @@ import org.muzzzlo.player.core.model.GeneratedPlaylistRepository
 import org.muzzzlo.player.core.model.LibraryRepository
 import org.muzzzlo.player.core.model.PlayerController
 import org.muzzzlo.player.core.model.PlaylistRepository
+import org.muzzzlo.player.core.model.SeasonalWindow
 import org.muzzzlo.player.core.model.SettingsRepository
 import org.muzzzlo.player.core.model.SortedList
 import org.muzzzlo.player.core.model.StatsRepository
+import org.muzzzlo.player.core.model.SummaryRepository
 import org.muzzzlo.player.core.model.Track
 import org.muzzzlo.player.core.model.TrackMarksRepository
+import java.time.Clock
+import java.time.LocalDate
 import javax.inject.Inject
 
 /** Navigation argument of the album card: the id of the album. */
@@ -70,10 +75,13 @@ private fun PlayerController.currentTrackId(): Flow<Long?> = state.map { it.curr
  * @property continueItems tiles of "Continue listening": up to five albums and playlists of the latest listens
  * ([ContinueListening]), the album of the restored queue while there is no history. Empty hides the section.
  * @property generated "Playlists for you": today's generated playlists (task 2.5.7). Empty hides the section.
+ * @property summaries the season and the year whose summary shows now (task 2.5.13): in the window of the seasonal
+ *   playlists ([SeasonalWindow]) and only with listens. Empty hides the row.
  */
 data class HomeUiState(
     val continueItems: List<ContinueItem> = emptyList(),
     val generated: List<GeneratedPlaylist> = emptyList(),
+    val summaries: List<CalendarPeriod> = emptyList(),
     val hasMusic: Boolean = true,
     val isScanning: Boolean = false,
     val scanFailed: Boolean = false,
@@ -89,8 +97,11 @@ class HomeViewModel
         player: PlayerController,
         playlists: PlaylistRepository,
         private val generatedPlaylists: GeneratedPlaylistRepository,
+        summaries: SummaryRepository,
+        clock: Clock,
     ) : ViewModel() {
         private val scanning = MutableStateFlow(false)
+        private val shownSummaries = shownSummaries(summaries, LocalDate.now(clock))
         private val scanFailed = MutableStateFlow(false)
         private val currentAlbumId = player.state.map { it.currentTrack?.albumId }.distinctUntilChanged()
 
@@ -102,15 +113,17 @@ class HomeViewModel
                 combine(
                     stats.recentAlbums(ContinueListening.MAX_TILES),
                     playlists.observePlaylists(),
-                    generatedPlaylists.observePlaylists(),
+                    combine(generatedPlaylists.observePlaylists(), shownSummaries, ::Pair),
                     ::Triple,
                 ),
                 combine(scanning, scanFailed) { isScanning, failed -> isScanning to failed },
-            ) { albums, hasMusic, currentId, (recent, playlistList, generated), scan ->
+            ) { albums, hasMusic, currentId, (recent, playlistList, forYou), scan ->
                 val queueAlbum = albums.firstOrNull { it.id == currentId }
+                val (generated, summaryPeriods) = forYou
                 HomeUiState(
                     ContinueListening.items(recent, albums, playlistList, queueAlbum, generated = generated),
                     generated = generated,
+                    summaries = summaryPeriods,
                     hasMusic = hasMusic,
                     isScanning = scan.first,
                     scanFailed = scan.second,
@@ -138,6 +151,18 @@ class HomeViewModel
             }
         }
     }
+
+/** The periods of [SeasonalWindow.shownOn] on [today] that have listens, in that order. */
+private fun shownSummaries(
+    summaries: SummaryRepository,
+    today: LocalDate,
+): Flow<List<CalendarPeriod>> {
+    val shown = SeasonalWindow.shownOn(today)
+    if (shown.isEmpty()) return flowOf(emptyList())
+    return combine(shown.map { period -> summaries.hasListens(period).map { period to it } }) { periods ->
+        periods.filter { it.second }.map { it.first }
+    }
+}
 
 /** What the album list renders: albums already in the chosen order. */
 data class AlbumListUiState(

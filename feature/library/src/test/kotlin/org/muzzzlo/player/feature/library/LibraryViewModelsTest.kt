@@ -30,6 +30,7 @@ import org.muzzzlo.player.core.model.Artist
 import org.muzzzlo.player.core.model.ArtistCheckRepository
 import org.muzzzlo.player.core.model.ArtistDiscography
 import org.muzzzlo.player.core.model.ArtistRef
+import org.muzzzlo.player.core.model.CalendarPeriod
 import org.muzzzlo.player.core.model.CompoundNameProblem
 import org.muzzzlo.player.core.model.CompoundNames
 import org.muzzzlo.player.core.model.CompoundRepository
@@ -41,6 +42,7 @@ import org.muzzzlo.player.core.model.LibraryRepository
 import org.muzzzlo.player.core.model.PlayerState
 import org.muzzzlo.player.core.model.Playlist
 import org.muzzzlo.player.core.model.RecentAlbum
+import org.muzzzlo.player.core.model.Season
 import org.muzzzlo.player.core.model.SortedList
 import org.muzzzlo.player.core.model.StatsPeriod
 import org.muzzzlo.player.core.model.StatsRepository
@@ -48,6 +50,9 @@ import org.muzzzlo.player.core.model.StoredSort
 import org.muzzzlo.player.core.model.TopTrack
 import org.muzzzlo.player.core.model.Track
 import org.muzzzlo.player.core.model.TrackMarks
+import java.time.Clock
+import java.time.LocalDate
+import java.time.ZoneOffset
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class LibraryViewModelsTest {
@@ -67,6 +72,13 @@ class LibraryViewModelsTest {
     private val stats = FakeStats()
     private val playlists = FakePlaylists()
     private val generated = FakeGeneratedPlaylists()
+    private val summaries = FakeSummaries()
+
+    /** A day outside the windows of the season and year summaries. */
+    private val clock = clockOn("2026-10-15")
+
+    private fun clockOn(day: String): Clock =
+        Clock.fixed(LocalDate.parse(day).atStartOfDay(ZoneOffset.UTC).plusHours(12).toInstant(), ZoneOffset.UTC)
 
     private fun tracksViewModel(
         lib: LibraryRepository,
@@ -266,9 +278,31 @@ class LibraryViewModelsTest {
         }
 
     @Test
+    fun `the summary of a season shows in its window and only with listens`() =
+        runTest {
+            val autumn = CalendarPeriod.SeasonOf(Season.AUTUMN, 2026)
+            val year = CalendarPeriod.Year(2026)
+            summaries.withListens.value = setOf(autumn, year)
+
+            val outside = HomeViewModel(library, stats, player, playlists, generated, summaries, clock)
+            subscribe(outside.state)
+            assertEquals(emptyList<CalendarPeriod>(), outside.state.value.summaries)
+
+            val inWindow = HomeViewModel(library, stats, player, playlists, generated, summaries, clockOn("2026-11-25"))
+            subscribe(inWindow.state)
+            assertEquals(listOf(autumn), inWindow.state.value.summaries)
+            summaries.withListens.value = setOf(year)
+            assertEquals(emptyList<CalendarPeriod>(), inWindow.state.value.summaries)
+
+            val newYear = HomeViewModel(library, stats, player, playlists, generated, summaries, clockOn("2027-01-07"))
+            subscribe(newYear.state)
+            assertEquals(listOf(year), newYear.state.value.summaries)
+        }
+
+    @Test
     fun `continue listening shows the album of the track in the queue while there is no history`() =
         runTest {
-            val viewModel = HomeViewModel(library, stats, player, playlists, generated)
+            val viewModel = HomeViewModel(library, stats, player, playlists, generated, summaries, clock)
             subscribe(viewModel.state)
             assertEquals(emptyList<ContinueItem>(), viewModel.state.value.continueItems)
 
@@ -282,7 +316,7 @@ class LibraryViewModelsTest {
     @Test
     fun `continue listening follows the history and drops the queue album`() =
         runTest {
-            val viewModel = HomeViewModel(library, stats, player, playlists, generated)
+            val viewModel = HomeViewModel(library, stats, player, playlists, generated, summaries, clock)
             subscribe(viewModel.state)
             player.state.value = PlayerState(currentTrack = second)
 
@@ -296,7 +330,7 @@ class LibraryViewModelsTest {
     @Test
     fun `continue listening puts a started playlist among the albums`() =
         runTest {
-            val viewModel = HomeViewModel(library, stats, player, playlists, generated)
+            val viewModel = HomeViewModel(library, stats, player, playlists, generated, summaries, clock)
             subscribe(viewModel.state)
             stats.recent.value = listOf(RecentAlbum(album.id, 10))
             val mix = Playlist(1, "Mix", 2, first.id, 0, lastPlayedAtMs = 20)
@@ -318,7 +352,7 @@ class LibraryViewModelsTest {
                     listOf(album),
                     emptyList(),
                 ).apply { scanError = IllegalStateException() }
-            val viewModel = HomeViewModel(failing, stats, player, playlists, generated)
+            val viewModel = HomeViewModel(failing, stats, player, playlists, generated, summaries, clock)
             subscribe(viewModel.state)
 
             viewModel.onScanRequested()
@@ -333,7 +367,7 @@ class LibraryViewModelsTest {
     @Test
     fun `the generated playlists of the day are built after each scan and shown when big enough`() =
         runTest {
-            val viewModel = HomeViewModel(library, stats, player, playlists, generated)
+            val viewModel = HomeViewModel(library, stats, player, playlists, generated, summaries, clock)
             subscribe(viewModel.state)
             viewModel.onScanRequested()
             assertEquals(1, generated.ensured)
@@ -480,7 +514,15 @@ class LibraryViewModelsTest {
     fun `home knows when the library is empty`() =
         runTest {
             val viewModel =
-                HomeViewModel(FakeLibrary(emptyList(), emptyList(), emptyList()), stats, player, playlists, generated)
+                HomeViewModel(
+                    FakeLibrary(emptyList(), emptyList(), emptyList()),
+                    stats,
+                    player,
+                    playlists,
+                    generated,
+                    summaries,
+                    clock,
+                )
             subscribe(viewModel.state)
 
             assertEquals(false, viewModel.state.value.hasMusic)

@@ -56,6 +56,7 @@ private val audioPermission: String
  * the mini player and the bottom menu.
  *
  * @param onOpenGenerated opens the card of today's generated playlist of this kind.
+ * @param onOpenSummary opens the summary slides of the period with this `CalendarPeriod.key` (task 2.5.13).
  * @param miniPlayer the mini player of `feature:player`, passed in by the app.
  */
 @Composable
@@ -70,6 +71,7 @@ fun HomeScreen(
     onOpenPlaylists: () -> Unit,
     onOpenPlaylist: (Long) -> Unit,
     onOpenGenerated: (GeneratedKind) -> Unit,
+    onOpenSummary: (String) -> Unit,
     miniPlayer: @Composable () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel(),
@@ -118,6 +120,7 @@ fun HomeScreen(
             !state.hasMusic -> Notice(stringResource(R.string.library_empty), Modifier.weight(1f))
             else -> {
                 PlaylistsForYou(state.generated, onOpenGenerated)
+                YourSummaries(state.summaries, onOpenSummary)
                 ContinueListening(state.continueItems, onOpenAlbum, onOpenPlaylist, onOpenGenerated)
             }
         }

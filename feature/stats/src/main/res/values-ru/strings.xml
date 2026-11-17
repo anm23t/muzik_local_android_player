@@ -41,4 +41,10 @@
         <item quantity="many">%d минут</item>
         <item quantity="other">%d минуты</item>
     </plurals>
+    <string name="summary_button_title">Итоги</string>
+    <string name="summary_kind_week">Неделя</string>
+    <string name="summary_kind_month">Месяц</string>
+    <string name="summary_previous">Предыдущий период</string>
+    <string name="summary_next">Следующий период</string>
+    <string name="summary_open">Открыть</string>
 </resources>

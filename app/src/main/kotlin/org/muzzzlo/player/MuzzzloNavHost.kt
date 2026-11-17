@@ -142,6 +142,8 @@ fun MuzzzloNavHost(backgroundViewModel: LiveBackgroundViewModel) {
     val backgroundClock = rememberLiveBackgroundClock(enabled = background.enabled && background.palette != null)
     val openTagEditor: (Long) -> Unit = { navController.navigate(tagEditorRoute(it)) }
     val openArtist: (Long) -> Unit = { navController.navigate(artistRoute(it)) }
+    // The key of a period has a colon; it goes into the route encoded.
+    val openSummary: (String) -> Unit = { navController.navigate("summary/${Uri.encode(it)}") }
     val sheetScope = rememberCoroutineScope()
     val sheet = remember { PlayerSheetState(sheetScope) }
     // The screen the player was raised over, when the player sent the user to another screen: coming
@@ -212,6 +214,7 @@ fun MuzzzloNavHost(backgroundViewModel: LiveBackgroundViewModel) {
                         onOpenPlaylists = { navController.navigate(ROUTE_PLAYLISTS) },
                         onOpenPlaylist = { navController.navigate("playlist/$it") },
                         onOpenGenerated = { navController.navigate("generated/${it.key}") },
+                        onOpenSummary = openSummary,
                         miniPlayer = miniPlayer,
                     )
                 }
@@ -320,6 +323,7 @@ fun MuzzzloNavHost(backgroundViewModel: LiveBackgroundViewModel) {
                         onOpenArtist = { id, name ->
                             navController.navigate(if (id != null) artistRoute(id) else artistRoute(name))
                         },
+                        onOpenSummary = openSummary,
                     )
                 }
                 composable(ROUTE_ALBUMS) {

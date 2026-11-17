@@ -24,6 +24,7 @@ import org.muzzzlo.player.core.designsystem.theme.MuzzzloDimens
 import org.muzzzlo.player.core.model.Album
 import org.muzzzlo.player.core.model.CalendarPeriod
 import org.muzzzlo.player.core.model.ContinueItem
+import org.muzzzlo.player.core.model.CoverGradients
 import org.muzzzlo.player.core.model.GeneratedKind
 import org.muzzzlo.player.core.model.GeneratedPlaylist
 import java.time.LocalDate
@@ -48,6 +49,36 @@ internal fun PlaylistsForYou(
         )
     }
 }
+
+/**
+ * The summaries of the season and the year (task 2.5.13), in the row under "Playlists for you": a gradient tile of
+ * the season or the year named like it (not in the mockup, the tiles of 28:620, DESIGN.md, section 7).
+ *
+ * @param onOpen opens the slides of the period with this `CalendarPeriod.key`.
+ */
+@Composable
+internal fun YourSummaries(
+    periods: List<CalendarPeriod>,
+    onOpen: (String) -> Unit,
+) {
+    if (periods.isEmpty()) return
+    TileRow(stringResource(R.string.home_your_summaries), periods, key = { it.key }) { period, width ->
+        CoverTile(
+            title = summaryName(period),
+            onClick = { onOpen(period.key) },
+            modifier = Modifier.width(width),
+            cover = { GradientCover(CoverGradients.forPeriod(period), it, MuzzzloDimens.TileShape) },
+        )
+    }
+}
+
+/** A season by its name, a year by its number; the home row shows nothing else. */
+@Composable
+private fun summaryName(period: CalendarPeriod): String =
+    when (period) {
+        is CalendarPeriod.SeasonOf -> seasonName(period.season.ordinal, period.year)
+        else -> period.start.year.toString()
+    }
 
 /** A titled row of tiles; three fill the width (28:620), the others wait behind the edge. */
 @Composable
