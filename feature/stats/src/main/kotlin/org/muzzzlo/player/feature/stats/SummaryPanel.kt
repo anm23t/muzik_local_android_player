@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.muzzzlo.player.core.designsystem.component.ChoiceChip
@@ -76,6 +77,8 @@ internal fun SummaryPanel(
                 style = MaterialTheme.typography.bodyLarge,
                 color = MuzzzloColors.TextPrimary,
                 textAlign = TextAlign.Center,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
             // The back chevron mirrored: the icon set has no right one of this size.
             RoundIconButton(
@@ -86,11 +89,13 @@ internal fun SummaryPanel(
                 size = RoundIconButtonSize.Small,
                 enabled = state.canGoNext,
             )
-            PillButton(
-                text = stringResource(R.string.summary_open),
-                onClick = { onOpen(state.period.key) },
-                enabled = state.hasListens,
-            )
         }
+        // On its own row: next to the arrows a month name ("September 2026") had to wrap.
+        PillButton(
+            text = stringResource(R.string.summary_open),
+            onClick = { onOpen(state.period.key) },
+            enabled = state.hasListens,
+            wide = true,
+        )
     }
 }
