@@ -30,6 +30,10 @@ import org.muzzzlo.player.core.model.GeneratedPlaylist
 import java.time.LocalDate
 import org.muzzzlo.player.core.designsystem.R as DesignR
 
+/** The short line under the tile of a seasonal set. */
+private val SEASON_NOTE = DesignR.string.generated_tile_season
+private val YEAR_NOTE = DesignR.string.generated_tile_year
+
 /** Tiles in one row of the home screen (28:620). */
 private const val TILES_PER_ROW = 3
 
@@ -41,8 +45,10 @@ internal fun PlaylistsForYou(
 ) {
     if (playlists.isEmpty()) return
     TileRow(stringResource(R.string.home_playlists_for_you), playlists, key = { it.kind.key }) { playlist, width ->
+        val (title, subtitle) = generatedTileName(playlist)
         CoverTile(
-            title = generatedName(playlist),
+            title = title,
+            subtitle = subtitle,
             onClick = { onOpen(playlist.kind) },
             modifier = Modifier.width(width),
             cover = { GradientCover(playlist.gradient, it, MuzzzloDimens.TileShape) },
@@ -69,6 +75,21 @@ internal fun YourSummaries(
             modifier = Modifier.width(width),
             cover = { GradientCover(CoverGradients.forPeriod(period), it, MuzzzloDimens.TileShape) },
         )
+    }
+}
+
+/**
+ * The name of a generated playlist on a tile: a seasonal one is too long for one line ("Most played: Autumn 2026"),
+ * so the tile shows the period with a short "Season top" or "Year top" under it; the card shows the whole name.
+ */
+@Composable
+private fun generatedTileName(playlist: GeneratedPlaylist): Pair<String, String?> {
+    val period = playlist.period
+    return if (playlist.kind.isSeasonal && period != null) {
+        val note = if (period is CalendarPeriod.Year) YEAR_NOTE else SEASON_NOTE
+        summaryName(period) to stringResource(note)
+    } else {
+        generatedName(playlist) to null
     }
 }
 
@@ -162,7 +183,8 @@ internal fun ContinueListening(
                 )
             is ContinueItem.GeneratedItem ->
                 CoverTile(
-                    title = generatedName(item.playlist),
+                    title = generatedTileName(item.playlist).first,
+                    subtitle = generatedTileName(item.playlist).second,
                     onClick = { onOpenGenerated(item.playlist.kind) },
                     modifier = Modifier.width(tileWidth),
                     cover = { GradientCover(item.playlist.gradient, it, MuzzzloDimens.TileShape) },

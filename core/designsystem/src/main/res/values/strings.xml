@@ -43,6 +43,8 @@
     <string name="generated_forgotten_favorites">Forgotten Favorites</string>
     <string name="generated_best_rated">Best Rated</string>
     <string name="generated_recently_added">Recently Added</string>
+    <string name="generated_tile_season">Season top</string>
+    <string name="generated_tile_year">Year top</string>
     <string name="generated_most_played_season">Most played: %1$s</string>
     <string name="generated_most_played_year">Most played of %1$d</string>
     <string name="period_season_winter">Winter %1$d–%2$02d</string>

@@ -42,6 +42,8 @@
     <string name="generated_forgotten_favorites">Забытые любимые</string>
     <string name="generated_best_rated">Лучшее по оценкам</string>
     <string name="generated_recently_added">Недавно добавленные</string>
+    <string name="generated_tile_season">Хиты сезона</string>
+    <string name="generated_tile_year">Хиты года</string>
     <string name="generated_most_played_season">Самое слушаемое: %1$s</string>
     <string name="generated_most_played_year">Самое слушаемое за %1$d</string>
     <string name="period_season_winter">Зима %1$d–%2$02d</string>
